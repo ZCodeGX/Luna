@@ -1,0 +1,7 @@
+  File "tests/parser_diag/fixtures/tabs.luna", line 1
+    	print("x")
+    ^^^^^^^^^^^
+IndentationError: tabs are not allowed for indentation
+
+    help: use spaces only (4 spaces per level)
+

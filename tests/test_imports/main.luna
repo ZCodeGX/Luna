@@ -1,6 +1,6 @@
 import saludo
 
-fn main()
+fn main():
     print("Probando imports")
     print(saludo.hola())
     print(saludo.VERSION)

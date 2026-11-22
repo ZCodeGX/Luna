@@ -1,0 +1,7 @@
+  File "tests/parser_diag/fixtures/missing_colon_fn.luna", line 1
+    fn game()
+             ^
+SyntaxError: expected ':' after function signature
+
+    help: insert ':' at the end of the line
+

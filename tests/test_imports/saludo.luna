@@ -2,5 +2,5 @@ mod saludo
 
 pub let VERSION = 1
 
-pub fn hola()
+pub fn hola():
     return "Hola desde saludo"

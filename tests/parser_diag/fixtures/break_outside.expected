@@ -1,0 +1,7 @@
+  File "tests/parser_diag/fixtures/break_outside.luna", line 1
+    break
+    ^^^^^
+SyntaxError: 'break' outside loop
+
+    help: 'break' can only be used inside 'while' or 'for'
+

@@ -1,6 +1,7 @@
-error[E0001]: se esperaba salto de línea después de la condición pero se encontró LET
-  --> tests/parser_diag/fixtures/bad_block.luna:1:9
-1 | if true let x = 1
-  |         ^^^
-   = note: token encontrado: LET
+  File "tests/parser_diag/fixtures/bad_block.luna", line 1
+    if true let x = 1
+           ^
+SyntaxError: expected ':' after 'if' condition
+
+    help: insert ':' at the end of the line
 

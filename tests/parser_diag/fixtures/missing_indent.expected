@@ -1,0 +1,7 @@
+  File "tests/parser_diag/fixtures/missing_indent.luna", line 2
+    print("hi")
+    ^^^^^
+IndentationError: expected an indented block after fn declaration on line 1
+
+    help: indent the block with 4 spaces
+

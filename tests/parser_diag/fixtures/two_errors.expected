@@ -1,12 +1,14 @@
-error[E0002]: se esperaba una expresión
-  --> tests/parser_diag/fixtures/two_errors.luna:2:9
-2 | let y = = 3
-  |         ^
-   = note: token encontrado: ASSIGN
+  File "tests/parser_diag/fixtures/two_errors.luna", line 2
+    let y = = 3
+            ^
+SyntaxError: invalid syntax
 
-error[E0002]: se esperaba una expresión
-  --> tests/parser_diag/fixtures/two_errors.luna:3:9
-3 | let z = = 4
-  |         ^
-   = note: token encontrado: ASSIGN
+    help: expected an expression
+
+  File "tests/parser_diag/fixtures/two_errors.luna", line 3
+    let z = = 4
+            ^
+SyntaxError: invalid syntax
+
+    help: expected an expression
 

@@ -1,16 +1,16 @@
 let name = "Luna"
 let x = 10
 
-fn add(a, b)
+fn add(a, b):
     return a + b
 
-fn main()
+fn main():
     let result = add(x, 20)
-    if result > 20
+    if result > 20:
         print("big")
-    else if result > 10
+    else if result > 10:
         print("mid")
-    else
+    else:
         print("small")
 
 main()

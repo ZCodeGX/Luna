@@ -1,4 +1,4 @@
-fn main()
+fn main():
     let nums = [10, 20, 30]
     print(nums[0])
     nums[0] = 99

@@ -1,4 +1,5 @@
 #include "vm_internal.h"
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -275,8 +276,38 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame,
         case OP_MOD: case OP_POW: {
             uint8_t B = decode_B(code, pc);
             uint8_t C = decode_C(code, pc);
+            LunaValue av = base[B + 1];
+            LunaValue bv = base[C + 1];
             LunaValue result;
-            if (vm_arith(L, base[B + 1], base[C + 1], &result, op) != 0) return -1;
+
+            if (av.type == LUNA_TINTEGER && bv.type == LUNA_TINTEGER) {
+                int64_t ai = av.as.integer;
+                int64_t bi = bv.as.integer;
+                switch (op) {
+                    case OP_ADD: result = luna_int(ai + bi); break;
+                    case OP_SUB: result = luna_int(ai - bi); break;
+                    case OP_MUL: result = luna_int(ai * bi); break;
+                    case OP_DIV:
+                        if (bi == 0) {
+                            luna_error_set_simple(L, LUNA_ERR_DIVZERO, "division by zero");
+                            return -1;
+                        }
+                        result = luna_float((double)ai / (double)bi);
+                        break;
+                    case OP_MOD:
+                        if (bi == 0) {
+                            luna_error_set_simple(L, LUNA_ERR_DIVZERO, "modulo by zero");
+                            return -1;
+                        }
+                        result = luna_int(ai % bi);
+                        break;
+                    case OP_POW: result = luna_float(pow((double)ai, (double)bi)); break;
+                    default: return -1;
+                }
+            } else if (vm_arith(L, av, bv, &result, op) != 0) {
+                return -1;
+            }
+
             base[A + 1] = result;
             frame->pc = advance_pc(code, pc);
             return 0;
@@ -296,8 +327,26 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame,
         case OP_GT: case OP_GE: {
             uint8_t B = decode_B(code, pc);
             uint8_t C = decode_C(code, pc);
+            LunaValue av = base[B + 1];
+            LunaValue bv = base[C + 1];
             int result;
-            if (vm_compare(L, base[B + 1], base[C + 1], op, &result) != 0) return -1;
+
+            if (av.type == LUNA_TINTEGER && bv.type == LUNA_TINTEGER) {
+                int64_t ai = av.as.integer;
+                int64_t bi = bv.as.integer;
+                switch (op) {
+                    case OP_EQ:  result = ai == bi; break;
+                    case OP_NEQ: result = ai != bi; break;
+                    case OP_LT:  result = ai <  bi; break;
+                    case OP_LE:  result = ai <= bi; break;
+                    case OP_GT:  result = ai >  bi; break;
+                    case OP_GE:  result = ai >= bi; break;
+                    default: return -1;
+                }
+            } else if (vm_compare(L, av, bv, op, &result) != 0) {
+                return -1;
+            }
+
             base[A + 1] = luna_bool(result);
             frame->pc = advance_pc(code, pc);
             return 0;

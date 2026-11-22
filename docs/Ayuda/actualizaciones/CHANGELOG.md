@@ -2,6 +2,21 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.2.9
+
+### Cambiado
+
+- Fast paths int/int en `OP_ADD`, `OP_SUB`, `OP_MUL`, `OP_DIV`, `OP_MOD` y `OP_POW`: el despacho evita la llamada a `vm_arith`.
+- Comparaciones enteras directas en `OP_EQ`, `OP_NEQ`, `OP_LT`, `OP_LE`, `OP_GT` y `OP_GE`, sin pasar por `vm_compare`.
+- División y módulo por cero conservan `LUNA_ERR_DIVZERO` y sus mensajes.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.2.9 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.2.8
 
 ### Cambiado

@@ -4,6 +4,7 @@
 #include "../runtime/table.h"
 #include "../runtime/lstring.h"
 #include "../bytecode/proto.h"
+#include "../errors/errors_internal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,9 +96,7 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name) {
     
     /* 2. ¿Ciclo de imports? */
     if (modules_loading_contains(M, name)) {
-        L->status = 5;  /* LUNA_ERR_MODULE */
-        snprintf(L->error_message, sizeof(L->error_message),
-                 "circular import detected: '%s'", name);
+        luna_error_set_simple(L, LUNA_ERR_MODULE, "circular import detected: '%s'", name);
         return NULL;
     }
     
@@ -119,9 +118,7 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name) {
     /* 4. Resolver path del archivo */
     char* path = modules_resolve(M, name, M->current_dir);
     if (!path) {
-        L->status = 5;
-        snprintf(L->error_message, sizeof(L->error_message),
-                 "module '%s' not found", name);
+        luna_error_set_simple(L, LUNA_ERR_MODULE, "module '%s' not found", name);
         return NULL;
     }
     
@@ -130,9 +127,8 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name) {
     struct LunaProto* proto = modules_load_luna(M, L, path, error_buf, sizeof(error_buf));
     if (!proto) {
         free(path);
-        L->status = 5;
-        snprintf(L->error_message, sizeof(L->error_message),
-                 "failed to load module '%s': %s", name, error_buf);
+        luna_error_set_simple(L, LUNA_ERR_MODULE, "failed to load module '%s': %s",
+                              name, error_buf);
         return NULL;
     }
     

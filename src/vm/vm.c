@@ -3,11 +3,7 @@
 #include <string.h>
 
 /* Declarada en opcodes.c */
-extern int vm_execute_instruction(LunaState* L, CallFrame* frame,
-                                  const uint8_t* code, LunaValue* base);
-
-/* Declarada en memory/limits.c */
-extern int luna_report_instruction_limit(LunaState* L);
+extern int vm_execute_loop(LunaState* L);
 
 /* ============================================================
  * Inicialización
@@ -32,53 +28,7 @@ void luna_vm_shutdown(LunaState* L) {
  * ============================================================ */
 
 static int vm_run(LunaState* L) {
-    LunaVM* vm = state_vm(L);
-    CallFrame* frame = NULL;
-    const uint8_t* code = NULL;
-    int frame_valid = 0;
-    uint64_t budget = vm->instruction_budget ? vm->instruction_budget
-                                             : LUNA_INSTRUCTION_BUDGET;
-
-    for (;;) {
-        if (!frame_valid) {
-            if (vm->frame_top == 0) {
-                return 0;  /* terminó */
-            }
-            frame = &vm->frames[vm->frame_top - 1];
-            code = frame->proto->code;
-            frame_valid = 1;
-        }
-
-        L->instructions_executed++;
-        if (--budget == 0) {
-            budget = LUNA_INSTRUCTION_BUDGET;
-            if (L->instruction_limit != 0 &&
-                L->instructions_executed > L->instruction_limit) {
-                vm->instruction_budget = budget;
-                luna_report_instruction_limit(L);
-                return -1;
-            }
-        }
-
-        /* base se recarga por si una llamada C reasignó el stack */
-        LunaValue* base = frame->base;
-        int r = vm_execute_instruction(L, frame, code, base);
-
-        if (r < 0) {
-            /* Error */
-            return -1;
-        }
-
-        if (r == 2) {
-            /* Chunk principal retornó */
-            return 0;
-        }
-
-        /* r == 1: CALL/RETURN cambió el frame activo */
-        if (r == 1) {
-            frame_valid = 0;
-        }
-    }
+    return vm_execute_loop(L);
 }
 
 /* ============================================================

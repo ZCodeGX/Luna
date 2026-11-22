@@ -62,11 +62,20 @@ int luna_vm_execute(LunaState* L, LunaProto* proto) {
     vm->return_level = vm->frame_top;
     int result = -1;
 
-    vm_stack_push(L, luna_function_val(main_fn));
+    size_t func_slot = L->stack_top;
+    if (vm->frame_top > 0) {
+        CallFrame* current = &vm->frames[vm->frame_top - 1];
+        size_t current_base = (size_t)(current->base - L->stack);
+        size_t limit = current_base + (size_t)current->proto->stack_size + 2;
+        if (limit > func_slot) func_slot = limit;
+    }
+    vm_stack_ensure(L, func_slot + 1 - L->stack_top);
     if (L->status != LUNA_OK) goto done;
+    L->stack[func_slot] = luna_function_val(main_fn);
+    L->stack_top = func_slot + 1;
 
     /* Llamar sin argumentos, sin resultados esperados */
-    int func_idx = (int)L->stack_top - 1;
+    int func_idx = (int)func_slot;
     if (vm_call_function(L, func_idx, 0, 0) != 0) {
         goto done;
     }

@@ -2,6 +2,30 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.4.0
+
+### Añadido
+
+- `import` y `mod` compilados: los módulos `.luna` se resuelven, ejecutan y cachean, y el nombre importado enlaza la tabla de exports.
+- `pub` en `let`, `const` y `fn` publica símbolos en la tabla de exports del módulo.
+- Acceso a campos `obj.campo` compilado como `OP_GET_FIELD`.
+- Nuevo opcode `OP_IMPORT` y publicación de exports mediante la global `__exports__`.
+- Fixtures de integración en `tests/test_imports/` con import, exports y acceso a campos.
+
+### Corregido
+
+- Encadenamiento de `LunaTable`: los buckets con colisiones ya no generan ciclos en `find_node`.
+- Ejecución anidada de módulos: cada `luna_vm_execute` termina en su propio nivel de frame y reserva stack por encima del frame llamador.
+- Resolución de imports relativos al archivo ejecutado con `luna_dofile`.
+- Los errores de importación usan `LUNA_ERR_MODULE` y son visibles desde la API C.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.4.0 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.3.0
 
 ### Añadido

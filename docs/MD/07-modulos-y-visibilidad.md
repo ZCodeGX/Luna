@@ -28,11 +28,11 @@ Se buscan las rutas registradas mediante la API, el directorio del archivo actua
 
 ## Caché y exports
 
-El cargador mantiene una caché de módulos, detecta ciclos y ejecuta los módulos `.luna` estableciendo la global `__exports__`. Los módulos nativos se registran con `luna_register_module`.
+El cargador mantiene una caché de módulos, detecta ciclos y ejecuta los módulos `.luna`. El compilador crea una tabla de exports para cada módulo con símbolos públicos y la publica en la global `__exports__` al terminar; `import` enlaza esa tabla al nombre local. Los módulos nativos se registran con `luna_register_module`.
 
 ## Visibilidad
 
-El modificador `pub` se admite en `fn`, `let`, `const` y `mod`:
+El modificador `pub` se admite en `fn`, `let` y `const`:
 
 ```luna
 pub const VERSION = "0.1.0"
@@ -41,9 +41,13 @@ pub fn valor()
     return 42
 ```
 
-El sistema comprueba la presencia de los símbolos en la tabla `exports` y permite exportar símbolos con `modules_export_symbol`.
+Cada declaración `pub` escribe el símbolo en la tabla de exports del módulo. Desde otro archivo se accede con `modulo.VERSION` o `modulo.valor()`.
 
-> [!WARNING]
-> `import` y `mod` están en la gramática y el cargador sabe resolverlos, pero el compilador actual no emite código para estas sentencias.
+```luna
+import utilidades
+
+print(utilidades.VERSION)
+print(utilidades.valor())
+```
 
 Continúa con [manejo de errores](08-manejo-de-errores.md).

@@ -51,7 +51,7 @@ El bytecode `.luac` usa la magia `LUNA` y la versión `0.1`. Si la versión del 
 Tras un cambio de sintaxis o API, actualiza:
 
 - `docs/MD/` — referencia del lenguaje.
-- `docs/documents/index.html` — resumen publicado.
+- `docs/index.html` — resumen publicado; recursos en `docs/web/`.
 - `docs/Ayuda/actualizaciones/CHANGELOG.md` — registro de cambios.
 - `luna.ebnf` — gramática, si cambia la sintaxis.
 

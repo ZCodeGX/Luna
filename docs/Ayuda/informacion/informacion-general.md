@@ -33,7 +33,7 @@ Además de los operadores y estructuras básicas, la única función nativa regi
 ## Enlaces útiles
 
 - [Referencia del lenguaje](../../MD/README.md)
-- [Documentación web](../../documents/index.html)
+- [Documentación web](../../index.html)
 - [Gramática formal](../../../luna.ebnf)
 - [Licencia](licencia.md)
 - [Estructura del proyecto](estructura-del-proyecto.md)

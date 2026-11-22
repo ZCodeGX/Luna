@@ -16,7 +16,7 @@ Documentación del lenguaje de programación **Luna**, organizada por temas.
 | [10 — API C](10-api-c.md) | Encabezados, tipos y funciones públicas |
 | [11 — Estado de implementación](11-estado-de-implementacion.md) | Qué funciona hoy y qué está en la gramática |
 
-La gramática completa fuente de verdad está en [`luna.ebnf`](../../luna.ebnf). La versión web de esta guía está en [`../documents/index.html`](../documents/index.html).
+La gramática completa fuente de verdad está en [`luna.ebnf`](../../luna.ebnf). La versión web de esta guía está en [`../index.html`](../index.html).
 
 > [!WARNING]
 > Luna es `0.1.0`. Muchas construcciones están reconocidas por el parser pero aún no se compilan. Consulta el documento 11 antes de dar algo por soportado.

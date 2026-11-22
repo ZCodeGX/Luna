@@ -2,6 +2,23 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.5.0
+
+### Añadido
+
+- Literales de lista `[1, 2, 3]` y de tabla `{ host = "localhost", port = 8080 }` compilados a `OP_NEW_LIST`/`OP_LIST_APPEND` y `OP_NEW_TABLE`/`OP_TABLE_SET`.
+- Lectura por índice `lista[i]` y `tabla[clave]` compilada a `OP_GET_INDEX`.
+- Asignaciones a `lista[i] = x`, `tabla[clave] = x` y `obj.campo = x`.
+- Asignaciones compuestas `+=`, `-=`, `*=` y `/=` sobre identificadores, índices y campos.
+- Fixture de integración `tests/test_fase1.luna`.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.5.0 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.4.0
 
 ### Añadido

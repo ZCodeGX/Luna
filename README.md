@@ -4,7 +4,7 @@
 
 **Luna** es un lenguaje de programación pequeño, embebible y con CLI estilo Python.
 
-**Versión actual: `0.4.0`** (`MAJOR.MINOR.PATCH`: cambios grandes, mejoras y parches).
+**Versión actual: `0.5.0`** (`MAJOR.MINOR.PATCH`: cambios grandes, mejoras y parches).
 
 ## Instalación
 

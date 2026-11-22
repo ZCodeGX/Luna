@@ -1,6 +1,6 @@
 # 11 — Estado de implementación
 
-Luna se encuentra en versión `0.4.0` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
+Luna se encuentra en versión `0.5.0` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
 
 ## Soportado de extremo a extremo
 
@@ -20,6 +20,10 @@ Luna se encuentra en versión `0.4.0` (ABI 1). La gramática `luna.ebnf` describ
 | Sistema de build con `luna.build` | Disponible |
 | `import`, `mod` y `pub` | Disponible |
 | Acceso a campos `obj.campo` | Disponible |
+| Listas y tablas literales | Disponible |
+| Indexación `lista[i]` / `tabla[clave]` | Disponible |
+| Asignaciones a `lista[i]` y `obj.campo` | Disponible |
+| Asignaciones compuestas `+=`, `-=`, `*=`, `/=` | Disponible |
 
 ## Reconocido pero no compilado
 
@@ -30,10 +34,7 @@ Luna se encuentra en versión `0.4.0` (ABI 1). La gramática `luna.ebnf` describ
 | `try` / `catch` | Sí | La VM tiene opcodes, el compilador no emite |
 | `throw` | Sí | Compilado (`OP_THROW`) |
 | Lambdas `fn(...)` | Sí | Nodo `NODE_LAMBDA` sin compilar |
-| Listas y tablas literales | Sí | Nodos en AST sin compilar |
-| Indexación `lista[i]` | Sí | Sin compilar |
-| Asignaciones a `lista[i]` / `obj.campo` | Sí | `complex assignment targets not yet supported` |
-| Asignaciones compuestas `+=`, `-=`, `*=`, `/=` | Sí | Sin compilar |
+
 | Concatenación de strings con `+` | Sí | Error de tipo en runtime |
 | Chequeo de reasignación de `const` | Sí | No se comprueba |
 

@@ -1,0 +1,6 @@
+error[E0002]: se esperaba una expresión
+  --> tests/parser_diag/fixtures/eof_after_op.luna:1:12
+1 | let x = 1 +
+  |            ^
+   = note: token encontrado: salto de línea
+

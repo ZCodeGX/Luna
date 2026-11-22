@@ -1,0 +1,6 @@
+error[E0002]: se esperaba una expresión
+  --> tests/parser_diag/fixtures/unexpected_rbrace.luna:1:1
+1 | }
+  | ^
+   = note: token encontrado: RBRACE
+

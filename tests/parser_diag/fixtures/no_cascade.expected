@@ -1,0 +1,6 @@
+error[E0002]: se esperaba un nombre de variable
+  --> tests/parser_diag/fixtures/no_cascade.luna:1:5
+1 | let = = = =
+  |     ^
+   = note: token encontrado: ASSIGN
+

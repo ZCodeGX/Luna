@@ -1,0 +1,6 @@
+error[E0002]: se esperaba una expresión
+  --> tests/parser_diag/fixtures/bad_expr.luna:1:9
+1 | let x = =
+  |         ^
+   = note: token encontrado: ASSIGN
+

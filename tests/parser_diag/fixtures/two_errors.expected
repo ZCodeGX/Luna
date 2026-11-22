@@ -1,0 +1,12 @@
+error[E0002]: se esperaba una expresión
+  --> tests/parser_diag/fixtures/two_errors.luna:2:9
+2 | let y = = 3
+  |         ^
+   = note: token encontrado: ASSIGN
+
+error[E0002]: se esperaba una expresión
+  --> tests/parser_diag/fixtures/two_errors.luna:3:9
+3 | let z = = 4
+  |         ^
+   = note: token encontrado: ASSIGN
+

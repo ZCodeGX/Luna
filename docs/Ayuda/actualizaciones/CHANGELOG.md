@@ -2,6 +2,28 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.6.0
+
+### Añadido
+
+- `LunaSpan`, `LunaDiagnostic`, `LunaDiagnosticSink` y renderizado estilo rustc con `error[E000x]`, `-->`, snippets con `^^^`, notas y help.
+- Recuperación multi-error en el parser: `panic_mode`, `synchronize()` y tokens de error léxico continuables.
+- Flags CLI `--no-color`, `--color` y `--max-errors=N`; color automático en TTY y respeto a `NO_COLOR`.
+- Runner `tests/parser_diag/run.py` con seis fixtures de diagnósticos.
+- Documento `docs/MD/13-diagnosticos.md`.
+
+### Cambiado
+
+- Los errores de parseo se imprimen una sola vez como diagnóstico estructurado; la CLI ya no añade el `luna: ...` duplicado para `LUNA_ERR_SYNTAX`.
+- Mensajes del parser traducidos al español.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.6.0 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.5.1
 
 ### Añadido

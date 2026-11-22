@@ -10,6 +10,9 @@ Uso: <prog> [opciones] [archivo.luna] [args...]
   -              lee el programa desde stdin
   -h, --help     muestra esta ayuda
   -V, --version  muestra la versión
+  --no-color     desactiva el color en diagnósticos
+  --color        fuerza el color en diagnósticos
+  --max-errors=N limita el número de errores mostrados (0 = sin límite)
 Sin argumentos inicia el intérprete interactivo.
 ```
 

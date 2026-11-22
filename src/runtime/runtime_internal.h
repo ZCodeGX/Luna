@@ -22,6 +22,11 @@ struct LunaState {
     /* ---------- Objetos GC ---------- */
     LunaGCObject* all_objects;
 
+    /* ---------- Pool de strings internados ---------- */
+    LunaString** string_buckets;
+    uint32_t     string_bucket_count;
+    uint32_t     string_pool_count;
+
     /* ---------- Tabla global ---------- */
     struct LunaTable* globals;
 

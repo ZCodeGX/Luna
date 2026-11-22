@@ -56,6 +56,8 @@ LunaState* luna_new(LunaRuntime* rt) {
     L->all_objects = NULL;
     L->open_upvalues = NULL;
 
+    luna_string_pool_init(L);
+
     /* Tabla global */
     L->globals = luna_table_new(L);
     if (!L->globals) {
@@ -154,6 +156,8 @@ void luna_close(LunaState* L) {
     if (L->stack) {
         L->alloc(L->alloc_ud, L->stack, L->stack_size * sizeof(LunaValue), 0);
     }
+
+    luna_string_pool_free(L);
 
     free(L);
 }

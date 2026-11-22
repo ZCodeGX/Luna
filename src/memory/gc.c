@@ -213,6 +213,7 @@ size_t luna_gc_collect(struct LunaState* L) {
     size_t before = L->bytes_allocated;
     
     gc_mark_root(L);
+    luna_string_pool_purge(L);
     gc_sweep(L);
     
     size_t freed = before - L->bytes_allocated;

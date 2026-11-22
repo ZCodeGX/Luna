@@ -88,37 +88,28 @@ static int alloc_node(LunaState* L, LunaTable* t, uint64_t hash) {
     }
     
     uint32_t pos = hash_position(t, hash);
-    
-    /* Buscar nodo libre en la cadena */
-    int idx = (int)pos;
-    while (idx != EMPTY_NODE) {
-        LunaTableNode* n = &t->nodes[idx];
-        if (n->key.type == LUNA_TNIL) {
-            return idx;
-        }
-        idx = n->next;
+    if (t->nodes[pos].key.type == LUNA_TNIL) {
+        return (int)pos;
     }
     
-    /* No hay espacio en la cadena, usar free_list */
-    if (t->free_list >= t->size) {
-        resize(L, t, t->size * 2);
-        pos = hash_position(t, hash);
+    int tail = (int)pos;
+    while (t->nodes[tail].next != EMPTY_NODE) {
+        tail = t->nodes[tail].next;
     }
     
-    idx = (int)t->free_list;
+    int idx = (int)t->free_list;
     while (idx < (int)t->size && t->nodes[idx].key.type != LUNA_TNIL) {
         idx++;
     }
     
     if (idx >= (int)t->size) {
-        return EMPTY_NODE;
+        resize(L, t, t->size * 2);
+        return alloc_node(L, t, hash);
     }
     
     t->free_list = (uint32_t)(idx + 1);
-    
-    /* Insertar al inicio de la cadena */
-    t->nodes[idx].next = (int)pos;
-    t->nodes[pos] = t->nodes[idx];
+    t->nodes[idx].next = EMPTY_NODE;
+    t->nodes[tail].next = idx;
     
     return idx;
 }
@@ -165,17 +156,23 @@ void luna_table_remove(LunaTable* t, LunaValue key) {
             /* Eliminar nodo */
             if (prev == EMPTY_NODE) {
                 /* Primer nodo de la cadena */
-                if (n->next != EMPTY_NODE) {
-                    t->nodes[pos] = t->nodes[n->next];
+                int next = n->next;
+                if (next != EMPTY_NODE) {
+                    t->nodes[pos] = t->nodes[next];
+                    t->nodes[next].key = luna_nil();
+                    t->nodes[next].value = luna_nil();
+                    t->nodes[next].next = EMPTY_NODE;
                 } else {
-                    t->nodes[pos].key = luna_nil();
+                    n->key = luna_nil();
+                    n->value = luna_nil();
+                    n->next = EMPTY_NODE;
                 }
             } else {
                 t->nodes[prev].next = n->next;
+                n->key = luna_nil();
+                n->value = luna_nil();
+                n->next = EMPTY_NODE;
             }
-            n->key = luna_nil();
-            n->value = luna_nil();
-            n->next = EMPTY_NODE;
             t->count--;
             return;
         }

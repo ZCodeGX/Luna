@@ -45,6 +45,7 @@ typedef struct CallFrame {
 typedef struct {
     CallFrame  frames[LUNA_MAX_CALLS];
     int        frame_top;          /* número de frames activos */
+    int        return_level;       /* nivel de frame donde termina esta ejecución */
     uint64_t   instruction_budget;
 
     /* Upvalues abiertos globales (lista enlazada por uv->next) */

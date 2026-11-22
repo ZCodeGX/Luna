@@ -124,7 +124,7 @@ int vm_execute_loop(LunaState* L) {
     };
 #endif
 
-    if (vm->frame_top == 0) return 0;
+    if (vm->frame_top <= vm->return_level) return 0;
     VM_RELOAD_FRAME();
 
     for (;;) {
@@ -613,7 +613,7 @@ VM_SWITCH_BEGIN
             /* Pop del frame */
             vm->frame_top--;
 
-            if (vm->frame_top == 0) {
+            if (vm->frame_top <= vm->return_level) {
                 /* Retorno del chunk principal: terminar */
                 L->stack_top = ret_start;
                 VM_FINISHED();

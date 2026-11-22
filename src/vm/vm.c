@@ -58,16 +58,24 @@ int luna_vm_execute(LunaState* L, LunaProto* proto) {
     if (!main_fn) return -1;
 
     /* Colocar la función en el stack */
+    int old_return_level = vm->return_level;
+    vm->return_level = vm->frame_top;
+    int result = -1;
+
     vm_stack_push(L, luna_function_val(main_fn));
-    if (L->status != LUNA_OK) return -1;
+    if (L->status != LUNA_OK) goto done;
 
     /* Llamar sin argumentos, sin resultados esperados */
     int func_idx = (int)L->stack_top - 1;
     if (vm_call_function(L, func_idx, 0, 0) != 0) {
-        return -1;
+        goto done;
     }
 
-    return vm_run(L);
+    result = vm_run(L);
+
+done:
+    vm->return_level = old_return_level;
+    return result;
 }
 
 int luna_vm_execute_module(LunaState* L, LunaProto* proto, LunaTable* exports) {

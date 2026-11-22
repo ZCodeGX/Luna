@@ -380,6 +380,12 @@ static void compile_fn_decl(LunaCompiler* C, LunaNode* node) {
     LunaProto* parent_proto = compiler_current_proto(C);
     LunaScope* parent_scope = &C->scope_stack[C->scope_depth - 1];
 
+    int slot = scope_add_local(parent_scope, node->as.fn.name, false);
+    if (slot < 0) {
+        compiler_error_at(C, node, "too many local variables");
+        return;
+    }
+
     compiler_push_proto(C, node->as.fn.name);
     LunaProto* fn_proto = compiler_current_proto(C);
     LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
@@ -397,17 +403,7 @@ static void compile_fn_decl(LunaCompiler* C, LunaNode* node) {
     LunaProto* completed_fn = compiler_pop_proto(C);
     uint16_t proto_idx = luna_proto_add_proto(parent_proto, completed_fn);
 
-    int reg = expr_base(C);
-    luna_proto_emit_op_ABx(parent_proto, OP_CLOSURE, (uint8_t)reg, proto_idx);
-
-    int slot = scope_add_local(parent_scope, node->as.fn.name, false);
-    if (slot < 0) {
-        compiler_error_at(C, node, "too many local variables");
-        return;
-    }
-    if (slot != reg) {
-        luna_proto_emit_op_AB(parent_proto, OP_MOVE, (uint8_t)slot, (uint8_t)reg);
-    }
+    luna_proto_emit_op_ABx(parent_proto, OP_CLOSURE, (uint8_t)slot, proto_idx);
 }
 
 static void compile_block(LunaCompiler* C, LunaNode* node) {

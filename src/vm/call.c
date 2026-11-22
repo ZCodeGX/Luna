@@ -125,20 +125,11 @@ static int setup_luna_call(LunaState* L, LunaFunction* func, int func_index,
     /* Ligar upvalues desde el frame llamador */
     frame->num_ups = (int)proto->num_upvalues;
     for (int i = 0; i < frame->num_ups; i++) {
-        LunaUpvalueDesc* desc = &proto->upvalues[i];
-        LunaUpvalue* uv = NULL;
-        if (caller && !caller->is_c) {
-            if (desc->in_stack) {
-                uv = vm_find_upvalue(L, caller, &caller->base[desc->index + 1]);
-            } else if (desc->index < caller->num_ups) {
-                uv = caller->ups[desc->index];
-            }
-        }
-        if (!uv) {
+        if (i >= (int)func->num_upvalues || !func->upvalues[i]) {
             luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue binding");
             return -1;
         }
-        frame->ups[i] = uv;
+        frame->ups[i] = func->upvalues[i];
     }
 
     return 0;

@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Documentación oficial del lenguaje de programación Luna">
   <title>Documentación de Luna</title>
-  <link rel="icon" href="../assets/luna-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="web/styles.css">
+  <link rel="icon" href="../../assets/luna-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
     <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <a class="brand" href="#inicio">
-      <img src="../assets/luna-logo.svg" alt="Luna" width="40" height="40">
+      <img src="../../assets/luna-logo.svg" alt="Luna" width="40" height="40">
       <span>Luna <small>docs</small></span>
     </a>
     <span class="version">v0.1.0</span>
@@ -21,7 +21,7 @@
         <input type="search" id="search" placeholder="Buscar sección…" aria-label="Buscar sección" autocomplete="off">
       </label>
       <button class="icon-button" id="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">◐</button>
-      <a class="icon-button" href="MD/README.md" aria-label="Ver documentación Markdown" title="Ver documentación Markdown">M↓</a>
+      <a class="icon-button" href="../MD/README.md" aria-label="Ver documentación Markdown" title="Ver documentación Markdown">M↓</a>
     </div>
   </header>
 
@@ -43,8 +43,8 @@
         <a href="#api-c">API C</a>
         <a href="#estado">Estado y límites</a>
         <p class="nav-title">Recursos</p>
-        <a href="MD/README.md">Documentos Markdown</a>
-        <a href="Ayuda/README.md">Ayuda y archivos extra</a>
+        <a href="../MD/README.md">Documentos Markdown</a>
+        <a href="../Ayuda/README.md">Ayuda y archivos extra</a>
       </nav>
     </aside>
 
@@ -55,7 +55,7 @@
         <p class="notice">Requiere un compilador C11 y Python 3. La sintaxis y la API C pueden cambiar entre versiones; no se recomienda uso en producción.</p>
         <div class="hero-actions">
           <a class="button primary" href="#inicio-rapido">Empezar</a>
-          <a class="button" href="MD/README.md">Ver documentos MD</a>
+          <a class="button" href="../MD/README.md">Ver documentos MD</a>
         </div>
       </section>
 
@@ -188,16 +188,16 @@ luna_close(L);</code></pre>
       <section id="estado">
         <h2>Estado y límites</h2>
         <p>Luna es <strong>0.1.0</strong> (ABI 1) y se distribuye bajo <strong>GPL-3.0</strong>. Parte de la gramática aún no está implementada de extremo a extremo: <code>for</code>, <code>break</code>, <code>continue</code>, <code>try/catch</code>, <code>import</code>, <code>mod</code>, literales de lista/tabla, lambdas, indexación y asignaciones compuestas.</p>
-        <p>Consulta la <a href="MD/11-estado-de-implementacion.md">tabla de estado completa</a> y las <a href="Ayuda/extra/solucion-de-problemas.md">notas de solución de problemas</a>.</p>
+        <p>Consulta la <a href="../MD/11-estado-de-implementacion.md">tabla de estado completa</a> y las <a href="../Ayuda/extra/solucion-de-problemas.md">notas de solución de problemas</a>.</p>
       </section>
 
       <footer class="footer">
-        <p>Luna · documentación comunitaria · <a href="MD/README.md">Índice MD</a> · <a href="Ayuda/README.md">Ayuda</a></p>
+        <p>Luna · documentación comunitaria · <a href="../MD/README.md">Índice MD</a> · <a href="../Ayuda/README.md">Ayuda</a></p>
       </footer>
     </main>
   </div>
 
   <button class="to-top" id="to-top" aria-label="Volver arriba" title="Volver arriba">↑</button>
-  <script src="web/script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

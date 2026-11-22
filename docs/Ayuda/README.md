@@ -19,4 +19,4 @@ Material de apoyo para quienes usan o mantienen Luna.
 - [Preguntas frecuentes](extra/preguntas-frecuentes.md)
 - [Solución de problemas](extra/solucion-de-problemas.md)
 
-Para la referencia del lenguaje, consulta el [índice de documentación Markdown](../MD/README.md) o la [versión web](../index.html).
+Para la referencia del lenguaje, consulta el [índice de documentación Markdown](../MD/README.md) o la [versión web](../Web/index.html).

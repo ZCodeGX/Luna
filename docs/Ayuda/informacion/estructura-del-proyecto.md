@@ -6,8 +6,7 @@ Luna/
 ├── build/           artefactos generados (ignorado por git)
 ├── cli/             main.c del intérprete
 ├── docs/            documentación
-│   ├── index.html   documentación web (página principal)
-│   ├── web/         styles.css y script.js
+│   ├── Web/         index.html, styles.css, script.js
 │   ├── MD/          documentación Markdown del lenguaje
 │   └── Ayuda/       actualizaciones, información y archivos extra
 ├── include/luna/    encabezados públicos (luna.h, luna.hpp, luna_types.h)

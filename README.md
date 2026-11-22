@@ -4,19 +4,48 @@
 
 **Luna** es un lenguaje de programación pequeño, embebible y con CLI estilo Python.
 
+## Instalación
+
+### Linux y macOS
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZCodeGX/Luna/main/install.sh | bash
+```
+
+Si ya clonaste el repositorio:
+
+```bash
+./install.sh
+```
+
+El script instala Python 3, git y un compilador C11 si faltan, compila Luna y deja `luna` en `~/.local/bin`.
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/ZCodeGX/Luna/main/install.ps1 | iex
+```
+
+Si ya clonaste el repositorio:
+
+```powershell
+.\install.ps1
+```
+
+El script instala Python 3, Git y MinGW-w64 con winget o Chocolatey, y deja `luna.exe` en `%LOCALAPPDATA%\Luna\bin`.
+
 > [!NOTE]
-> Requiere un compilador C11 y Python 3 para el sistema de build `luna.py`.
+> Los comandos remotos requieren que `install.sh` e `install.ps1` estén publicados en la rama `main`.
 
 ## Inicio rápido
 
 ```bash
-./luna.py build
-./build/luna -c 'let x = 1'
-./build/luna programa.luna
+luna -c 'let x = 1'
+luna programa.luna
 ```
 
 > [!TIP]
-> `./build/luna` sin argumentos abre el REPL y `-` lee el programa desde stdin.
+> `luna` sin argumentos abre el REPL y `-` lee el programa desde stdin. Para compilar sin instalar: `./luna.py build` y `./build/luna`.
 
 > [!IMPORTANT]
 > Luna usa GPL-3.0: cualquier modificación o distribución debe mantener el código abierto y compartirse bajo la misma licencia.

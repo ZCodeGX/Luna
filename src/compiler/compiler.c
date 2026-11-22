@@ -139,8 +139,142 @@ static void compile_ident(LunaCompiler* C, LunaNode* node, int reg) {
     }
 }
 
+typedef struct {
+    int kind;
+    int64_t integer;
+    double floating;
+    int boolean;
+} LunaFoldValue;
+
+static int fold_literal(LunaNode* node, LunaFoldValue* out) {
+    switch (node->type) {
+        case NODE_INT:
+            out->kind = 0;
+            out->integer = node->as.integer;
+            return 1;
+        case NODE_FLOAT:
+            out->kind = 1;
+            out->floating = node->as.floating;
+            return 1;
+        case NODE_BOOL:
+            out->kind = 2;
+            out->boolean = node->as.boolean;
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+static int fold_binary_op(LunaTokenType op, LunaFoldValue a,
+                          LunaFoldValue b, LunaFoldValue* out) {
+    if (a.kind == 2 || b.kind == 2) return 0;
+
+    int is_float = (a.kind == 1 || b.kind == 1);
+    double af = a.kind == 1 ? a.floating : (double)a.integer;
+    double bf = b.kind == 1 ? b.floating : (double)b.integer;
+
+    switch (op) {
+        case LUNA_TOK_PLUS:
+        case LUNA_TOK_MINUS:
+        case LUNA_TOK_STAR: {
+            if (is_float) {
+                double r = op == LUNA_TOK_PLUS ? af + bf :
+                           op == LUNA_TOK_MINUS ? af - bf : af * bf;
+                out->kind = 1;
+                out->floating = r;
+            } else {
+                uint64_t ua = (uint64_t)a.integer;
+                uint64_t ub = (uint64_t)b.integer;
+                uint64_t r = op == LUNA_TOK_PLUS ? ua + ub :
+                             op == LUNA_TOK_MINUS ? ua - ub : ua * ub;
+                out->kind = 0;
+                out->integer = (int64_t)r;
+            }
+            return 1;
+        }
+        case LUNA_TOK_SLASH: {
+            if (bf == 0.0) return 0;
+            out->kind = 1;
+            out->floating = af / bf;
+            return 1;
+        }
+        case LUNA_TOK_PERCENT: {
+            if (is_float || b.integer == 0) return 0;
+            out->kind = 0;
+            out->integer = a.integer % b.integer;
+            return 1;
+        }
+        case LUNA_TOK_EQ:
+        case LUNA_TOK_NEQ:
+        case LUNA_TOK_LT:
+        case LUNA_TOK_LE:
+        case LUNA_TOK_GT:
+        case LUNA_TOK_GE: {
+            int r;
+            if (is_float) {
+                switch (op) {
+                    case LUNA_TOK_EQ:  r = af == bf; break;
+                    case LUNA_TOK_NEQ: r = af != bf; break;
+                    case LUNA_TOK_LT:  r = af <  bf; break;
+                    case LUNA_TOK_LE:  r = af <= bf; break;
+                    case LUNA_TOK_GT:  r = af >  bf; break;
+                    default:           r = af >= bf; break;
+                }
+            } else {
+                switch (op) {
+                    case LUNA_TOK_EQ:  r = a.integer == b.integer; break;
+                    case LUNA_TOK_NEQ: r = a.integer != b.integer; break;
+                    case LUNA_TOK_LT:  r = a.integer <  b.integer; break;
+                    case LUNA_TOK_LE:  r = a.integer <= b.integer; break;
+                    case LUNA_TOK_GT:  r = a.integer >  b.integer; break;
+                    default:           r = a.integer >= b.integer; break;
+                }
+            }
+            out->kind = 2;
+            out->boolean = r;
+            return 1;
+        }
+        default:
+            return 0;
+    }
+}
+
+static int fold_expr(LunaNode* node, LunaFoldValue* out) {
+    if (fold_literal(node, out)) return 1;
+    if (node->type != NODE_BINARY) return 0;
+
+    LunaFoldValue left, right;
+    if (!fold_expr(node->as.binary.left, &left)) return 0;
+    if (!fold_expr(node->as.binary.right, &right)) return 0;
+    return fold_binary_op(node->as.binary.op, left, right, out);
+}
+
+static void emit_folded(LunaCompiler* C, LunaFoldValue value, int reg) {
+    LunaProto* proto = compiler_current_proto(C);
+
+    if (value.kind == 2) {
+        luna_proto_emit_op_A(proto, value.boolean ? OP_LOAD_TRUE : OP_LOAD_FALSE,
+                             (uint8_t)reg);
+    } else if (value.kind == 0 && value.integer >= -32767 && value.integer <= 32767) {
+        luna_proto_emit_op_AsBx(proto, OP_LOAD_INT, (uint8_t)reg,
+                                (int16_t)value.integer);
+    } else if (value.kind == 0) {
+        uint16_t idx = luna_proto_add_const_int(proto, value.integer);
+        luna_proto_emit_op_ABx(proto, OP_LOAD_CONST, (uint8_t)reg, idx);
+    } else {
+        uint16_t idx = luna_proto_add_const_float(proto, value.floating);
+        luna_proto_emit_op_ABx(proto, OP_LOAD_CONST, (uint8_t)reg, idx);
+    }
+}
+
 static void compile_binary(LunaCompiler* C, LunaNode* node, int reg) {
     LunaProto* proto = compiler_current_proto(C);
+    LunaFoldValue folded;
+
+    if (fold_expr(node, &folded)) {
+        emit_folded(C, folded, reg);
+        return;
+    }
 
     compile_expr(C, node->as.binary.left, reg);
     compile_expr(C, node->as.binary.right, reg + 1);

@@ -129,6 +129,8 @@ function Install-Compiler {
   return $gcc
 }
 
+Say 'Instalador Luna v2'
+
 $LocalSource = ''
 if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot 'luna.py')) -and (Test-Path (Join-Path $PSScriptRoot 'cli/main.c'))) {
   $LocalSource = $PSScriptRoot
@@ -198,13 +200,13 @@ int main(int argc, char **argv) {
   args[0] = "$gccLiteral";
   for (int i = 1; i < argc; i++) args[i] = argv[i];
   args[argc] = NULL;
-  int code = (int)_spawnv(_P_WAIT, args[0], args);
+  int code = (int)_spawnv(_P_WAIT, args[0], (const char *const *)args);
   free(args);
   return code;
 }
 "@
   Set-Content -Path (Join-Path $ShimDir 'cc.c') -Value $wrapper -Encoding ascii
-  & $gcc (Join-Path $ShimDir 'cc.c') -o (Join-Path $ShimDir 'cc.exe')
+  & $gcc -Wno-error=incompatible-pointer-types (Join-Path $ShimDir 'cc.c') -o (Join-Path $ShimDir 'cc.exe')
   if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $ShimDir 'cc.exe'))) {
     throw 'No se pudo crear el puente cc.exe para el compilador.'
   }

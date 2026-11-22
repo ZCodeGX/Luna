@@ -17,8 +17,9 @@ Documentación del lenguaje de programación **Luna**, organizada por temas.
 | [11 — Estado de implementación](11-estado-de-implementacion.md) | Qué funciona hoy y qué está en la gramática |
 | [12 — Rendimiento y Luna 0.3](12-rendimiento-0-3.md) | Plan de optimización del runtime y benchmarks |
 | [13 — Diagnósticos](13-diagnosticos.md) | Errores con spans, recuperación multi-error y renderizado |
+| [14 — Biblioteca estándar](14-biblioteca-estandar.md) | Funciones globales y módulos `math`, `string`, `table`, `list`, `io`, `os`, `time` y `path` |
 
 La gramática completa fuente de verdad está en [`luna.ebnf`](../../luna.ebnf). La versión web de esta guía está en [`../Web/index.html`](../Web/index.html).
 
 > [!WARNING]
-> Luna es `0.7.2`. Muchas construcciones están reconocidas por el parser pero aún no se compilan. Consulta el documento 11 antes de dar algo por soportado.
+> Luna es `0.7.3`. Muchas construcciones están reconocidas por el parser pero aún no se compilan. Consulta el documento 11 antes de dar algo por soportado.

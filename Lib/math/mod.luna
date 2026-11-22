@@ -1,0 +1,38 @@
+import math_native
+
+pub let pi = math_native.pi
+pub let e = math_native.e
+pub let inf = math_native.inf
+pub let nan = math_native.nan
+
+pub let abs = math_native.abs
+pub let sqrt = math_native.sqrt
+pub let cbrt = math_native.cbrt
+pub let floor = math_native.floor
+pub let ceil = math_native.ceil
+pub let round = math_native.round
+pub let trunc = math_native.trunc
+pub let sin = math_native.sin
+pub let cos = math_native.cos
+pub let tan = math_native.tan
+pub let asin = math_native.asin
+pub let acos = math_native.acos
+pub let atan = math_native.atan
+pub let atan2 = math_native.atan2
+pub let sinh = math_native.sinh
+pub let cosh = math_native.cosh
+pub let tanh = math_native.tanh
+pub let exp = math_native.exp
+pub let log = math_native.log
+pub let log10 = math_native.log10
+pub let log2 = math_native.log2
+pub let pow = math_native.pow
+pub let min = math_native.min
+pub let max = math_native.max
+pub let sign = math_native.sign
+pub let rad = math_native.rad
+pub let deg = math_native.deg
+pub let isnan = math_native.isnan
+pub let isinf = math_native.isinf
+pub let seed = math_native.seed
+pub let random = math_native.random

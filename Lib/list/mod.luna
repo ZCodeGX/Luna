@@ -1,0 +1,11 @@
+import list_native
+
+pub let new = list_native.new
+pub let push = list_native.push
+pub let pop = list_native.pop
+pub let get = list_native.get
+pub let set = list_native.set
+pub let len = list_native.len
+pub let clear = list_native.clear
+pub let reverse = list_native.reverse
+pub let contains = list_native.contains

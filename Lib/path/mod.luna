@@ -1,0 +1,8 @@
+import path_native
+
+pub let join = path_native.join
+pub let normalize = path_native.normalize
+pub let dirname = path_native.dirname
+pub let basename = path_native.basename
+pub let ext = path_native.ext
+pub let separator = path_native.separator

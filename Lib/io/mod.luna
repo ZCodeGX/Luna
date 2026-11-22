@@ -1,0 +1,8 @@
+import io_native
+
+pub let read = io_native.read
+pub let write = io_native.write
+pub let exists = io_native.exists
+pub let size = io_native.size
+pub let is_dir = io_native.is_dir
+pub let mkdir = io_native.mkdir

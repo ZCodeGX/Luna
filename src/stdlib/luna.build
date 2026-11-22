@@ -1,0 +1,18 @@
+import os
+
+SOURCES = [
+    'stdlib.c',
+    'mathlib.c',
+    'stringlib.c',
+    'collectionlib.c',
+    'systemlib.c',
+]
+
+HEADERS = [
+    'luna_stdlib.h',
+    'stdlib_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = ['runtime', 'memory', 'vm', 'errors', 'modules', 'platform']
+CFLAGS = ['-DLUNA_STDLIB_DIR="' + os.path.abspath('Lib').replace('\\', '/') + '"']

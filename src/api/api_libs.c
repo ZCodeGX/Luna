@@ -1,4 +1,5 @@
 #include "api_internal.h"
+#include "../stdlib/luna_stdlib.h"
 
 static void print_value(LunaValue v) {
     switch (v.type) {
@@ -41,4 +42,5 @@ static int builtin_print(LunaState* L) {
 void luna_open_libs(LunaState* L) {
     luna_pushcfunction(L, builtin_print);
     luna_setglobal(L, "print");
+    luna_open_stdlib(L);
 }

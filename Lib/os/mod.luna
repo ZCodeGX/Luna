@@ -1,0 +1,6 @@
+import os_native
+
+pub let getenv = os_native.getenv
+pub let cwd = os_native.cwd
+pub let separator = os_native.separator
+pub let name = os_native.name

@@ -37,6 +37,7 @@
         <a href="#control-flujo">Control de flujo</a>
         <a href="#funciones">Funciones</a>
         <a href="#modulos">Módulos</a>
+        <a href="#stdlib">Biblioteca estándar</a>
         <a href="#errores">Errores</a>
         <p class="nav-title">Referencia</p>
         <a href="#cli">CLI</a>
@@ -149,6 +150,16 @@ print(suma(2, 3))</code></pre>
         <h2>Módulos y visibilidad</h2>
         <p>El lenguaje reconoce <code>import ruta.modulo</code>, <code>mod nombre</code> y el modificador <code>pub</code> para exportar funciones, variables y módulos. La resolución busca <code>&lt;ruta&gt;/mod.luna</code> y después <code>&lt;ruta&gt;.luna</code>, y detecta imports circulares.</p>
         <p class="notice">Estas construcciones están en la gramática y en el cargador de módulos, pero el compilador actual aún no las emite.</p>
+      </section>
+
+      <section id="stdlib">
+        <h2>Biblioteca estándar</h2>
+        <p>Luna incluye las funciones globales <code>len</code>, <code>type</code>, <code>str</code>, <code>int</code>, <code>float</code> e <code>input</code>, además de los módulos <code>math</code>, <code>string</code>, <code>table</code>, <code>list</code>, <code>io</code>, <code>os</code>, <code>time</code> y <code>path</code>.</p>
+        <pre><code>import math
+import string
+
+print(math.sqrt(16))
+print(string.upper("luna"))</code></pre>
       </section>
 
       <section id="errores">

@@ -2,6 +2,27 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.3
+
+### Añadido
+
+- Biblioteca estándar nativa y módulos `Lib`: `math`, `string`, `table`, `list`, `io`, `os`, `time` y `path`.
+- Funciones globales `len`, `type`, `str`, `int`, `float` e `input`.
+- API pública `luna_add_module_path` para ampliar la resolución de módulos.
+- Suite `tests/stdlib/run.py` para validar la biblioteca estándar.
+
+### Cambiado
+
+- `luna_open_libs` registra la biblioteca estándar al crear cada estado.
+- El build incorpora `src/stdlib/luna.build` y enlaza las bibliotecas estándar necesarias.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.3 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.7.2
 
 ### Corregido

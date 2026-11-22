@@ -20,5 +20,5 @@ HEADERS = [
 ]
 
 INCLUDES = ['include']
-DEPENDS = ['runtime', 'errors', 'modules', 'vm', 'memory', 'compiler', 'parser', 'platform']
+DEPENDS = ['runtime', 'errors', 'modules', 'vm', 'memory', 'compiler', 'parser', 'platform', 'stdlib']
 CFLAGS = []

@@ -1,0 +1,9 @@
+import table_native
+
+pub let new = table_native.new
+pub let get = table_native.get
+pub let set = table_native.set
+pub let has = table_native.has
+pub let remove = table_native.remove
+pub let keys = table_native.keys
+pub let len = table_native.len

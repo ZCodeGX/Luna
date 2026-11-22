@@ -12,7 +12,7 @@
 #define LUNA_VERSION_MAJOR 0
 #define LUNA_VERSION_MINOR 7
 #define LUNA_VERSION_PATCH 0
-#define LUNA_VERSION_STRING "0.7.2"
+#define LUNA_VERSION_STRING "0.7.3"
 #define LUNA_ABI_VERSION   1
 ```
 
@@ -143,6 +143,7 @@ int         luna_getupvalue(LunaState *L, int funcindex, int n);
 ```c
 void luna_register_function(LunaState *L, const char *name, LunaCFunction fn);
 void luna_register_module(LunaState *L, const LunaModule *module);
+int  luna_add_module_path(LunaState *L, const char *path);
 ```
 
 Una función nativa devuelve cuántos resultados dejó en la pila; un negativo indica error con el mensaje en el tope. Nunca se deben propagar excepciones C++ a través de la API C.

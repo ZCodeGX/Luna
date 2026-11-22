@@ -1,0 +1,73 @@
+import string
+import list
+import table
+import math
+import io
+import os
+import time
+import path
+
+print(len("hola"))
+print(type(42))
+print(str(3.5))
+print(int("10"))
+print(float("2.5"))
+
+print(math.pi)
+print(math.sqrt(16))
+print(math.max(1, 9, 3))
+print(math.min(-2, 4))
+print(math.sign(-7))
+
+print(string.upper("luna"))
+print(string.lower("LUNA"))
+print(string.find("banana", "na"))
+print(string.contains("banana", "na"))
+print(string.starts_with("luna", "lu"))
+print(string.ends_with("luna", "na"))
+print(string.trim("  luna  "))
+print(string.replace("banana", "na", "NA"))
+print(string.repeat("ab", 3))
+print(string.reverse("abc"))
+print(string.sub("abcdef", 1, 4))
+
+let parts = string.split("a,b,c", ",")
+print(len(parts))
+print(parts[0])
+print(parts[2])
+print(string.join("-", parts))
+
+let xs = list.new(1, 2, 3)
+list.push(xs, 4)
+print(list.len(xs))
+print(list.get(xs, 0))
+print(list.get(xs, -1))
+print(list.contains(xs, 9))
+list.set(xs, 1, 20)
+print(list.get(xs, 1))
+list.reverse(xs)
+print(list.get(xs, 0))
+print(list.pop(xs))
+
+let t = table.new()
+table.set(t, "host", "localhost")
+print(table.get(t, "host"))
+print(table.has(t, "host"))
+print(table.len(t))
+table.remove(t, "host")
+print(table.has(t, "host"))
+
+print(os.name())
+print(path.join("a", "b"))
+print(path.basename("/tmp/x.txt"))
+print(path.ext("/tmp/x.txt"))
+print(io.exists("/tmp"))
+print(io.is_dir("/tmp"))
+
+io.write("/tmp/luna_stdlib_test.txt", "ok\n")
+print(io.read("/tmp/luna_stdlib_test.txt"))
+print(io.size("/tmp/luna_stdlib_test.txt"))
+
+let start = time.nanos()
+print(type(start))
+print(time.since(start) >= 0)

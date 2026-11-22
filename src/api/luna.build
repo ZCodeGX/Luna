@@ -12,6 +12,7 @@ SOURCES = [
     'api_ref.c',
     'api_register.c',
     'api_globals.c',
+    'api_libs.c',
 ]
 
 HEADERS = [

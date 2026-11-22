@@ -29,6 +29,8 @@ struct LunaRuntime {
     uint64_t      instruction_limit;
 };
 
+void luna_open_libs(LunaState* L);
+
 /* ============================================================
  * Helpers internos de la API
  * ============================================================ */

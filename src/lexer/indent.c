@@ -33,10 +33,16 @@ LunaIndentResult luna_indent_handle(LunaLexer* L) {
     }
 
     int indent = 0;
-    while (L->pos < L->length && L->source[L->pos] == ' ') { indent++; adv(L); }
-    if (L->pos < L->length && L->source[L->pos] == '\t') {
-        set_error(L, "tabs are not allowed for indentation");
-        return LUNA_INDENT_NONE;
+    while (L->pos < L->length) {
+        char c = L->source[L->pos];
+        if (c == ' ') {
+            indent++;
+        } else if (c == '\t') {
+            indent = (indent / 4 + 1) * 4;
+        } else {
+            break;
+        }
+        adv(L);
     }
 
     int top = L->indent_stack[L->indent_depth - 1];

@@ -29,7 +29,7 @@ struct LunaCompiler {
 
 /* Funciones de compilación por tipo de nodo */
 void compile_node(LunaCompiler* C, LunaNode* node);
-void compile_expr(LunaCompiler* C, LunaNode* node);
+void compile_expr(LunaCompiler* C, LunaNode* node, int reg);
 void compile_stmt(LunaCompiler* C, LunaNode* node);
 
 /* Helpers de error */

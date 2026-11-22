@@ -19,6 +19,7 @@
  * ============================================================ */
 
 #define LUNA_MAX_CALLS 200
+#define LUNA_MAX_FRAME_UPVALUES 255
 
 typedef struct CallFrame {
     LunaValue*     base;           /* base del stack para este frame */
@@ -26,9 +27,12 @@ typedef struct CallFrame {
     LunaFunction*  func;           /* función (para natives) */
     size_t         pc;             /* program counter */
     uint8_t        num_results;    /* resultados esperados por el caller */
+    int            num_args;       /* argumentos recibidos (funciones C) */
     int            is_c;           /* 1 si es llamada a función C */
     LunaUpvalue**  open_upvalues;  /* upvalues abiertos de este frame */
     int            num_open_upvalues;
+    LunaUpvalue*   ups[LUNA_MAX_FRAME_UPVALUES]; /* upvalues ligados al frame */
+    int            num_ups;
     int            handler_pc;     /* -1 si no hay handler; sino pc destino */
 } CallFrame;
 

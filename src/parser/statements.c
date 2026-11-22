@@ -27,7 +27,7 @@ static LunaNode* parse_if(LunaParser* P) {
     int line = P->current.line, col = P->current.column;
     advance(P);
     LunaNode* cond = parse_expr(P, 0);
-    if (!expect(P, LUNA_TOK_NEWLINE, "newline after condition")) return NULL;
+    if (!expect_block_end(P, "newline after condition")) return NULL;
     LunaNode* then_block = parse_block(P);
 
     LunaNodeList* elif_head = NULL;
@@ -41,7 +41,7 @@ static LunaNode* parse_if(LunaParser* P) {
             int eline = P->current.line, ecol = P->current.column;
             advance(P);
             LunaNode* econd = parse_expr(P, 0);
-            if (!expect(P, LUNA_TOK_NEWLINE, "newline after condition")) break;
+            if (!expect_block_end(P, "newline after condition")) break;
             LunaNode* eblock = parse_block(P);
             LunaNode* einode = luna_node_new(NODE_IF, eline, ecol);
             einode->as.if_stmt.cond = econd;
@@ -51,7 +51,7 @@ static LunaNode* parse_if(LunaParser* P) {
             if (!elif_head) elif_head = item; else elif_tail->next = item;
             elif_tail = item;
         } else {
-            if (!expect(P, LUNA_TOK_NEWLINE, "newline after else")) break;
+            if (!expect_block_end(P, "newline after else")) break;
             else_block = parse_block(P);
             break;
         }
@@ -86,7 +86,7 @@ static LunaNode* parse_for(LunaParser* P) {
     }
     if (!expect(P, LUNA_TOK_IN, "'in'")) return NULL;
     LunaNode* iter = parse_expr(P, 0);
-    if (!expect(P, LUNA_TOK_NEWLINE, "newline after for")) return NULL;
+    if (!expect_block_end(P, "newline after for")) return NULL;
     LunaNode* body = parse_block(P);
     LunaNode* n = luna_node_new(NODE_FOR, line, col);
     n->as.for_stmt.vars = vars;
@@ -99,7 +99,7 @@ static LunaNode* parse_while(LunaParser* P) {
     int line = P->current.line, col = P->current.column;
     advance(P);
     LunaNode* cond = parse_expr(P, 0);
-    if (!expect(P, LUNA_TOK_NEWLINE, "newline after while")) return NULL;
+    if (!expect_block_end(P, "newline after while")) return NULL;
     LunaNode* body = parse_block(P);
     LunaNode* n = luna_node_new(NODE_WHILE, line, col);
     n->as.while_stmt.cond = cond;
@@ -168,7 +168,7 @@ static LunaNode* parse_fn_decl(LunaParser* P, int is_pub) {
     if (!expect(P, LUNA_TOK_LPAREN, "'(' after function name")) { free(name); return NULL; }
     LunaNodeList* params = parse_param_list(P);
     if (!expect(P, LUNA_TOK_RPAREN, "')'")) { free(name); return NULL; }
-    if (!expect(P, LUNA_TOK_NEWLINE, "newline before function body")) { free(name); return NULL; }
+    if (!expect_block_end(P, "newline before function body")) { free(name); return NULL; }
     LunaNode* body = parse_block(P);
     LunaNode* n = luna_node_new(NODE_FN, line, col);
     n->as.fn.name = name;
@@ -276,7 +276,7 @@ LunaNode* parse_statement(LunaParser* P) {
     if (check(P, LUNA_TOK_TRY)) {
         int line = P->current.line, col = P->current.column;
         advance(P);
-        if (!expect(P, LUNA_TOK_NEWLINE, "newline after try")) return NULL;
+        if (!expect_block_end(P, "newline after try")) return NULL;
         LunaNode* body = parse_block(P);
         if (!expect(P, LUNA_TOK_CATCH, "'catch'")) return NULL;
         if (!check(P, LUNA_TOK_IDENT)) {
@@ -285,7 +285,7 @@ LunaNode* parse_statement(LunaParser* P) {
         }
         char* cname = copy_token_text(&P->current);
         advance(P);
-        if (!expect(P, LUNA_TOK_NEWLINE, "newline after catch")) { free(cname); return NULL; }
+        if (!expect_block_end(P, "newline after catch")) { free(cname); return NULL; }
         LunaNode* cbody = parse_block(P);
         LunaNode* n = luna_node_new(NODE_TRY, line, col);
         n->as.try_stmt.body = body;

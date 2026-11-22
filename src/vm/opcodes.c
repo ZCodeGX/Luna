@@ -79,16 +79,22 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame) {
 
         case OP_GET_UPVALUE: {
             uint8_t B = decode_B(code, pc);
-            LunaUpvalue* uv = frame->open_upvalues[B];
-            base[A + 1] = *uv->location;
+            if (B >= frame->num_ups || !frame->ups[B]) {
+                luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue");
+                return -1;
+            }
+            base[A + 1] = *frame->ups[B]->location;
             frame->pc = advance_pc(code, pc);
             return 0;
         }
 
         case OP_SET_UPVALUE: {
             uint8_t B = decode_B(code, pc);
-            LunaUpvalue* uv = frame->open_upvalues[B];
-            *uv->location = base[A + 1];
+            if (B >= frame->num_ups || !frame->ups[B]) {
+                luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue");
+                return -1;
+            }
+            *frame->ups[B]->location = base[A + 1];
             frame->pc = advance_pc(code, pc);
             return 0;
         }
@@ -375,7 +381,8 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame) {
 
         /* ---------- Control de flujo ---------- */
         case OP_JUMP: {
-            int16_t sbx = decode_sBx(code, pc);
+            uint16_t bx = (uint16_t)code[pc + 1] | ((uint16_t)code[pc + 2] << 8);
+            int16_t sbx = (int16_t)(bx - 32767);
             frame->pc = (size_t)((int64_t)advance_pc(code, pc) + sbx);
             return 0;
         }
@@ -407,19 +414,17 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame) {
             uint8_t B = decode_B(code, pc);   /* nargs */
             uint8_t C = decode_C(code, pc);   /* nresults */
             int func_idx = (int)(A + 1);
-            /* Los argumentos están en A+2 .. A+1+B */
+            LunaVM* vm2 = state_vm(L);
+            int old_top = vm2->frame_top;
+
             int result = vm_call_function(L, (int)(frame->base - L->stack) + func_idx,
                                           B, C == 0 ? -1 : C);
             if (result != 0) return -1;
 
-            /* Si se hizo una llamada Luna, el caller debe reanudar el dispatch
-             * con el nuevo frame. Devolvemos 1 para indicar esto. */
-            LunaVM* vm2 = state_vm(L);
-            CallFrame* new_frame = &vm2->frames[vm2->frame_top - 1];
-            if (!new_frame->is_c) {
-                return 1;  /* señal: reanudar con nuevo frame */
+            if (vm2->frame_top > old_top) {
+                return 1;  /* llamada Luna: reanudar con el nuevo frame */
             }
-            /* Si era C, ya terminó; continuar con este frame */
+
             frame->pc = advance_pc(code, pc);
             return 0;
         }
@@ -434,7 +439,7 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame) {
 
             /* Copiar resultados a la posición de la función */
             LunaValue* ret_base = frame->base;
-            size_t ret_start = (size_t)(ret_base - L->stack) + 1;
+            size_t ret_start = (size_t)(ret_base - L->stack) + (size_t)A + 1;
 
             /* Pop del frame */
             vm->frame_top--;
@@ -482,11 +487,13 @@ int vm_execute_instruction(LunaState* L, CallFrame* frame) {
                 LunaUpvalueDesc* desc = &child->upvalues[i];
                 LunaUpvalue* uv;
                 if (desc->in_stack) {
-                    /* Captura local del frame actual */
                     uv = vm_find_upvalue(L, frame, &frame->base[desc->index + 1]);
-                } else {
-                    /* Captura de upvalue del frame actual */
-                    uv = frame->open_upvalues[desc->index];
+                } else if (desc->index < frame->num_ups) {
+                    uv = frame->ups[desc->index];
+                }
+                if (!uv) {
+                    luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue capture");
+                    return -1;
                 }
                 fn->upvalues[i] = uv;
             }

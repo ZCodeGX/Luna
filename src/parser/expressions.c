@@ -151,7 +151,7 @@ static LunaNode* parse_lambda(LunaParser* P) {
     if (!expect(P, LUNA_TOK_LPAREN, "'(' after 'fn'")) return NULL;
     LunaNodeList* params = parse_param_list(P);
     if (!expect(P, LUNA_TOK_RPAREN, "')'")) return NULL;
-    if (!expect(P, LUNA_TOK_NEWLINE, "newline before lambda body")) return NULL;
+    if (!expect_block_end(P, "newline before lambda body")) return NULL;
     LunaNode* body = parse_block(P);
     return luna_node_lambda(params, body, line, col);
 }

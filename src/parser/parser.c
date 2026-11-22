@@ -14,6 +14,10 @@ void luna_parser_destroy(LunaParser* P) {
 
 LunaNode* luna_parser_parse_program(LunaParser* P) {
     while (check(P, LUNA_TOK_NEWLINE)) advance(P);
+    if (check(P, LUNA_TOK_ERROR)) {
+        fail_current(P, "lexer error");
+        return NULL;
+    }
     if (check(P, LUNA_TOK_INDENT)) {
         fail_current(P, "unexpected indentation at file start");
         return NULL;
@@ -31,7 +35,8 @@ LunaNode* luna_parser_parse_program(LunaParser* P) {
         }
         while (check(P, LUNA_TOK_NEWLINE)) advance(P);
     }
-    if (P->failed || check(P, LUNA_TOK_ERROR)) {
+    if (check(P, LUNA_TOK_ERROR)) fail_current(P, "lexer error");
+    if (P->failed) {
         luna_ast_free(luna_node_program(head, 1, 1));
         return NULL;
     }

@@ -52,8 +52,8 @@ void luna_proto_emit_byte(LunaProto* p, uint8_t b) {
 }
 
 void luna_proto_emit_word(LunaProto* p, uint16_t w) {
-    luna_proto_emit_byte(p, (w >> 8) & 0xFF);
     luna_proto_emit_byte(p, w & 0xFF);
+    luna_proto_emit_byte(p, (w >> 8) & 0xFF);
 }
 
 void luna_proto_emit_op_A(LunaProto* p, LunaOpcode op, uint8_t a) {

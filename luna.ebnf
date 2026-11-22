@@ -1,0 +1,471 @@
+# Gramática EBNF completa de Luna 1.0
+
+Esta gramática es la **fuente de verdad** del lenguaje. Refleja exactamente lo que implementan el lexer y parser actuales.
+
+---
+
+## 1. Programa
+
+```ebnf
+program         = { NEWLINE } { statement { NEWLINE } } EOF ;
+```
+
+---
+
+## 2. Sentencias
+
+```ebnf
+statement       = pub_decl
+                | fn_decl
+                | mod_decl
+                | if_stmt
+                | for_stmt
+                | while_stmt
+                | try_stmt
+                | simple_stmt ;
+
+(* ---------- Declaraciones con visibilidad ---------- *)
+pub_decl        = "pub" ( fn_decl | mod_decl | let_stmt | const_stmt ) ;
+
+fn_decl         = "fn" IDENT "(" [ param_list ] ")" NEWLINE block ;
+mod_decl        = "mod" IDENT ;
+
+let_stmt        = "let"   IDENT "=" expr ;
+const_stmt      = "const" IDENT "=" expr ;
+
+param_list      = IDENT { "," IDENT } ;
+
+(* ---------- Control de flujo ---------- *)
+if_stmt         = "if" expr NEWLINE block
+                  { "else" "if" expr NEWLINE block }
+                  [ "else" NEWLINE block ] ;
+
+for_stmt        = "for" IDENT { "," IDENT } "in" expr NEWLINE block ;
+
+while_stmt      = "while" expr NEWLINE block ;
+
+try_stmt        = "try" NEWLINE block
+                  "catch" IDENT NEWLINE block ;
+
+(* ---------- Sentencias simples ---------- *)
+simple_stmt     = let_stmt
+                | const_stmt
+                | return_stmt
+                | import_stmt
+                | break_stmt
+                | continue_stmt
+                | throw_stmt
+                | expr_stmt ;
+
+return_stmt     = "return" [ expr ] ;
+import_stmt     = "import" IDENT { "." IDENT } ;
+break_stmt      = "break" ;
+continue_stmt   = "continue" ;
+throw_stmt      = "throw" expr ;
+
+expr_stmt       = expr [ assign_op expr ] ;
+
+assign_op       = "=" | "+=" | "-=" | "*=" | "/=" ;
+```
+
+---
+
+## 3. Bloques
+
+```ebnf
+block           = INDENT { statement { NEWLINE } } DEDENT ;
+```
+
+**Reglas de indentación:**
+- Solo se permiten espacios (no tabs) para indentar.
+- Cada nivel de indentación debe ser consistente con un nivel previo.
+- Dentro de `(`, `[`, `{` se suprimen `NEWLINE`, `INDENT` y `DEDENT`.
+
+---
+
+## 4. Expresiones (Pratt parsing)
+
+```ebnf
+expr            = prefix { infix_op prefix } ;
+
+prefix          = [ unary_op ] postfix ;
+
+unary_op        = "-" | "not" ;
+
+postfix         = primary { postfix_op } ;
+
+postfix_op      = call_suffix
+                | index_suffix
+                | field_suffix ;
+
+call_suffix     = "(" [ arg_list ] ")" ;
+index_suffix    = "[" expr "]" ;
+field_suffix    = "." IDENT ;
+
+arg_list        = expr { "," expr } ;
+```
+
+### 4.1 Operadores infijos (por precedencia)
+
+```ebnf
+(* Precedencia 1 (más baja) - asociatividad izquierda *)
+or_expr         = and_expr { "or"  and_expr } ;
+
+(* Precedencia 2 - asociatividad izquierda *)
+and_expr        = not_expr { "and" not_expr } ;
+
+(* Precedencia 3 - prefijo (no es infijo) *)
+(* "not" se maneja en prefix *)
+
+(* Precedencia 4 - asociatividad izquierda *)
+compare_expr    = add_expr { compare_op add_expr } ;
+compare_op      = "==" | "!=" | "<" | ">" | "<=" | ">=" ;
+
+(* Precedencia 5 - asociatividad izquierda *)
+add_expr        = mul_expr { add_op mul_expr } ;
+add_op          = "+" | "-" ;
+
+(* Precedencia 6 - asociatividad izquierda *)
+mul_expr        = pow_expr { mul_op pow_expr } ;
+mul_op          = "*" | "/" | "%" ;
+
+(* Precedencia 7 (más alta) - asociatividad DERECHA *)
+pow_expr        = unary_expr [ "**" pow_expr ] ;
+```
+
+### 4.2 Resumen de precedencia
+
+| Nivel | Operadores | Asociatividad |
+|---|---|---|
+| 1 | `or` | izquierda |
+| 2 | `and` | izquierda |
+| 3 | `not` (prefijo) | — |
+| 4 | `==`, `!=`, `<`, `>`, `<=`, `>=` | izquierda |
+| 5 | `+`, `-` | izquierda |
+| 6 | `*`, `/`, `%` | izquierda |
+| 7 | `**` | **derecha** |
+| — | `-` unario | (prefijo, bp=7) |
+
+---
+
+## 5. Primarios
+
+```ebnf
+primary         = nil_literal
+                | bool_literal
+                | integer_literal
+                | float_literal
+                | string_literal
+                | ident
+                | group_expr
+                | list_literal
+                | table_literal
+                | lambda_expr ;
+
+nil_literal     = "nil" ;
+bool_literal    = "true" | "false" ;
+ident           = IDENT ;
+
+group_expr      = "(" expr ")" ;
+
+list_literal    = "[" [ expr { "," expr } [ "," ] ] "]" ;
+
+table_literal   = "{" [ table_entry { "," table_entry } [ "," ] ] "}" ;
+table_entry     = IDENT "=" expr ;
+
+lambda_expr     = "fn" "(" [ param_list ] ")" NEWLINE block ;
+```
+
+---
+
+## 6. Tokens léxicos
+
+### 6.1 Identificadores
+
+```ebnf
+IDENT           = ( letter | "_" ) { letter | digit | "_" } ;
+letter          = "a" … "z" | "A" … "Z" ;
+digit           = "0" … "9" ;
+```
+
+### 6.2 Literales numéricos
+
+```ebnf
+integer_literal = decimal | hexadecimal | binary ;
+
+decimal         = digit { digit } ;
+hexadecimal     = "0" ( "x" | "X" ) hex_digit { hex_digit } ;
+binary          = "0" ( "b" | "B" ) ( "0" | "1" ) { "0" | "1" } ;
+hex_digit       = digit | "a" … "f" | "A" … "F" ;
+
+float_literal   = digit { digit } "." digit { digit } [ exponent ]
+                | digit { digit } exponent ;
+exponent        = ( "e" | "E" ) [ "+" | "-" ] digit { digit } ;
+```
+
+### 6.3 Cadenas
+
+```ebnf
+string_literal  = '"' { string_char | escape_seq } '"' ;
+
+string_char     = cualquier carácter excepto '"', '\', '\n', '\r' ;
+
+escape_seq      = "\n"    (* salto de línea  *)
+                | "\t"    (* tabulación      *)
+                | "\r"    (* retorno de carro*)
+                | "\0"    (* null            *)
+                | "\\"    (* backslash       *)
+                | "\""    (* comilla doble   *) ;
+```
+
+### 6.4 Comentarios
+
+```ebnf
+comment         = "#" { cualquier carácter excepto '\n', '\r' } ;
+```
+
+### 6.5 Separadores
+
+```ebnf
+NEWLINE         = "\n" | "\r\n" ;
+INDENT          = aumento de espacios al inicio de línea lógica ;
+DEDENT          = disminución de espacios al inicio de línea lógica ;
+```
+
+---
+
+## 7. Palabras reservadas
+
+```
+and       break     catch     const     continue
+else      false     fn        for       if
+import    in        let       mod       nil
+not       or        pub       return    throw
+true      try       while
+```
+
+**Nota:** ninguna palabra reservada puede usarse como identificador.
+
+---
+
+## 8. Operadores y puntuación
+
+```
++       -       *       /       %       **
+==      !=      <       >       <=      >=
+=       +=      -=      *=      /=
+(       )       [       ]       {       }
+,       .       :
+```
+
+---
+
+## 9. Reglas semánticas (no expresables en EBNF)
+
+Estas reglas se aplican **después** del parseo, en el compilador:
+
+### 9.1 Asignación
+- El lado izquierdo de `=`, `+=`, `-=`, `*=`, `/=` debe ser:
+  - `IDENT`
+  - `expr "[" expr "]"` (indexación)
+  - `expr "." IDENT` (acceso a campo)
+- Cualquier otro target es error: *"invalid assignment target"*.
+
+### 9.2 Visibilidad
+- `pub` solo puede preceder a: `fn`, `let`, `const`, `mod`.
+- Cualquier otro uso es error: *"'pub' must precede fn, let, const or mod"*.
+- Los símbolos no marcados `pub` son privados al módulo.
+
+### 9.3 Funciones vs lambdas
+- `fn` a nivel de sentencia **siempre** requiere un `IDENT` (declaración).
+- Para lambdas anónimas se usa `fn` dentro de una expresión.
+- Las lambdas **siempre** requieren `NEWLINE` antes del cuerpo (no hay lambdas de una sola línea).
+
+### 9.4 `else if`
+- Se acumula como lista plana en `if_stmt.elifs`, no como nodos anidados.
+- Es azúcar sintáctico sobre `else { if ... }`.
+
+### 9.5 Continuación de línea
+- Dentro de `(`, `[`, `{` se suprimen `NEWLINE`, `INDENT` y `DEDENT`.
+- Esto permite escribir listas/tablas/llamadas en varias líneas.
+
+### 9.6 Indentación
+- Solo espacios, no tabs.
+- Un tab en posición de indentación es error: *"tabs are not allowed for indentation"*.
+- Un `DEDENT` debe coincidir con un nivel previo; si no, es error: *"inconsistent dedent"*.
+- Profundidad máxima: 256 niveles.
+
+### 9.7 Cadenas
+- No pueden contener saltos de línea literales.
+- El lexer devuelve el contenido **sin desescapar**; el parser desescapa en sitio.
+
+### 9.8 Números
+- Longitud máxima de literales hex/binario: 62 dígitos.
+- Longitud máxima de literales decimales/float: 127 caracteres.
+- Superar estos límites es error: *"number too long"*.
+
+### 9.9 Tablas
+- Las claves deben ser `IDENT` (no expresiones arbitrarias).
+- Formato: `{ key1 = value1, key2 = value2 }`.
+
+### 9.10 Imports
+- Formato: `import a.b.c` (ruta con puntos).
+- Se resuelve a `a/b/c/mod.luna` o `a/b/c.luna`.
+
+### 9.11 Ciclos de import
+- El sistema de módulos los detecta en tiempo de carga.
+- Error: *"circular import detected: '<name>'"*.
+
+---
+
+## 10. Ejemplos canónicos
+
+### 10.1 Programa mínimo
+```luna
+let name = "Luna"
+print(name)
+```
+
+### 10.2 Función con control de flujo
+```luna
+fn factorial(n)
+    if n <= 1
+        return 1
+    return n * factorial(n - 1)
+```
+
+### 10.3 Closures
+```luna
+fn make_counter()
+    let count = 0
+    return fn()
+        count += 1
+        return count
+
+let c = make_counter()
+print(c())
+print(c())
+```
+
+### 10.4 Listas y tablas
+```luna
+let numbers = [1, 2, 3, 4, 5]
+let config = {
+    host = "localhost",
+    port = 8080,
+    debug = true
+}
+
+let first = numbers[0]
+let host_name = config.host
+```
+
+### 10.5 Módulos
+```luna
+pub mod math_utils
+
+pub fn add(a, b)
+    return a + b
+
+fn internal_helper()
+    return 42
+```
+
+### 10.6 Manejo de errores
+```luna
+fn safe_divide(a, b)
+    if b == 0
+        throw "division by zero"
+    return a / b
+
+try
+    let x = safe_divide(10, 0)
+catch err
+    print(err)
+```
+
+### 10.7 Precedencia y asociatividad
+```luna
+let a = 2 ** 3 ** 2          # = 2 ** (3 ** 2) = 512 (right-assoc)
+let b = 1 + 2 * 3            # = 1 + (2 * 3) = 7
+let c = not x == y and z     # = (not x) == y and z  →  not (x == y) and z
+let d = -a ** 2              # = -(a ** 2)
+```
+
+### 10.8 Continuación de línea
+```luna
+let result = some_function(
+    arg1,
+    arg2,
+    arg3
+)
+
+let data = [
+    1,
+    2,
+    3,
+]
+```
+
+---
+
+## 11. Diagrama de dependencias sintácticas
+
+```
+program
+  └─ statement*
+       ├─ simple_stmt ──→ expr ──→ prefix ──→ primary
+       │                               │         ├─ literal (nil/bool/int/float/string)
+       │                               │         ├─ IDENT
+       │                               │         ├─ ( expr )
+       │                               │         ├─ [ expr* ]
+       │                               │         ├─ { entry* }
+       │                               │         └─ fn ( ) \n block
+       │                               └─ postfix*
+       │                                    ├─ ( args )
+       │                                    ├─ [ expr ]
+       │                                    └─ . IDENT
+       ├─ fn_decl ──→ block
+       ├─ if_stmt ──→ expr + block + [elif*] + [else]
+       ├─ for_stmt ──→ IDENT* + expr + block
+       ├─ while_stmt ──→ expr + block
+       └─ try_stmt ──→ block + IDENT + block
+```
+
+---
+
+## 12. Equivalencia con los tipos de nodo del AST
+
+| Producción | Nodo AST |
+|---|---|
+| `nil_literal` | `NODE_NIL` |
+| `bool_literal` | `NODE_BOOL` |
+| `integer_literal` | `NODE_INT` |
+| `float_literal` | `NODE_FLOAT` |
+| `string_literal` | `NODE_STRING` |
+| `ident` | `NODE_IDENT` |
+| `infix_op` | `NODE_BINARY` |
+| `unary_op` | `NODE_UNARY` |
+| `call_suffix` | `NODE_CALL` |
+| `index_suffix` | `NODE_INDEX` |
+| `field_suffix` | `NODE_FIELD` |
+| `list_literal` | `NODE_LIST` |
+| `table_literal` | `NODE_TABLE` |
+| `lambda_expr` | `NODE_LAMBDA` |
+| `let_stmt` | `NODE_LET` |
+| `const_stmt` | `NODE_CONST` |
+| `fn_decl` | `NODE_FN` |
+| `return_stmt` | `NODE_RETURN` |
+| `if_stmt` | `NODE_IF` |
+| `for_stmt` | `NODE_FOR` |
+| `while_stmt` | `NODE_WHILE` |
+| `break_stmt` | `NODE_BREAK` |
+| `continue_stmt` | `NODE_CONTINUE` |
+| `import_stmt` | `NODE_IMPORT` |
+| `mod_decl` | `NODE_MOD` |
+| `throw_stmt` | `NODE_THROW` |
+| `try_stmt` | `NODE_TRY` |
+| `expr_stmt` (con asignación) | `NODE_ASSIGN` |
+| `expr_stmt` (sin asignación) | `NODE_EXPR_STMT` |
+| `block` | `NODE_BLOCK` |
+| `program` | `NODE_PROGRAM` |

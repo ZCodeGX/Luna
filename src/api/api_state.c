@@ -96,6 +96,8 @@ LunaState* luna_new(LunaRuntime* rt) {
     /* Módulos */
     modules_init(&L->modules);
 
+    luna_open_libs(L);
+
     return L;
 }
 

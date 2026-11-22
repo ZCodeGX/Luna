@@ -90,13 +90,13 @@ static void lex_string(LunaLexer* L, LunaToken* out) {
 bool luna_lexer_next(LunaLexer* L, LunaToken* out) {
     memset(out, 0, sizeof(*out));
 
-    if (L->error) {
-        fill_tok(out, LUNA_TOK_ERROR, L->error_message, strlen(L->error_message),
-                 L->error_line, L->error_column);
-        return false;
-    }
-
     for (;;) {
+        if (L->error) {
+            fill_tok(out, LUNA_TOK_ERROR, L->error_message, strlen(L->error_message),
+                     L->error_line, L->error_column);
+            return false;
+        }
+
         /* 1. DEDENTs pendientes */
         if (L->pending_dedents > 0) {
             L->pending_dedents--;
@@ -195,6 +195,7 @@ bool luna_lexer_next(LunaLexer* L, LunaToken* out) {
                     case '{': t = LUNA_TOK_LBRACE;   L->paren_depth++; break;
                     case '}': t = LUNA_TOK_RBRACE;   if (L->paren_depth > 0) L->paren_depth--; break;
                     case ',': t = LUNA_TOK_COMMA;    break;
+                    case ';': t = LUNA_TOK_NEWLINE;  break;
                     case '.': t = LUNA_TOK_DOT;      break;
                     case ':': t = LUNA_TOK_COLON;    break;
                     default:

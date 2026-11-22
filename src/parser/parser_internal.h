@@ -44,6 +44,7 @@ void indentation_error(LunaParser* P, LunaSpan span, const char* help, const cha
 bool expect(LunaParser* P, LunaTokenType t, const char* what);
 bool expect_help(LunaParser* P, LunaTokenType t, const char* what, const char* help);
 bool expect_block_end(LunaParser* P, const char* context);
+void require_statement_end(LunaParser* P);
 void synchronize(LunaParser* P);
 char* copy_token_text(const LunaToken* tok);
 

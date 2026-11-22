@@ -1,0 +1,7 @@
+  File "tests/parser_diag/fixtures/colon_after_expr.luna", line 1
+    print(1 + 2):
+                ^
+SyntaxError: invalid syntax
+
+    help: remove ':' after expression; ':' is only valid after block headers
+

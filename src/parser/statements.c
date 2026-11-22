@@ -367,5 +367,7 @@ LunaNode* parse_statement(LunaParser* P) {
         return n;
     }
 
-    return parse_simple_statement(P);
+    LunaNode* n = parse_simple_statement(P);
+    if (n) require_statement_end(P);
+    return n;
 }

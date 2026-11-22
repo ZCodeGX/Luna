@@ -36,7 +36,7 @@ void luna_parser_destroy(LunaParser* P) {
 }
 
 static bool token_changed(const LunaParser* P, LunaTokenType type,
-                          const char* start, size_t length) {
+                           const char* start, size_t length) {
     return P->current.type != type || P->current.start != start ||
            P->current.length != length;
 }

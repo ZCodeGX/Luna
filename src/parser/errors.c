@@ -237,6 +237,24 @@ bool expect_block_end(LunaParser* P, const char* context) {
     return expect(P, LUNA_TOK_NEWLINE, "newline after ':'");
 }
 
+void require_statement_end(LunaParser* P) {
+    if (P->failed || P->panic_mode) return;
+
+    LunaTokenType t = P->current.type;
+    if (t == LUNA_TOK_NEWLINE || t == LUNA_TOK_DEDENT || t == LUNA_TOK_EOF) return;
+
+    if (t == LUNA_TOK_COLON) {
+        syntax_error(P, token_span(P, &P->current),
+                     "remove ':' after expression; ':' is only valid after block headers",
+                     "invalid syntax");
+        return;
+    }
+
+    syntax_error(P, token_span(P, &P->current),
+                 "insert a newline or ';' between statements",
+                 "invalid syntax");
+}
+
 static bool is_statement_start(LunaTokenType t) {
     switch (t) {
         case LUNA_TOK_LET:

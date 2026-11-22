@@ -23,9 +23,46 @@ BUILD_DIR = Path("build")
 SRC_DIR = Path("src")
 INCLUDE_BASE = SRC_DIR
 
+def enable_windows_ansi() -> bool:
+    if os.name != "nt":
+        return sys.stdout.isatty()
+    try:
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32
+        enabled = True
+        for handle_id in (-11, -12):
+            handle = kernel32.GetStdHandle(handle_id)
+            if handle in (-1, 0):
+                enabled = False
+                continue
+            mode = ctypes.c_uint32()
+            if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+                enabled = False
+                continue
+            flag = 0x0004
+            if not (mode.value & flag):
+                if not kernel32.SetConsoleMode(handle, mode.value | flag):
+                    enabled = False
+        return enabled
+    except Exception:
+        return False
+
+
+def configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):
+                pass
+
+
+configure_stdio()
+ANSI_AVAILABLE = enable_windows_ansi()
 USE_COLOR = (
     os.environ.get("NO_COLOR") is None
-    and (sys.stdout.isatty() or os.environ.get("FORCE_COLOR") is not None)
+    and (ANSI_AVAILABLE or os.environ.get("FORCE_COLOR") is not None)
 )
 
 RESET = "\033[0m"

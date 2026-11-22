@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Dict, List, Set, Optional
 from dataclasses import dataclass, field
 import argparse
+import re
 
 # ---------- Configuración ----------
 
@@ -21,6 +22,88 @@ VERSION = "0.1.0"
 BUILD_DIR = Path("build")
 SRC_DIR = Path("src")
 INCLUDE_BASE = SRC_DIR
+
+USE_COLOR = (
+    os.environ.get("NO_COLOR") is None
+    and (sys.stdout.isatty() or os.environ.get("FORCE_COLOR") is not None)
+)
+
+RESET = "\033[0m"
+BOLD = "\033[1m"
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+CYAN = "\033[36m"
+GRAY = "\033[90m"
+
+
+def paint(text: str, *codes: str) -> str:
+    if not USE_COLOR or not codes:
+        return text
+    return "".join(codes) + str(text) + RESET
+
+
+def ok(message: str) -> None:
+    print(paint(message, GREEN, BOLD))
+
+
+def note(message: str) -> None:
+    print(paint(message, CYAN))
+
+
+def warn(message: str) -> None:
+    print(paint(message, YELLOW), file=sys.stderr)
+
+
+def fail(message: str) -> None:
+    print(paint(message, RED, BOLD), file=sys.stderr)
+
+
+def muted(message: str) -> None:
+    print(paint(message, GRAY))
+
+
+def colored_diagnostics(output: str) -> str:
+    lines = []
+    for line in output.rstrip().splitlines():
+        lowered = line.lower()
+        if "error:" in lowered or "fatal error:" in lowered:
+            lines.append(paint(line, RED, BOLD))
+        elif "warning:" in lowered:
+            lines.append(paint(line, YELLOW))
+        elif "note:" in lowered:
+            lines.append(paint(line, CYAN))
+        else:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def print_error_steps(output: str) -> None:
+    fail("\n¿Qué hacer ahora?")
+    lowered = output.lower()
+    steps = []
+
+    location = re.search(r"([^\s:]+):(\d+):\d+:.*(?:error|warning):", output)
+    if location:
+        steps.append(f"Revisa {location.group(1)} en la línea {location.group(2)}.")
+    if "no such file or directory" in lowered or "file not found" in lowered:
+        steps.append("Verifica SOURCES/HEADERS en luna.build y las rutas de INCLUDES.")
+    if "implicit declaration" in lowered:
+        steps.append("Añade el header que declara la función o declara su prototipo.")
+    if "redefinition" in lowered or "redeclared" in lowered:
+        steps.append("Busca definiciones duplicadas o includes sin guardas de inclusión.")
+    if "undefined reference" in lowered or "ld returned" in lowered:
+        steps.append("Revisa DEPENDS, SOURCES y las librerías del enlazado.")
+    if "permission denied" in lowered:
+        steps.append("Comprueba permisos del archivo o usa 'python3 luna.py build'.")
+
+    if not steps:
+        steps.append("Corrige el error señalado por el compilador y vuelve a ejecutar el build.")
+    steps.append("Si el error persiste, ejecuta 'python3 luna.py build -v' para ver el comando exacto.")
+
+    for index, step in enumerate(steps, 1):
+        muted(f"  {index}. {step}")
 
 # ---------- Estructuras de datos ----------
 
@@ -59,7 +142,8 @@ def load_module(build_file: Path) -> Module:
         with open(build_file) as f:
             exec(f.read(), context)
     except Exception as e:
-        print(f"✗ Error cargando {build_file}: {e}", file=sys.stderr)
+        fail(f"✗ Error cargando {build_file}: {e}")
+        print_error_steps(str(e))
         sys.exit(1)
     
     return Module(
@@ -91,14 +175,15 @@ def resolve_dependencies(modules: Dict[str, Module]) -> List[Module]:
     
     def visit(name: str, path: List[str]):
         if name in path:
-            print(f"✗ Dependencia circular detectada: {' -> '.join(path + [name])}", file=sys.stderr)
+            fail(f"✗ Dependencia circular detectada: {' -> '.join(path + [name])}")
             sys.exit(1)
         
         if name in visited:
             return
         
         if name not in modules:
-            print(f"✗ Módulo desconocido: {name}", file=sys.stderr)
+            fail(f"✗ Módulo desconocido: {name}")
+            warn("  Revisa la clave DEPENDS en los archivos luna.build.")
             sys.exit(1)
         
         module = modules[name]
@@ -177,27 +262,34 @@ def compile_module(module: Module, modules: Dict[str, Module], verbose: bool = F
             
             if not needs_rebuild:
                 if verbose:
-                    print(f"  ⚬ {source} (sin cambios)")
+                    muted(f"  ⚬ {source} (sin cambios)")
                 continue
         
         # Compilar
         cmd = ["cc"] + all_cflags + ["-c", str(source_path), "-o", str(object_path)]
         
         if verbose:
-            print(f"  → {source}")
+            note(f"  → {source}")
         
         try:
             result = subprocess.run(
                 cmd,
-                capture_output=not verbose,
+                capture_output=True,
                 text=True,
                 check=True
             )
+            if verbose and result.stdout:
+                print(colored_diagnostics(result.stdout))
+            if verbose and result.stderr:
+                print(colored_diagnostics(result.stderr), file=sys.stderr)
         except subprocess.CalledProcessError as e:
-            print(f"✗ Error compilando {source_path}:", file=sys.stderr)
-            if not verbose:
-                print(e.stdout, file=sys.stderr)
-                print(e.stderr, file=sys.stderr)
+            fail(f"✗ Error compilando {source_path}:")
+            output = ((e.stdout or "") + ("\n" if e.stdout and e.stderr else "") + (e.stderr or "")).strip()
+            if output:
+                print(colored_diagnostics(output), file=sys.stderr)
+                print_error_steps(output)
+            else:
+                print_error_steps(str(e))
             success = False
     
     return success
@@ -231,50 +323,61 @@ def link_executable(modules: Dict[str, Module], target: str, main_source: Option
     cmd = ["cc"] + objects + ["-o", str(output_path)] + libs
     
     try:
-        subprocess.run(cmd, check=True)
-        print(f"✓ Ejecutable generado: {output_path}")
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        if result.stdout:
+            print(colored_diagnostics(result.stdout))
+        if result.stderr:
+            print(colored_diagnostics(result.stderr), file=sys.stderr)
+        ok(f"✓ Ejecutable generado: {output_path}")
     except subprocess.CalledProcessError as e:
-        print(f"✗ Error linkeando:", file=sys.stderr)
-        print(e.stderr, file=sys.stderr)
+        fail("✗ Error linkeando:")
+        output = ((e.stdout or "") + ("\n" if e.stdout and e.stderr else "") + (e.stderr or "")).strip()
+        if output:
+            print(colored_diagnostics(output), file=sys.stderr)
+            print_error_steps(output)
+        else:
+            print_error_steps(str(e))
         sys.exit(1)
 
 # ---------- Comandos ----------
 
 def cmd_build(args):
     """Comando: build"""
-    print(f"Luna Build System v{VERSION}")
+    note(paint(f"Luna Build System v{VERSION}", BOLD))
     print()
     
     start_time = time.time()
     
     # Descubrir módulos
     modules = discover_modules()
-    print(f"✓ {len(modules)} módulos descubiertos")
+    ok(f"✓ {len(modules)} módulos descubiertos")
     
     # Resolver dependencias
     order = resolve_dependencies(modules)
     
     # Compilar
-    print(f"\nCompilando {len(order)} módulos...")
+    note(f"\nCompilando {len(order)} módulos...")
     success_count = 0
     
     for module in order:
-        print(f"\n[{module.name}]")
+        print(paint(f"\n[{module.name}]", BOLD, BLUE))
         if compile_module(module, modules, verbose=args.verbose):
             success_count += 1
     
     elapsed = time.time() - start_time
     
     print(f"\n{'='*60}")
-    print(f"✓ {success_count}/{len(order)} módulos compilados")
-    print(f"⏱  Tiempo: {elapsed:.2f}s")
+    status = ok if success_count == len(order) else warn
+    status(f"✓ {success_count}/{len(order)} módulos compilados")
+    muted(f"⏱  Tiempo: {elapsed:.2f}s")
     
     if success_count == len(order):
         # Linkear
-        print(f"\nLinkeando ejecutable...")
+        note("\nLinkeando ejecutable...")
         link_executable(modules, "luna", main_source=args.main)
     else:
-        print(f"\n✗ Build fallido", file=sys.stderr)
+        fail("\n✗ Build fallido")
+        warn("Sigue los pasos indicados arriba para cada error de compilación.")
         sys.exit(1)
 
 def cmd_clean(args):
@@ -282,9 +385,9 @@ def cmd_clean(args):
     if BUILD_DIR.exists():
         import shutil
         shutil.rmtree(BUILD_DIR)
-        print(f"✓ Directorio {BUILD_DIR} eliminado")
+        ok(f"✓ Directorio {BUILD_DIR} eliminado")
     else:
-        print(f"⚬ Nada que limpiar")
+        muted("⚬ Nada que limpiar")
 
 def cmd_info(args):
     """Comando: info"""

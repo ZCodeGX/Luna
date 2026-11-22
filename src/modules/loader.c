@@ -166,6 +166,14 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name) {
         /* El error ya está en L->error_message */
         return NULL;
     }
+
+    LunaString* exports_key = luna_string_newz(L, "__exports__");
+    LunaValue exports_val;
+    if (exports_key && luna_table_get(L->globals, luna_string_val(exports_key),
+                                      &exports_val) &&
+        exports_val.type == LUNA_TTABLE) {
+        stored->exports = luna_val_table(exports_val);
+    }
     
     stored->loaded = 1;
     return stored->exports;

@@ -2,6 +2,7 @@
 #include "../compiler/compiler.h"
 #include "../parser/parser.h"
 #include "../platform/platform.h"
+#include "../modules/modules_internal.h"
 
 /* ============================================================
  * Ejecución protegida
@@ -90,6 +91,8 @@ LunaStatus luna_dofile(LunaState* L, const char* path) {
         luna_error_set_simple(L, LUNA_ERR_ARGUMENT, "null path");
         return LUNA_ERR_ARGUMENT;
     }
+
+    modules_set_current_dir(&L->modules, path);
 
     char errbuf[256] = {0};
     size_t src_len = 0;

@@ -22,6 +22,7 @@ static void compile_field(LunaCompiler* C, LunaNode* node, int reg);
 
 /* Extern de closures.c */
 extern int resolve_variable(LunaCompiler* C, const char* name);
+extern int variable_is_const(LunaCompiler* C, const char* name);
 
 #define LUNA_TEMP_SLOTS 16
 #define LUNA_EXPORTS_LOCAL "__luna_exports__"
@@ -596,6 +597,12 @@ static int compound_opcode(LunaTokenType token, LunaOpcode* op) {
 
 static void store_ident(LunaCompiler* C, LunaNode* node, const char* name, int reg) {
     LunaProto* proto = compiler_current_proto(C);
+
+    if (variable_is_const(C, name)) {
+        compiler_error_at(C, node, "cannot reassign 'const' variable");
+        return;
+    }
+
     int result = resolve_variable(C, name);
 
     if (result >= 0) {

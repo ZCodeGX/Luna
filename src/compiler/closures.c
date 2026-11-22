@@ -7,6 +7,23 @@
  * Si es upvalue, añade la captura y devuelve -3 - índice.
  * Si es global, devuelve -2.
  */
+int variable_is_const(LunaCompiler* C, const char* name) {
+    int current = C->scope_depth - 1;
+    if (current < 0) return 0;
+
+    LunaScope* scope = &C->scope_stack[current];
+    int slot = scope_find_local(scope, name);
+    if (slot >= 0) return scope->locals[slot].is_const;
+
+    if (current > 0) {
+        LunaScope* parent = &C->scope_stack[current - 1];
+        slot = scope_find_local(parent, name);
+        if (slot >= 0) return parent->locals[slot].is_const;
+    }
+
+    return 0;
+}
+
 int resolve_variable(LunaCompiler* C, const char* name) {
     int current = C->scope_depth - 1;
     if (current < 0) return -2;

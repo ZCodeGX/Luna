@@ -2,6 +2,26 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.1
+
+### Corregido
+
+- Los errores léxicos fatales (cadena sin cerrar, literal numérico inválido, tabs) ya no se pierden ni cuelgan el parser; se reportan una sola vez con caret de un carácter.
+- El sink de diagnósticos respeta `--max-errors=0` como «sin límite», valida argumentos inválidos y solo avisa de truncamiento cuando realmente se descartaron errores.
+- Se corrigen fugas de AST en rutas de error de `if`, `for`, `while`, `fn` y `try`, y el caret de asignaciones inválidas apunta al objetivo.
+- Se eliminan todos los warnings del build y se añade un límite de profundidad para expresiones muy anidadas.
+
+### Añadido
+
+- Fixtures para cadenas sin cerrar y literales hexadecimales inválidos.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.1 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.7.0
 
 ### Cambiado

@@ -1,0 +1,21 @@
+fn main()
+    let nums = [10, 20, 30]
+    print(nums[0])
+    nums[0] = 99
+    print(nums[0])
+    nums[1] += 5
+    print(nums[1])
+
+    let config = { host = "localhost", port = 8080 }
+    print(config.host)
+    print(config.port)
+    config.port += 100
+    print(config.port)
+    config.host = "127.0.0.1"
+    print(config.host)
+
+    print(config["port"])
+    config["port"] += 1
+    print(config["port"])
+
+main()

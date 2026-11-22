@@ -407,6 +407,39 @@ static void compile_field(LunaCompiler* C, LunaNode* node, int reg) {
     luna_proto_emit_op_ABC(proto, OP_GET_FIELD, (uint8_t)reg, (uint8_t)reg, (uint8_t)idx);
 }
 
+static void compile_index(LunaCompiler* C, LunaNode* node, int reg) {
+    LunaProto* proto = compiler_current_proto(C);
+
+    compile_expr(C, node->as.index.object, reg);
+    compile_expr(C, node->as.index.index, reg + 1);
+    luna_proto_emit_op_ABC(proto, OP_GET_INDEX, (uint8_t)reg, (uint8_t)reg,
+                           (uint8_t)(reg + 1));
+}
+
+static void compile_list(LunaCompiler* C, LunaNode* node, int reg) {
+    LunaProto* proto = compiler_current_proto(C);
+
+    luna_proto_emit_op_A(proto, OP_NEW_LIST, (uint8_t)reg);
+    for (LunaNodeList* l = node->as.list.elements; l; l = l->next) {
+        compile_expr(C, l->node, reg + 1);
+        luna_proto_emit_op_ABC(proto, OP_LIST_APPEND, (uint8_t)reg,
+                               (uint8_t)(reg + 1), 0);
+    }
+}
+
+static void compile_table(LunaCompiler* C, LunaNode* node, int reg) {
+    LunaProto* proto = compiler_current_proto(C);
+
+    luna_proto_emit_op_A(proto, OP_NEW_TABLE, (uint8_t)reg);
+    for (LunaTableEntry* e = node->as.table.entries; e; e = e->next) {
+        uint16_t key = luna_proto_add_const_string(proto, e->key, strlen(e->key));
+        luna_proto_emit_op_ABx(proto, OP_LOAD_CONST, (uint8_t)(reg + 1), key);
+        compile_expr(C, e->value, reg + 2);
+        luna_proto_emit_op_ABC(proto, OP_TABLE_SET, (uint8_t)reg,
+                               (uint8_t)(reg + 1), (uint8_t)(reg + 2));
+    }
+}
+
 void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
     if (C->failed || !node) return;
 
@@ -432,6 +465,15 @@ void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
             break;
         case NODE_FIELD:
             compile_field(C, node, reg);
+            break;
+        case NODE_INDEX:
+            compile_index(C, node, reg);
+            break;
+        case NODE_LIST:
+            compile_list(C, node, reg);
+            break;
+        case NODE_TABLE:
+            compile_table(C, node, reg);
             break;
         default:
             compiler_error_at(C, node, "unsupported expression node");
@@ -542,18 +584,18 @@ static void compile_import(LunaCompiler* C, LunaNode* node) {
     }
 }
 
-static void compile_assign(LunaCompiler* C, LunaNode* node) {
-    LunaProto* proto = compiler_current_proto(C);
-    int reg = expr_base(C);
-
-    compile_expr(C, node->as.assign.value, reg);
-
-    if (node->as.assign.target->type != NODE_IDENT) {
-        compiler_error_at(C, node, "complex assignment targets not yet supported");
-        return;
+static int compound_opcode(LunaTokenType token, LunaOpcode* op) {
+    switch (token) {
+        case LUNA_TOK_PLUS_ASSIGN:  *op = OP_ADD; return 1;
+        case LUNA_TOK_MINUS_ASSIGN: *op = OP_SUB; return 1;
+        case LUNA_TOK_STAR_ASSIGN:  *op = OP_MUL; return 1;
+        case LUNA_TOK_SLASH_ASSIGN: *op = OP_DIV; return 1;
+        default: return 0;
     }
+}
 
-    const char* name = node->as.assign.target->as.string.data;
+static void store_ident(LunaCompiler* C, LunaNode* node, const char* name, int reg) {
+    LunaProto* proto = compiler_current_proto(C);
     int result = resolve_variable(C, name);
 
     if (result >= 0) {
@@ -569,6 +611,84 @@ static void compile_assign(LunaCompiler* C, LunaNode* node) {
     } else {
         compiler_error_at(C, node, "variable resolution failed");
     }
+}
+
+static void compile_assign(LunaCompiler* C, LunaNode* node) {
+    LunaProto* proto = compiler_current_proto(C);
+    LunaNode* target = node->as.assign.target;
+    LunaOpcode compound;
+    bool is_compound = node->as.assign.op != LUNA_TOK_ASSIGN;
+
+    if (is_compound && !compound_opcode(node->as.assign.op, &compound)) {
+        compiler_error_at(C, node, "unsupported compound assignment");
+        return;
+    }
+
+    int reg = expr_base(C);
+
+    if (target->type == NODE_IDENT) {
+        int value_reg = reg;
+        if (is_compound) {
+            compile_ident(C, target, value_reg);
+            compile_expr(C, node->as.assign.value, reg + 1);
+            luna_proto_emit_op_ABC(proto, compound, (uint8_t)value_reg,
+                                   (uint8_t)value_reg, (uint8_t)(reg + 1));
+        } else {
+            compile_expr(C, node->as.assign.value, value_reg);
+        }
+        store_ident(C, node, target->as.string.data, value_reg);
+        return;
+    }
+
+    if (target->type == NODE_INDEX) {
+        int object_reg = reg;
+        int key_reg = reg + 1;
+        int value_reg = reg + 2;
+        int rhs_reg = reg + 3;
+
+        compile_expr(C, target->as.index.object, object_reg);
+        compile_expr(C, target->as.index.index, key_reg);
+        if (is_compound) {
+            luna_proto_emit_op_ABC(proto, OP_GET_INDEX, (uint8_t)value_reg,
+                                   (uint8_t)object_reg, (uint8_t)key_reg);
+            compile_expr(C, node->as.assign.value, rhs_reg);
+            luna_proto_emit_op_ABC(proto, compound, (uint8_t)value_reg,
+                                   (uint8_t)value_reg, (uint8_t)rhs_reg);
+        } else {
+            compile_expr(C, node->as.assign.value, value_reg);
+        }
+        luna_proto_emit_op_ABC(proto, OP_SET_INDEX, (uint8_t)object_reg,
+                               (uint8_t)key_reg, (uint8_t)value_reg);
+        return;
+    }
+
+    if (target->type == NODE_FIELD) {
+        int object_reg = reg;
+        int value_reg = reg + 1;
+        int rhs_reg = reg + 2;
+        uint16_t key = luna_proto_add_const_string(proto, target->as.field.name,
+                                                   strlen(target->as.field.name));
+        if (key > 255) {
+            compiler_error_at(C, node, "too many constants for field assignment");
+            return;
+        }
+
+        compile_expr(C, target->as.field.object, object_reg);
+        if (is_compound) {
+            luna_proto_emit_op_ABC(proto, OP_GET_FIELD, (uint8_t)value_reg,
+                                   (uint8_t)object_reg, (uint8_t)key);
+            compile_expr(C, node->as.assign.value, rhs_reg);
+            luna_proto_emit_op_ABC(proto, compound, (uint8_t)value_reg,
+                                   (uint8_t)value_reg, (uint8_t)rhs_reg);
+        } else {
+            compile_expr(C, node->as.assign.value, value_reg);
+        }
+        luna_proto_emit_op_ABC(proto, OP_SET_FIELD, (uint8_t)object_reg,
+                               (uint8_t)value_reg, (uint8_t)key);
+        return;
+    }
+
+    compiler_error_at(C, target, "invalid assignment target");
 }
 
 static void compile_return(LunaCompiler* C, LunaNode* node) {

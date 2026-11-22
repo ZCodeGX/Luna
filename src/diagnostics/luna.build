@@ -1,0 +1,12 @@
+# Módulo: diagnostics
+# Diagnósticos estructurados y renderizado estilo rustc
+
+SOURCES = [
+    'diagnostics.c',
+]
+
+HEADERS = []
+
+INCLUDES = ['include']
+DEPENDS = []
+CFLAGS = []

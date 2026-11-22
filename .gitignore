@@ -1,6 +1,8 @@
 build/
 dist/
 out/
+benchmarks/.tmp/
+benchmarks/results/
 *.o
 *.obj
 *.a

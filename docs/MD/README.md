@@ -15,6 +15,7 @@ Documentación del lenguaje de programación **Luna**, organizada por temas.
 | [09 — CLI y build](09-cli-y-build.md) | Opciones del intérprete y sistema de build |
 | [10 — API C](10-api-c.md) | Encabezados, tipos y funciones públicas |
 | [11 — Estado de implementación](11-estado-de-implementacion.md) | Qué funciona hoy y qué está en la gramática |
+| [12 — Rendimiento y Luna 0.3](12-rendimiento-0-3.md) | Plan de optimización del runtime y benchmarks |
 
 La gramática completa fuente de verdad está en [`luna.ebnf`](../../luna.ebnf). La versión web de esta guía está en [`../Web/index.html`](../Web/index.html).
 

@@ -13,6 +13,7 @@ Esta carpeta organiza la documentación del lenguaje **Luna** en tres áreas:
 - [Documentación web](Web/index.html) — abre `index.html` en el navegador.
 - [Índice de la documentación Markdown](MD/README.md).
 - [Índice del material de apoyo](Ayuda/README.md).
+- [Plan de rendimiento Luna 0.3](MD/12-rendimiento-0-3.md) y [benchmarks](../../benchmarks/README.md).
 
 ## Estado de la documentación
 

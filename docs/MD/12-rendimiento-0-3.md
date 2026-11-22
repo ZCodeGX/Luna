@@ -43,6 +43,15 @@ Línea base medida en el commit `989775c` (Luna `0.2.5`), con 5 ejecuciones y 1 
 
 Luna empata con Python en enteros, pero va ~2x más lento en llamadas recursivas y ~13% peor en coma flotante. Esa es la referencia que debe superar 0.3.
 
+#### Progreso de parches
+
+| Versión | `loop` | `fib` | `math` |
+| --- | --- | --- | --- |
+| `0.2.5` (base) | 2.63 s | 0.097 s | 7.75 s |
+| `0.2.6` | 2.34 s | 0.091 s | 6.64 s |
+
+`0.2.6` inlina `luna_opcode_mode`: −11 % en `loop`, −6 % en `fib` y −14 % en `math` respecto de la base.
+
 ### Fase 2 — Runtime optimizado
 
 - Fast paths numéricos para enteros y floats en `OP_ADD`, `OP_SUB`, `OP_MUL`, `OP_DIV` y comparaciones.

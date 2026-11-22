@@ -2,6 +2,19 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.2.6
+
+### Cambiado
+
+- `luna_opcode_mode` es `static inline` en `opcodes.h`: el bucle de ejecución ya no hace una llamada externa por instrucción para calcular el avance del PC.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.2.6 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.2.5
 
 ### Añadido

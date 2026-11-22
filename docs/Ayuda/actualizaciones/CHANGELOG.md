@@ -2,6 +2,20 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.5.1
+
+### Añadido
+
+- Chequeo en tiempo de compilación de reasignaciones de variables `const`, incluyendo captured upvalues de un scope padre.
+- Fixtures `tests/test_const_valid.luna` y `tests/test_const_invalid.luna`.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.5.1 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.5.0
 
 ### Añadido

@@ -17,4 +17,4 @@ Esta carpeta organiza la documentación del lenguaje **Luna** en tres áreas:
 
 ## Estado de la documentación
 
-Luna está en desarrollo (versión `0.5.0`). La documentación distingue entre lo que ya funciona de extremo a extremo y lo que solo está reconocido por el parser. Consulta [estado de implementación](MD/11-estado-de-implementacion.md) antes de usar una característica.
+Luna está en desarrollo (versión `0.5.1`). La documentación distingue entre lo que ya funciona de extremo a extremo y lo que solo está reconocido por el parser. Consulta [estado de implementación](MD/11-estado-de-implementacion.md) antes de usar una característica.

@@ -1,6 +1,6 @@
 # 11 — Estado de implementación
 
-Luna se encuentra en versión `0.5.0` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
+Luna se encuentra en versión `0.5.1` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
 
 ## Soportado de extremo a extremo
 
@@ -9,6 +9,7 @@ Luna se encuentra en versión `0.5.0` (ABI 1). La gramática `luna.ebnf` describ
 | Literales `nil`, booleanos, enteros, floats y strings | Disponible |
 | Números hexadecimales y binarios | Disponible |
 | `let` y `const` | Disponible |
+| Chequeo de reasignación de `const` | Disponible |
 | Funciones `fn`, parámetros y `return` | Disponible |
 | `if` / `else if` / `else` | Disponible |
 | `while` | Disponible |
@@ -36,7 +37,6 @@ Luna se encuentra en versión `0.5.0` (ABI 1). La gramática `luna.ebnf` describ
 | Lambdas `fn(...)` | Sí | Nodo `NODE_LAMBDA` sin compilar |
 
 | Concatenación de strings con `+` | Sí | Error de tipo en runtime |
-| Chequeo de reasignación de `const` | Sí | No se comprueba |
 
 ## Otros límites
 

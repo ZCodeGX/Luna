@@ -1,0 +1,12 @@
+
+fn main()
+    let i = 0
+    let sum = 0
+
+    while i < 20000000
+        sum = sum + ((i * 3 + 7) % 1009)
+        i = i + 1
+
+    print(sum)
+
+main()

@@ -1,0 +1,17 @@
+
+# ======================================
+# LUNA - BENCHMARK MATEMATICO
+# 50 millones de iteraciones
+# ======================================
+
+let x = 1.0
+let i = 0
+
+while i < 50000000
+    x = x + 0.000001
+    x = x * 1.0000001
+    x = x - 0.000001
+
+    i = i + 1
+
+print(x)

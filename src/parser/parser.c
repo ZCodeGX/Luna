@@ -49,13 +49,14 @@ LunaNode* luna_parser_parse_program(LunaParser* P) {
         if (check(P, LUNA_TOK_EOF)) break;
 
         if (check(P, LUNA_TOK_ERROR)) {
-            fail_current(P, "error léxico");
-            advance(P);
-            continue;
+            fail_current(P, "invalid syntax");
+            break;
         }
 
         if (check(P, LUNA_TOK_INDENT)) {
-            fail_current(P, "unexpected indentation at file start");
+            indentation_error(P, token_span(P, &P->current),
+                              "this line is more indented than the previous one",
+                              "unexpected indent");
             synchronize(P);
             continue;
         }

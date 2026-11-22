@@ -10,9 +10,9 @@ extern "C" {
 #endif
 
 #define LUNA_VERSION_MAJOR 0
-#define LUNA_VERSION_MINOR 6
+#define LUNA_VERSION_MINOR 7
 #define LUNA_VERSION_PATCH 0
-#define LUNA_VERSION_STRING "0.6.0"
+#define LUNA_VERSION_STRING "0.7.0"
 #define LUNA_ABI_VERSION   1
 
 #if defined(_WIN32) && defined(LUNA_BUILD_SHARED)

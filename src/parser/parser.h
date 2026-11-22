@@ -10,7 +10,9 @@
 typedef struct {
     LunaLexer lexer;
     LunaToken current;
+    LunaToken previous;
     bool      has_current;
+    bool      has_previous;
     bool      failed;
     char      error_message[256];
     int       error_line;
@@ -23,6 +25,7 @@ typedef struct {
     LunaDiagnosticSink owned_diags;
     bool owns_diags;
     bool panic_mode;
+    int loop_depth;
 } LunaParser;
 
 LunaNode* luna_parse(const char* source, size_t length, LunaParser* P_out);

@@ -38,7 +38,8 @@ LunaIndentResult luna_indent_handle(LunaLexer* L) {
         if (c == ' ') {
             indent++;
         } else if (c == '\t') {
-            indent = (indent / 4 + 1) * 4;
+            set_error(L, "tabs are not allowed for indentation");
+            return LUNA_INDENT_NONE;
         } else {
             break;
         }
@@ -65,7 +66,7 @@ LunaIndentResult luna_indent_handle(LunaLexer* L) {
             L->pending_dedents++;
         }
         if (L->indent_stack[L->indent_depth - 1] != indent) {
-            set_error(L, "inconsistent dedent");
+            set_error(L, "unindent does not match any outer indentation level");
             return LUNA_INDENT_NONE;
         }
         L->at_line_start = false;

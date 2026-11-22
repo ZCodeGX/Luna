@@ -7,6 +7,7 @@
 
 static bool g_use_color = false;
 static int g_max_errors = 20;
+static const char* filename_override = NULL;
 
 void luna_diag_set_color(bool enabled) { g_use_color = enabled; }
 bool luna_diag_color_enabled(void) { return g_use_color; }
@@ -36,7 +37,6 @@ static char* xvasprintf(const char* fmt, va_list ap) {
 }
 
 static void diag_free_owned(LunaDiagnostic* d) {
-    free((void*)d->code);
     free((void*)d->message);
     free((void*)d->label);
     free((void*)d->help);
@@ -85,7 +85,7 @@ void luna_diag_emit(LunaDiagnosticSink* sink, LunaDiagnostic diag) {
     if (diag.severity == LUNA_DIAG_ERROR) sink->error_count++;
 }
 
-LunaDiagnostic luna_diag_make(LunaDiagSeverity severity, const char* code,
+LunaDiagnostic luna_diag_make(LunaDiagSeverity severity, LunaErrorType type,
                               LunaSpan span, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -95,7 +95,7 @@ LunaDiagnostic luna_diag_make(LunaDiagSeverity severity, const char* code,
     LunaDiagnostic d;
     memset(&d, 0, sizeof(d));
     d.severity = severity;
-    d.code = xstrdup(code);
+    d.type = type;
     d.message = msg ? msg : xstrdup("<out of memory>");
     d.primary = span;
     return d;
@@ -153,14 +153,31 @@ static void line_bounds(const char* src, size_t len, uint32_t off,
     *out_end = end;
 }
 
+static const char* error_type_name(LunaErrorType type) {
+    switch (type) {
+        case LUNA_ERROR_SYNTAX: return "SyntaxError";
+        case LUNA_ERROR_INDENTATION: return "IndentationError";
+        case LUNA_ERROR_NAME: return "NameError";
+        case LUNA_ERROR_TYPE: return "TypeError";
+        case LUNA_ERROR_VALUE: return "ValueError";
+        case LUNA_ERROR_RUNTIME: return "RuntimeError";
+        case LUNA_ERROR_ZERO_DIVISION: return "ZeroDivisionError";
+        case LUNA_ERROR_INDEX: return "IndexError";
+        case LUNA_ERROR_KEY: return "KeyError";
+        case LUNA_ERROR_ATTRIBUTE: return "AttributeError";
+        case LUNA_ERROR_IMPORT: return "ImportError";
+    }
+    return "Error";
+}
+
 static const char* severity_name(LunaDiagSeverity severity) {
     switch (severity) {
-        case LUNA_DIAG_ERROR: return "error";
-        case LUNA_DIAG_WARNING: return "warning";
-        case LUNA_DIAG_NOTE: return "note";
-        case LUNA_DIAG_HINT: return "hint";
+        case LUNA_DIAG_ERROR: return "Error";
+        case LUNA_DIAG_WARNING: return "Warning";
+        case LUNA_DIAG_NOTE: return "Note";
+        case LUNA_DIAG_HINT: return "Hint";
     }
-    return "?";
+    return "Error";
 }
 
 static const char* severity_color(LunaDiagSeverity severity) {
@@ -173,28 +190,36 @@ static const char* severity_color(LunaDiagSeverity severity) {
     return "";
 }
 
+static uint32_t count_codepoints(const char* src, uint32_t from, uint32_t to) {
+    uint32_t n = 0;
+    for (uint32_t i = from; i < to; i++) {
+        if ((src[i] & 0xC0) != 0x80) n++;
+    }
+    return n;
+}
+
 static void print_snippet(FILE* out, const char* src, size_t len,
                           LunaSpan span, const char* label, bool color) {
     uint32_t ls, le;
     line_bounds(src, len, span.start, &ls, &le);
     LineCol lc = offset_to_linecol(src, len, span.start);
 
-    int width = 1;
-    for (int t = lc.line; t >= 10; t /= 10) width++;
-
-    fprintf(out, "%*d | ", width, lc.line);
+    fprintf(out, "  File \"%s\", line %d\n",
+            (filename_override ? filename_override : "<string>"), lc.line);
+    fputs("    ", out);
     fwrite(src + ls, 1, le - ls, out);
     fputc('\n', out);
 
-    fprintf(out, "%*s | ", width, "");
-    for (uint32_t i = ls; i < span.start && i < le; i++) {
-        fputc(src[i] == '\t' ? '\t' : ' ', out);
-    }
+    fputs("    ", out);
+    uint32_t pad = count_codepoints(src, ls, span.start);
+    for (uint32_t i = 0; i < pad; i++) fputc(' ', out);
 
-    uint32_t carets = span.end > span.start ? span.end - span.start : 1;
-    if (span.start + carets > le) carets = le > span.start ? le - span.start : 1;
-    if (color) fputs("\x1b[1;31m", out);
+    uint32_t start = span.start < le ? span.start : le;
+    uint32_t end = span.end > le ? le : span.end;
+    uint32_t carets = count_codepoints(src, start, end);
     if (carets == 0) carets = 1;
+
+    if (color) fputs("\x1b[1;31m", out);
     for (uint32_t i = 0; i < carets; i++) fputc('^', out);
     if (label && *label) fprintf(out, " %s", label);
     if (color) fputs("\x1b[0m", out);
@@ -207,26 +232,31 @@ void luna_diag_render(const LunaDiagnostic* diag, const char* source,
     FILE* out = (FILE*)out_stream;
     if (!out) return;
 
-    if (use_color) fputs(severity_color(diag->severity), out);
-    fputs(severity_name(diag->severity), out);
-    if (use_color) fputs("\x1b[0m", out);
-    if (diag->code) fprintf(out, "[%s]", diag->code);
-    fprintf(out, ": %s\n", diag->message ? diag->message : "");
-
+    filename_override = filename;
     LineCol lc = offset_to_linecol(source, source_len, diag->primary.start);
-    fprintf(out, "  --> %s:%d:%d\n", filename ? filename : "<string>", lc.line, lc.col);
     print_snippet(out, source, source_len, diag->primary, diag->label, use_color);
 
+    const char* name = diag->severity == LUNA_DIAG_ERROR
+                           ? error_type_name(diag->type)
+                           : severity_name(diag->severity);
+    if (use_color) fputs(severity_color(diag->severity), out);
+    fputs(name, out);
+    if (use_color) fputs("\x1b[0m", out);
+    fprintf(out, ": %s\n", diag->message ? diag->message : "");
+
     for (int i = 0; i < diag->note_count; i++) {
-        if (diag->notes[i].span.start || diag->notes[i].span.end) {
-            print_snippet(out, source, source_len, diag->notes[i].span,
-                          diag->notes[i].text, use_color);
-        } else {
-            fprintf(out, "   = note: %s\n", diag->notes[i].text);
-        }
+        fprintf(out, "    note: %s\n", diag->notes[i].text);
     }
-    if (diag->help) fprintf(out, "   = help: %s\n", diag->help);
+    if (diag->help) {
+        fputc('\n', out);
+        fputs("    ", out);
+        if (use_color) fputs("\x1b[1;36m", out);
+        fputs("help:", out);
+        if (use_color) fputs("\x1b[0m", out);
+        fprintf(out, " %s\n", diag->help);
+    }
     fputc('\n', out);
+    filename_override = NULL;
 }
 
 int luna_diag_render_all(const LunaDiagnosticSink* sink, const char* source,
@@ -238,7 +268,7 @@ int luna_diag_render_all(const LunaDiagnosticSink* sink, const char* source,
     }
     if (sink->error_count >= sink->max_errors && sink->max_errors > 0) {
         fprintf((FILE*)out_stream,
-                "   = note: se muestran solo los primeros %d errores\n",
+                "    note: only the first %d errors are shown\n",
                 sink->max_errors);
     }
     return sink->error_count;

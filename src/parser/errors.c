@@ -21,7 +21,7 @@ static uint32_t offset_from_linecol(LunaParser* P, int line, int col) {
     return off;
 }
 
-static LunaSpan span_from_token(LunaParser* P, const LunaToken* tok) {
+LunaSpan token_span(LunaParser* P, const LunaToken* tok) {
     if (!tok) return LUNA_SPAN_NONE;
 
     uint32_t start;
@@ -38,17 +38,29 @@ static LunaSpan span_from_token(LunaParser* P, const LunaToken* tok) {
     return (LunaSpan){ start, end };
 }
 
+static LunaSpan span_after_previous(LunaParser* P) {
+    if (P->has_previous && P->previous.start && P->source &&
+        P->previous.start >= P->source &&
+        P->previous.start <= P->source + P->source_len) {
+        uint32_t off = (uint32_t)(P->previous.start + P->previous.length - P->source);
+        if (off > P->source_len) off = (uint32_t)P->source_len;
+        return (LunaSpan){ off, off };
+    }
+    LunaSpan span = token_span(P, &P->current);
+    return (LunaSpan){ span.start, span.start };
+}
+
 static const char* token_description(LunaTokenType type) {
     switch (type) {
-        case LUNA_TOK_EOF: return "fin de archivo";
-        case LUNA_TOK_ERROR: return "error léxico";
-        case LUNA_TOK_NEWLINE: return "salto de línea";
-        case LUNA_TOK_INDENT: return "indentación";
-        case LUNA_TOK_DEDENT: return "fin de bloque";
-        case LUNA_TOK_INTEGER: return "entero";
-        case LUNA_TOK_FLOAT: return "decimal";
-        case LUNA_TOK_STRING: return "cadena";
-        case LUNA_TOK_IDENT: return "identificador";
+        case LUNA_TOK_EOF: return "end of file";
+        case LUNA_TOK_ERROR: return "lexer error";
+        case LUNA_TOK_NEWLINE: return "newline";
+        case LUNA_TOK_INDENT: return "indent";
+        case LUNA_TOK_DEDENT: return "dedent";
+        case LUNA_TOK_INTEGER: return "integer";
+        case LUNA_TOK_FLOAT: return "float";
+        case LUNA_TOK_STRING: return "string";
+        case LUNA_TOK_IDENT: return "identifier";
         default: return luna_token_name(type);
     }
 }
@@ -83,13 +95,14 @@ static bool close_enough(LunaTokenType got, LunaTokenType want) {
     return dist <= 1;
 }
 
-static bool emit_error(LunaParser* P, LunaSpan span, const LunaToken* tok,
-                       const char* code, const char* fmt, ...) {
+static bool emit_error(LunaParser* P, LunaErrorType type, LunaSpan span,
+                       const LunaToken* tok, const char* help,
+                       const char* fmt, ...) {
     if (P->panic_mode || !P->diags) return false;
 
+    char* msg = NULL;
     va_list ap;
     va_start(ap, fmt);
-    char* msg = NULL;
     va_list cp;
     va_copy(cp, ap);
     int n = vsnprintf(NULL, 0, fmt, cp);
@@ -100,13 +113,12 @@ static bool emit_error(LunaParser* P, LunaSpan span, const LunaToken* tok,
     }
     va_end(ap);
 
-    LunaDiagnostic d = luna_diag_make(LUNA_DIAG_ERROR, code, span,
-                                      "%s", msg ? msg : "<out of memory>");
+    LunaDiagnostic d = luna_diag_make(LUNA_DIAG_ERROR, type, span,
+                                      "%s", msg ? msg : "invalid syntax");
     free(msg);
-
-    if (tok) {
-        luna_diag_add_note(&d, LUNA_SPAN_NONE, "token encontrado: %s",
-                           token_description(tok->type));
+    if (help) luna_diag_set_help(&d, "%s", help);
+    if (tok && tok->type != LUNA_TOK_ERROR) {
+        luna_diag_add_note(&d, LUNA_SPAN_NONE, "found %s", token_description(tok->type));
     }
 
     if (P->diags->error_count == 0 && P->error_message[0] == 0) {
@@ -120,42 +132,78 @@ static bool emit_error(LunaParser* P, LunaSpan span, const LunaToken* tok,
     return true;
 }
 
+void syntax_error(LunaParser* P, LunaSpan span, const char* help, const char* fmt, ...) {
+    char msg[256];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    emit_error(P, LUNA_ERROR_SYNTAX, span, NULL, help, "%s", msg);
+}
+
+void indentation_error(LunaParser* P, LunaSpan span, const char* help, const char* fmt, ...) {
+    char msg[256];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(msg, sizeof(msg), fmt, ap);
+    va_end(ap);
+    emit_error(P, LUNA_ERROR_INDENTATION, span, NULL, help, "%s", msg);
+}
+
 void fail_at(LunaParser* P, int line, int col, const char* msg) {
-    LunaToken synthetic;
-    memset(&synthetic, 0, sizeof(synthetic));
-    synthetic.line = line;
-    synthetic.column = col;
-    emit_error(P, offset_from_linecol(P, line, col) == 0
-                      ? LUNA_SPAN_NONE
-                      : (LunaSpan){ offset_from_linecol(P, line, col),
-                                    offset_from_linecol(P, line, col) + 1 },
-               &synthetic, "E0002", "%s", msg);
+    uint32_t off = offset_from_linecol(P, line, col);
+    LunaSpan span = { off, off + 1 };
+    syntax_error(P, span, NULL, "%s", msg);
 }
 
 void fail_current(LunaParser* P, const char* msg) {
+    LunaErrorType type = LUNA_ERROR_SYNTAX;
+    const char* help = NULL;
     if (check(P, LUNA_TOK_ERROR) && P->current.start) {
         msg = (const char*)P->current.start;
+        if (strstr(msg, "indent") || strstr(msg, "dedent") || strstr(msg, "tab") ||
+            strstr(msg, "unindent")) {
+            type = LUNA_ERROR_INDENTATION;
+            if (strstr(msg, "tabs")) {
+                help = "use spaces only (4 spaces per level)";
+            } else {
+                help = "check your indentation; use 4 spaces per level";
+            }
+        }
     }
-    emit_error(P, span_from_token(P, &P->current), &P->current, "E0002", "%s", msg);
+    emit_error(P, type, token_span(P, &P->current), &P->current, help, "%s", msg);
 }
 
 bool expect(LunaParser* P, LunaTokenType t, const char* what) {
     if (match(P, t)) return true;
 
-    bool emitted = emit_error(P, span_from_token(P, &P->current), &P->current,
-                              "E0001", "se esperaba %s pero se encontró %s",
-                              what, token_description(P->current.type));
+    bool emitted = emit_error(P, LUNA_ERROR_SYNTAX, token_span(P, &P->current),
+                              &P->current, NULL,
+                              "expected %s but found %s", what,
+                              token_description(P->current.type));
     if (emitted && close_enough(P->current.type, t) &&
         P->diags && P->diags->count > 0) {
         LunaDiagnostic* last = &P->diags->items[P->diags->count - 1];
-        luna_diag_set_help(last, "quizás quisiste decir '%s'", luna_token_name(t));
+        luna_diag_set_help(last, "did you mean '%s'?", luna_token_name(t));
     }
     return false;
 }
 
-bool expect_block_end(LunaParser* P, const char* what) {
-    match(P, LUNA_TOK_COLON);
-    return expect(P, LUNA_TOK_NEWLINE, what);
+bool expect_help(LunaParser* P, LunaTokenType t, const char* what, const char* help) {
+    bool ok = expect(P, t, what);
+    if (!ok && help && P->diags && P->diags->count > 0) {
+        luna_diag_set_help(&P->diags->items[P->diags->count - 1], "%s", help);
+    }
+    return ok;
+}
+
+bool expect_block_end(LunaParser* P, const char* context) {
+    if (!match(P, LUNA_TOK_COLON)) {
+        syntax_error(P, span_after_previous(P),
+                     "insert ':' at the end of the line",
+                     "expected ':' after %s", context);
+    }
+    return expect(P, LUNA_TOK_NEWLINE, "newline after ':'");
 }
 
 static bool is_statement_start(LunaTokenType t) {
@@ -187,8 +235,10 @@ void synchronize(LunaParser* P) {
             advance(P);
             return;
         }
-        if (check(P, LUNA_TOK_DEDENT) || check(P, LUNA_TOK_RBRACE) ||
-            check(P, LUNA_TOK_RPAREN) || check(P, LUNA_TOK_RBRACKET)) {
+        if (check(P, LUNA_TOK_DEDENT)) return;
+        if (check(P, LUNA_TOK_RBRACE) || check(P, LUNA_TOK_RPAREN) ||
+            check(P, LUNA_TOK_RBRACKET)) {
+            advance(P);
             return;
         }
         if (is_statement_start(P->current.type)) return;

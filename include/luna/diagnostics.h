@@ -17,9 +17,23 @@ typedef enum {
     LUNA_DIAG_HINT,
 } LunaDiagSeverity;
 
+typedef enum {
+    LUNA_ERROR_SYNTAX,
+    LUNA_ERROR_INDENTATION,
+    LUNA_ERROR_NAME,
+    LUNA_ERROR_TYPE,
+    LUNA_ERROR_VALUE,
+    LUNA_ERROR_RUNTIME,
+    LUNA_ERROR_ZERO_DIVISION,
+    LUNA_ERROR_INDEX,
+    LUNA_ERROR_KEY,
+    LUNA_ERROR_ATTRIBUTE,
+    LUNA_ERROR_IMPORT,
+} LunaErrorType;
+
 typedef struct {
     LunaDiagSeverity severity;
-    const char* code;
+    LunaErrorType type;
     const char* message;
     LunaSpan primary;
     const char* label;
@@ -54,7 +68,7 @@ void luna_diag_sink_free(LunaDiagnosticSink* sink);
 void luna_diag_emit(LunaDiagnosticSink* sink, LunaDiagnostic diag);
 bool luna_diag_has_errors(const LunaDiagnosticSink* sink);
 
-LunaDiagnostic luna_diag_make(LunaDiagSeverity severity, const char* code,
+LunaDiagnostic luna_diag_make(LunaDiagSeverity severity, LunaErrorType type,
                               LunaSpan span, const char* fmt, ...);
 void luna_diag_add_note(LunaDiagnostic* diag, LunaSpan span, const char* fmt, ...);
 void luna_diag_set_help(LunaDiagnostic* diag, const char* fmt, ...);

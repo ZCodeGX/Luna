@@ -47,7 +47,9 @@ LunaNodeList* parse_param_list(LunaParser* P) {
     if (check(P, LUNA_TOK_RPAREN)) return NULL;
     for (;;) {
         if (!check(P, LUNA_TOK_IDENT)) {
-            fail_current(P, "se esperaba un nombre de parámetro");
+            syntax_error(P, token_span(P, &P->current),
+                         "names must start with a letter or '_'",
+                         "expected identifier");
             return head;
         }
         char* name = copy_token_text(&P->current);
@@ -68,19 +70,22 @@ static LunaNode* parse_postfix(LunaParser* P, LunaNode* node) {
             int line = P->current.line, col = P->current.column;
             advance(P);
             LunaNodeList* args = parse_arg_list(P);
-            if (!expect(P, LUNA_TOK_RPAREN, "')'")) return node;
+            if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close function call",
+                        "insert ')' after argument list")) return node;
             node = luna_node_call(node, args, line, col);
         } else if (check(P, LUNA_TOK_LBRACKET)) {
             int line = P->current.line, col = P->current.column;
             advance(P);
             LunaNode* idx = parse_expr(P, 0);
-            if (!expect(P, LUNA_TOK_RBRACKET, "']'")) return node;
+            if (!expect(P, LUNA_TOK_RBRACKET, "']' to close list literal")) return node;
             node = luna_node_index(node, idx, line, col);
         } else if (check(P, LUNA_TOK_DOT)) {
             int line = P->current.line, col = P->current.column;
             advance(P);
             if (!check(P, LUNA_TOK_IDENT)) {
-                fail_current(P, "se esperaba un nombre de campo después de '.'");
+                syntax_error(P, token_span(P, &P->current),
+                     "names must start with a letter or '_'",
+                     "expected identifier");
                 return node;
             }
             char* name = copy_token_text(&P->current);
@@ -110,7 +115,7 @@ static LunaNode* parse_list_literal(LunaParser* P) {
             if (check(P, LUNA_TOK_RBRACKET)) break;
         }
     }
-    if (!expect(P, LUNA_TOK_RBRACKET, "']'")) {}
+    if (!expect(P, LUNA_TOK_RBRACKET, "']' to close list literal")) {}
     return luna_node_list(head, line, col);
 }
 
@@ -122,7 +127,9 @@ static LunaNode* parse_table_literal(LunaParser* P) {
     if (!check(P, LUNA_TOK_RBRACE)) {
         for (;;) {
             if (!check(P, LUNA_TOK_IDENT)) {
-                fail_current(P, "se esperaba una clave en la tabla");
+                syntax_error(P, token_span(P, &P->current),
+                     "names must start with a letter or '_'",
+                     "expected identifier");
                 return luna_node_table(head, line, col);
             }
             char* key = copy_token_text(&P->current);
@@ -141,7 +148,7 @@ static LunaNode* parse_table_literal(LunaParser* P) {
             if (check(P, LUNA_TOK_RBRACE)) break;
         }
     }
-    if (!expect(P, LUNA_TOK_RBRACE, "'}'")) {}
+    if (!expect(P, LUNA_TOK_RBRACE, "'}' to close table literal")) {}
     return luna_node_table(head, line, col);
 }
 
@@ -150,9 +157,10 @@ static LunaNode* parse_lambda(LunaParser* P) {
     advance(P);
     if (!expect(P, LUNA_TOK_LPAREN, "'(' after 'fn'")) return NULL;
     LunaNodeList* params = parse_param_list(P);
-    if (!expect(P, LUNA_TOK_RPAREN, "')'")) return NULL;
-    if (!expect_block_end(P, "salto de línea antes del cuerpo de la lambda")) return NULL;
-    LunaNode* body = parse_block(P);
+    if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close function call",
+                        "insert ')' after argument list")) return NULL;
+    if (!expect_block_end(P, "'fn' parameter list")) return NULL;
+    LunaNode* body = parse_block_after(P, "fn expression");
     return luna_node_lambda(params, body, line, col);
 }
 
@@ -178,14 +186,16 @@ static LunaNode* parse_primary(LunaParser* P) {
         case LUNA_TOK_LPAREN: {
             advance(P);
             LunaNode* e = parse_expr(P, 0);
-            if (!expect(P, LUNA_TOK_RPAREN, "')'")) return e;
+            if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close function call",
+                        "insert ')' after argument list")) return e;
             return e;
         }
         case LUNA_TOK_LBRACKET: return parse_list_literal(P);
         case LUNA_TOK_LBRACE:   return parse_table_literal(P);
         case LUNA_TOK_FN:       return parse_lambda(P);
         default:
-            fail_current(P, "se esperaba una expresión");
+            syntax_error(P, token_span(P, &P->current),
+                     "expected an expression", "invalid syntax");
             return luna_node_nil(tok.line, tok.column);
     }
 }

@@ -1,4 +1,5 @@
 #include "vm_internal.h"
+#include "../modules/module.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,7 +119,8 @@ int vm_execute_loop(LunaState* L) {
         [OP_FOR_STEP] = &&label_OP_FOR_STEP,
         [OP_THROW] = &&label_OP_THROW,
         [OP_SETUP_EXC] = &&label_OP_SETUP_EXC,
-        [OP_POP_EXC] = &&label_OP_POP_EXC
+        [OP_POP_EXC] = &&label_OP_POP_EXC,
+        [OP_IMPORT] = &&label_OP_IMPORT
     };
 #endif
 
@@ -228,6 +230,16 @@ VM_SWITCH_BEGIN
             LunaString* key = luna_string_newz(L, c->as.string.data);
             if (!key) return -1;
             luna_table_set(L, L->globals, luna_string_val(key), base[A + 1]);
+            VM_ADVANCE();
+            VM_END_INSTR();
+        }
+
+        VM_CASE(OP_IMPORT) {
+            uint16_t bx = decode_Bx(code, pc);
+            LunaConst* c = &frame->proto->constants[bx];
+            LunaTable* exports = luna_import_module(L, c->as.string.data);
+            if (!exports) return -1;
+            base[A + 1] = luna_table_val(exports);
             VM_ADVANCE();
             VM_END_INSTR();
         }

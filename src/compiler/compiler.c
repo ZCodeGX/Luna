@@ -17,11 +17,15 @@ static void compile_for(LunaCompiler* C, LunaNode* node);
 static void compile_return(LunaCompiler* C, LunaNode* node);
 static void compile_expr_stmt(LunaCompiler* C, LunaNode* node);
 static void compile_assign(LunaCompiler* C, LunaNode* node);
+static void compile_import(LunaCompiler* C, LunaNode* node);
+static void compile_field(LunaCompiler* C, LunaNode* node, int reg);
 
 /* Extern de closures.c */
 extern int resolve_variable(LunaCompiler* C, const char* name);
 
 #define LUNA_TEMP_SLOTS 16
+#define LUNA_EXPORTS_LOCAL "__luna_exports__"
+#define LUNA_EXPORTS_GLOBAL "__exports__"
 
 static uint8_t expr_base(LunaCompiler* C) {
     return (uint8_t)C->scope_stack[C->scope_depth - 1].num_locals;
@@ -78,6 +82,60 @@ LunaProto* compiler_pop_proto(LunaCompiler* C) {
 LunaProto* compiler_current_proto(LunaCompiler* C) {
     if (C->proto_depth == 0) return NULL;
     return C->proto_stack[C->proto_depth - 1];
+}
+
+/* ---------- Módulos y exportaciones ---------- */
+static bool stmt_is_pub(LunaNode* node) {
+    if (!node) return false;
+    switch (node->type) {
+        case NODE_LET:
+        case NODE_CONST:
+            return node->as.var.is_pub != 0;
+        case NODE_FN:
+            return node->as.fn.is_pub != 0;
+        case NODE_MOD:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool program_needs_exports(LunaNode* program) {
+    if (!program || program->type != NODE_PROGRAM) return false;
+    for (LunaNodeList* l = program->as.program.stmts; l; l = l->next) {
+        if (stmt_is_pub(l->node)) return true;
+    }
+    return false;
+}
+
+static int ensure_exports_local(LunaCompiler* C) {
+    LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
+    int slot = scope_find_local(scope, LUNA_EXPORTS_LOCAL);
+    if (slot >= 0) return slot;
+
+    slot = scope_add_local(scope, LUNA_EXPORTS_LOCAL, true);
+    if (slot < 0) {
+        compiler_error(C, 0, 0, "too many local variables for module exports");
+        return -1;
+    }
+    luna_proto_emit_op_A(compiler_current_proto(C), OP_NEW_TABLE, (uint8_t)slot);
+    C->has_exports = true;
+    return slot;
+}
+
+static void emit_export(LunaCompiler* C, const char* name, int value_slot) {
+    if (C->failed || !name) return;
+
+    int exports_slot = ensure_exports_local(C);
+    if (exports_slot < 0) return;
+
+    uint16_t idx = luna_proto_add_const_string(compiler_current_proto(C), name, strlen(name));
+    if (idx > 255) {
+        compiler_error(C, 0, 0, "too many constants for module exports");
+        return;
+    }
+    luna_proto_emit_op_ABC(compiler_current_proto(C), OP_SET_FIELD,
+                           (uint8_t)exports_slot, (uint8_t)value_slot, (uint8_t)idx);
 }
 
 /* ---------- Compilación de expresiones ---------- */
@@ -334,6 +392,21 @@ static void compile_call(LunaCompiler* C, LunaNode* node, int reg) {
     luna_proto_emit_op_ABC(proto, OP_CALL, (uint8_t)reg, (uint8_t)nargs, 1);
 }
 
+static void compile_field(LunaCompiler* C, LunaNode* node, int reg) {
+    LunaProto* proto = compiler_current_proto(C);
+    const char* name = node->as.field.name;
+
+    compile_expr(C, node->as.field.object, reg);
+    if (C->failed || !name) return;
+
+    uint16_t idx = luna_proto_add_const_string(proto, name, strlen(name));
+    if (idx > 255) {
+        compiler_error_at(C, node, "too many constants for field access");
+        return;
+    }
+    luna_proto_emit_op_ABC(proto, OP_GET_FIELD, (uint8_t)reg, (uint8_t)reg, (uint8_t)idx);
+}
+
 void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
     if (C->failed || !node) return;
 
@@ -356,6 +429,9 @@ void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
             break;
         case NODE_CALL:
             compile_call(C, node, reg);
+            break;
+        case NODE_FIELD:
+            compile_field(C, node, reg);
             break;
         default:
             compiler_error_at(C, node, "unsupported expression node");
@@ -392,6 +468,7 @@ static void compile_let(LunaCompiler* C, LunaNode* node) {
         luna_proto_emit_op_AB(compiler_current_proto(C), OP_MOVE,
                               (uint8_t)slot, (uint8_t)reg);
     }
+    if (node->as.var.is_pub) emit_export(C, node->as.var.name, slot);
 }
 
 static void compile_const(LunaCompiler* C, LunaNode* node) {
@@ -408,6 +485,60 @@ static void compile_const(LunaCompiler* C, LunaNode* node) {
     if (slot != reg) {
         luna_proto_emit_op_AB(compiler_current_proto(C), OP_MOVE,
                               (uint8_t)slot, (uint8_t)reg);
+    }
+    if (node->as.var.is_pub) emit_export(C, node->as.var.name, slot);
+}
+
+static void compile_import(LunaCompiler* C, LunaNode* node) {
+    LunaProto* proto = compiler_current_proto(C);
+    LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
+    LunaNodeList* path = node->as.import_stmt.path;
+
+    size_t len = 0;
+    for (LunaNodeList* l = path; l; l = l->next) {
+        if (!l->node || l->node->type != NODE_IDENT) {
+            compiler_error_at(C, node, "invalid import path");
+            return;
+        }
+        len += strlen(l->node->as.string.data);
+        if (l->next) len++;
+    }
+    if (len == 0) {
+        compiler_error_at(C, node, "empty import path");
+        return;
+    }
+
+    char* name = (char*)malloc(len + 1);
+    if (!name) {
+        compiler_error_at(C, node, "out of memory compiling import");
+        return;
+    }
+
+    char* p = name;
+    const char* binding = NULL;
+    for (LunaNodeList* l = path; l; l = l->next) {
+        const char* part = l->node->as.string.data;
+        size_t n = strlen(part);
+        memcpy(p, part, n);
+        p += n;
+        binding = part;
+        if (l->next) *p++ = '.';
+    }
+    *p = '\0';
+
+    int reg = expr_base(C);
+    uint16_t idx = luna_proto_add_const_string(proto, name, len);
+    free(name);
+
+    luna_proto_emit_op_ABx(proto, OP_IMPORT, (uint8_t)reg, idx);
+
+    int slot = scope_add_local(scope, binding, true);
+    if (slot < 0) {
+        compiler_error_at(C, node, "too many local variables");
+        return;
+    }
+    if (slot != reg) {
+        luna_proto_emit_op_AB(proto, OP_MOVE, (uint8_t)slot, (uint8_t)reg);
     }
 }
 
@@ -538,6 +669,7 @@ static void compile_fn_decl(LunaCompiler* C, LunaNode* node) {
     uint16_t proto_idx = luna_proto_add_proto(parent_proto, completed_fn);
 
     luna_proto_emit_op_ABx(parent_proto, OP_CLOSURE, (uint8_t)slot, proto_idx);
+    if (node->as.fn.is_pub) emit_export(C, node->as.fn.name, slot);
 }
 
 static void compile_block(LunaCompiler* C, LunaNode* node) {
@@ -561,6 +693,8 @@ void compile_stmt(LunaCompiler* C, LunaNode* node) {
         case NODE_WHILE:      compile_while(C, node); break;
         case NODE_FOR:        compile_for(C, node); break;
         case NODE_ASSIGN:     compile_assign(C, node); break;
+        case NODE_IMPORT:     compile_import(C, node); break;
+        case NODE_MOD:        break;
         case NODE_THROW:      compile_throw(C, node); break;
         case NODE_EXPR_STMT:  compile_expr_stmt(C, node); break;
         default:
@@ -573,6 +707,9 @@ static void compile_program(LunaCompiler* C, LunaNode* node) {
         compiler_error(C, 0, 0, "expected PROGRAM node");
         return;
     }
+
+    if (program_needs_exports(node)) ensure_exports_local(C);
+    if (C->failed) return;
 
     for (LunaNodeList* l = node->as.program.stmts; l; l = l->next) {
         compile_stmt(C, l->node);
@@ -600,8 +737,15 @@ LunaProto* luna_compile(LunaNode* program) {
         return NULL;
     }
     
-    /* Emitir RETURN implícito */
     LunaProto* root = compiler_current_proto(&C);
+    if (C.has_exports) {
+        int slot = scope_find_local(&C.scope_stack[0], LUNA_EXPORTS_LOCAL);
+        uint16_t idx = luna_proto_add_const_string(root, LUNA_EXPORTS_GLOBAL,
+                                                   strlen(LUNA_EXPORTS_GLOBAL));
+        luna_proto_emit_op_ABx(root, OP_SET_GLOBAL, (uint8_t)slot, idx);
+    }
+
+    /* Emitir RETURN implícito */
     luna_proto_emit_op_AB(root, OP_RETURN, 0, 0);
     
     return compiler_pop_proto(&C);

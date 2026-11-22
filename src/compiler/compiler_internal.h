@@ -20,6 +20,9 @@ struct LunaCompiler {
     LunaScope scope_stack[LUNA_MAX_PROTO_DEPTH];
     int scope_depth;
 
+    /* Símbolos exportados por el módulo */
+    bool has_exports;
+
     /* Estado de error */
     bool failed;
     char error_message[256];

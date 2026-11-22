@@ -40,9 +40,12 @@ typedef struct CallFrame {
  * Estado interno de la VM (extendido sobre LunaState)
  * ============================================================ */
 
+#define LUNA_INSTRUCTION_BUDGET 32
+
 typedef struct {
     CallFrame  frames[LUNA_MAX_CALLS];
     int        frame_top;          /* número de frames activos */
+    uint64_t   instruction_budget;
 
     /* Upvalues abiertos globales (lista enlazada por uv->next) */
     LunaUpvalue* open_upvalues;

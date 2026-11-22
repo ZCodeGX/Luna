@@ -16,6 +16,7 @@ extern int luna_report_instruction_limit(LunaState* L);
 void luna_vm_init(LunaState* L) {
     LunaVM* vm = (LunaVM*)calloc(1, sizeof(LunaVM));
     if (!vm) return;
+    vm->instruction_budget = LUNA_INSTRUCTION_BUDGET;
     L->vm_data = vm;
 }
 
@@ -35,6 +36,8 @@ static int vm_run(LunaState* L) {
     CallFrame* frame = NULL;
     const uint8_t* code = NULL;
     int frame_valid = 0;
+    uint64_t budget = vm->instruction_budget ? vm->instruction_budget
+                                             : LUNA_INSTRUCTION_BUDGET;
 
     for (;;) {
         if (!frame_valid) {
@@ -46,12 +49,15 @@ static int vm_run(LunaState* L) {
             frame_valid = 1;
         }
 
-        /* Verificar límite de instrucciones (fast path inline) */
         L->instructions_executed++;
-        if (L->instruction_limit != 0 &&
-            L->instructions_executed > L->instruction_limit) {
-            luna_report_instruction_limit(L);
-            return -1;
+        if (--budget == 0) {
+            budget = LUNA_INSTRUCTION_BUDGET;
+            if (L->instruction_limit != 0 &&
+                L->instructions_executed > L->instruction_limit) {
+                vm->instruction_budget = budget;
+                luna_report_instruction_limit(L);
+                return -1;
+            }
         }
 
         /* base se recarga por si una llamada C reasignó el stack */
@@ -94,6 +100,8 @@ int luna_vm_execute(LunaState* L, LunaProto* proto) {
             return -1;
         }
     }
+
+    vm->instruction_budget = LUNA_INSTRUCTION_BUDGET;
 
     /* Crear una función wrapper para el proto */
     LunaFunction* main_fn = luna_function_new(L, proto);

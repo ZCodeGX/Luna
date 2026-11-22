@@ -5,6 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
+static void fill_error_token(LunaLexer* L, LunaToken* out) {
+    fill_tok(out, LUNA_TOK_ERROR, L->error_message,
+             strlen(L->error_message), L->error_line, L->error_column);
+}
+
 /* ---------- clasificación de identificadores ---------- */
 static bool is_ident_start(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }
 static bool is_ident_cont(char c)  { return is_ident_start(c) || (c >= '0' && c <= '9'); }
@@ -92,8 +97,7 @@ bool luna_lexer_next(LunaLexer* L, LunaToken* out) {
 
     for (;;) {
         if (L->error) {
-            fill_tok(out, LUNA_TOK_ERROR, L->error_message, strlen(L->error_message),
-                     L->error_line, L->error_column);
+            fill_error_token(L, out);
             return false;
         }
 
@@ -125,6 +129,10 @@ bool luna_lexer_next(LunaLexer* L, LunaToken* out) {
         if (ir == LUNA_INDENT_EMITS)    return true;
         if (ir == LUNA_INDENT_CONTINUE) continue;
         /* LUNA_INDENT_NONE: seguimos */
+        if (L->error) {
+            fill_error_token(L, out);
+            return false;
+        }
 
         /* 5. Espacios/tabs intra-línea y comentarios */
         while (L->pos < L->length) {
@@ -158,9 +166,17 @@ bool luna_lexer_next(LunaLexer* L, LunaToken* out) {
         /* 7. Identificadores y keywords */
         if (is_ident_start(c)) { lex_ident(L, out); return true; }
         /* 8. Números (delegado a number.c) */
-        if (c >= '0' && c <= '9') { luna_lex_number(L, out); return true; }
+        if (c >= '0' && c <= '9') {
+            luna_lex_number(L, out);
+            if (L->error) { fill_error_token(L, out); return false; }
+            return true;
+        }
         /* 9. Cadenas */
-        if (c == '"') { lex_string(L, out); return true; }
+        if (c == '"') {
+            lex_string(L, out);
+            if (L->error) { fill_error_token(L, out); return false; }
+            return true;
+        }
 
         /* 10. Operadores y puntuación */
         {

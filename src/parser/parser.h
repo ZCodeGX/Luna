@@ -14,6 +14,9 @@ typedef struct {
     bool      has_current;
     bool      has_previous;
     bool      failed;
+    int       error_count;
+    int       expr_depth;
+    int       diag_start;
     char      error_message[256];
     int       error_line;
     int       error_column;

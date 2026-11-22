@@ -1,0 +1,5 @@
+  File "tests/parser_diag/fixtures/invalid_hex.luna", line 1
+    let x = 0xz
+              ^
+SyntaxError: invalid hex literal
+

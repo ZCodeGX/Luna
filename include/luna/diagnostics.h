@@ -53,6 +53,7 @@ typedef struct {
     int capacity;
     int error_count;
     int max_errors;
+    bool truncated;
     bool oom;
 } LunaDiagnosticSink;
 

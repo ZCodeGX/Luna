@@ -77,7 +77,7 @@ static LunaNode* parse_postfix(LunaParser* P, LunaNode* node) {
             int line = P->current.line, col = P->current.column;
             advance(P);
             LunaNode* idx = parse_expr(P, 0);
-            if (!expect(P, LUNA_TOK_RBRACKET, "']' to close list literal")) return node;
+            if (!expect(P, LUNA_TOK_RBRACKET, "']' to close index")) return node;
             node = luna_node_index(node, idx, line, col);
         } else if (check(P, LUNA_TOK_DOT)) {
             int line = P->current.line, col = P->current.column;
@@ -157,8 +157,8 @@ static LunaNode* parse_lambda(LunaParser* P) {
     advance(P);
     if (!expect(P, LUNA_TOK_LPAREN, "'(' after 'fn'")) return NULL;
     LunaNodeList* params = parse_param_list(P);
-    if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close function call",
-                        "insert ')' after argument list")) return NULL;
+    if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close parameter list",
+                         "insert ')' after parameter list")) return NULL;
     if (!expect_block_end(P, "'fn' parameter list")) return NULL;
     LunaNode* body = parse_block_after(P, "fn expression");
     return luna_node_lambda(params, body, line, col);
@@ -186,13 +186,16 @@ static LunaNode* parse_primary(LunaParser* P) {
         case LUNA_TOK_LPAREN: {
             advance(P);
             LunaNode* e = parse_expr(P, 0);
-            if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close function call",
-                        "insert ')' after argument list")) return e;
+            if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close parenthesized expression",
+                         "insert ')' after expression")) return e;
             return e;
         }
         case LUNA_TOK_LBRACKET: return parse_list_literal(P);
         case LUNA_TOK_LBRACE:   return parse_table_literal(P);
         case LUNA_TOK_FN:       return parse_lambda(P);
+        case LUNA_TOK_ERROR:
+            fail_current(P, "invalid syntax");
+            return luna_node_nil(tok.line, tok.column);
         default:
             syntax_error(P, token_span(P, &P->current),
                      "expected an expression", "invalid syntax");
@@ -218,8 +221,16 @@ static LunaNode* parse_prefix(LunaParser* P) {
 }
 
 LunaNode* parse_expr(LunaParser* P, int min_bp) {
+    if (P->expr_depth >= 200) {
+        syntax_error(P, token_span(P, &P->current),
+                     "try reducing the nesting of this expression",
+                     "expression is nested too deeply");
+        return luna_node_nil(P->current.line, P->current.column);
+    }
+    P->expr_depth++;
+
     LunaNode* left = parse_prefix(P);
-    if (P->failed) return left;
+    if (P->failed) { P->expr_depth--; return left; }
 
     for (;;) {
         int lbp = infix_bp(P->current.type);
@@ -230,7 +241,8 @@ LunaNode* parse_expr(LunaParser* P, int min_bp) {
         int rbp = is_right_assoc(op) ? lbp : lbp + 1;
         LunaNode* right = parse_expr(P, rbp);
         left = luna_node_binary(op, left, right, line, col);
-        if (P->failed) return left;
+        if (P->failed) { P->expr_depth--; return left; }
     }
+    P->expr_depth--;
     return left;
 }

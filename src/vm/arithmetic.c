@@ -6,23 +6,6 @@
  * ============================================================ */
 
 /*
- * Intenta convertir un valor a entero.
- * Devuelve 1 si OK, 0 si no es convertible.
- */
-static int to_integer(LunaValue v, int64_t* out) {
-    switch (v.type) {
-        case LUNA_TINTEGER: *out = v.as.integer; return 1;
-        case LUNA_TFLOAT: {
-            double d = v.as.floating;
-            int64_t i = (int64_t)d;
-            if ((double)i == d) { *out = i; return 1; }
-            return 0;
-        }
-        default: return 0;
-    }
-}
-
-/*
  * Intenta convertir un valor a float.
  * Devuelve 1 si OK, 0 si no es convertible.
  */
@@ -50,8 +33,6 @@ static int to_float(LunaValue v, double* out) {
 int vm_arith(LunaState* L, LunaValue a, LunaValue b, LunaValue* out, LunaOpcode op) {
     int a_is_int = (a.type == LUNA_TINTEGER);
     int b_is_int = (b.type == LUNA_TINTEGER);
-    int a_is_float = (a.type == LUNA_TFLOAT);
-    int b_is_float = (b.type == LUNA_TFLOAT);
 
     /* Caso rápido: ambos enteros */
     if (a_is_int && b_is_int) {

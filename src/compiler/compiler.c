@@ -623,7 +623,7 @@ static void store_ident(LunaCompiler* C, LunaNode* node, const char* name, int r
 static void compile_assign(LunaCompiler* C, LunaNode* node) {
     LunaProto* proto = compiler_current_proto(C);
     LunaNode* target = node->as.assign.target;
-    LunaOpcode compound;
+    LunaOpcode compound = OP_ADD;
     bool is_compound = node->as.assign.op != LUNA_TOK_ASSIGN;
 
     if (is_compound && !compound_opcode(node->as.assign.op, &compound)) {

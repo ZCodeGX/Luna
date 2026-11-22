@@ -654,7 +654,7 @@ VM_SWITCH_BEGIN
             /* Capturar upvalues */
             for (size_t i = 0; i < child->num_upvalues; i++) {
                 LunaUpvalueDesc* desc = &child->upvalues[i];
-                LunaUpvalue* uv;
+                LunaUpvalue* uv = NULL;
                 if (desc->in_stack) {
                     uv = vm_find_upvalue(L, frame, &frame->base[desc->index + 1]);
                 } else if (desc->index < frame->num_ups) {
@@ -703,8 +703,10 @@ VM_SWITCH_BEGIN
 
 VM_SWITCH_END
 
+#if !defined(LUNA_THREADED_DISPATCH)
 vm_done:
         ;
+#endif
     }
 
 vm_limit:

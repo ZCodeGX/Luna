@@ -12,7 +12,7 @@ static const char* filename_override = NULL;
 void luna_diag_set_color(bool enabled) { g_use_color = enabled; }
 bool luna_diag_color_enabled(void) { return g_use_color; }
 void luna_diag_set_max_errors(int max_errors) {
-    g_max_errors = max_errors > 0 ? max_errors : 20;
+    g_max_errors = max_errors < 0 ? 0 : max_errors;
 }
 int luna_diag_max_errors(void) { return g_max_errors; }
 
@@ -46,7 +46,7 @@ static void diag_free_owned(LunaDiagnostic* d) {
 
 void luna_diag_sink_init(LunaDiagnosticSink* sink, int max_errors) {
     memset(sink, 0, sizeof(*sink));
-    sink->max_errors = max_errors > 0 ? max_errors : 20;
+    sink->max_errors = max_errors < 0 ? 0 : max_errors;
 }
 
 void luna_diag_sink_free(LunaDiagnosticSink* sink) {
@@ -64,7 +64,9 @@ void luna_diag_emit(LunaDiagnosticSink* sink, LunaDiagnostic diag) {
         diag_free_owned(&diag);
         return;
     }
-    if (diag.severity == LUNA_DIAG_ERROR && sink->error_count >= sink->max_errors) {
+    if (diag.severity == LUNA_DIAG_ERROR && sink->max_errors > 0 &&
+        sink->error_count >= sink->max_errors) {
+        sink->truncated = true;
         diag_free_owned(&diag);
         return;
     }
@@ -233,7 +235,6 @@ void luna_diag_render(const LunaDiagnostic* diag, const char* source,
     if (!out) return;
 
     filename_override = filename;
-    LineCol lc = offset_to_linecol(source, source_len, diag->primary.start);
     print_snippet(out, source, source_len, diag->primary, diag->label, use_color);
 
     const char* name = diag->severity == LUNA_DIAG_ERROR
@@ -266,7 +267,7 @@ int luna_diag_render_all(const LunaDiagnosticSink* sink, const char* source,
         luna_diag_render(&sink->items[i], source, source_len, filename,
                          out_stream, use_color);
     }
-    if (sink->error_count >= sink->max_errors && sink->max_errors > 0) {
+    if (sink->truncated && out_stream) {
         fprintf((FILE*)out_stream,
                 "    note: only the first %d errors are shown\n",
                 sink->max_errors);

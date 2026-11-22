@@ -1,5 +1,6 @@
 #include "parser_internal.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,6 +13,7 @@ void luna_parser_init_named(LunaParser* P, const char* source, size_t length,
 
     if (sink) {
         P->diags = sink;
+        P->diag_start = sink->count;
         P->owns_diags = false;
     } else {
         luna_diag_sink_init(&P->owned_diags, luna_diag_max_errors());
@@ -46,7 +48,7 @@ LunaNode* luna_parser_parse_program(LunaParser* P) {
     LunaNodeList* tail = NULL;
 
     for (;;) {
-        if (check(P, LUNA_TOK_EOF)) break;
+        if (P->failed || check(P, LUNA_TOK_EOF)) break;
 
         if (check(P, LUNA_TOK_ERROR)) {
             fail_current(P, "invalid syntax");
@@ -85,7 +87,7 @@ LunaNode* luna_parser_parse_program(LunaParser* P) {
         while (check(P, LUNA_TOK_NEWLINE)) advance(P);
     }
 
-    if (luna_diag_has_errors(P->diags)) {
+    if (P->error_count > 0 || P->failed) {
         luna_ast_free(luna_node_program(head, 1, 1));
         return NULL;
     }
@@ -114,7 +116,7 @@ const char* luna_parser_error(const LunaParser* P) {
 }
 
 int luna_parser_error_count(const LunaParser* P) {
-    return P->diags ? P->diags->error_count : 0;
+    return P->error_count;
 }
 
 int luna_parser_diagnostic_count(const LunaParser* P) {
@@ -123,6 +125,13 @@ int luna_parser_diagnostic_count(const LunaParser* P) {
 
 void luna_parser_render_diagnostics(const LunaParser* P, void* out_stream, bool use_color) {
     if (!P->diags) return;
-    luna_diag_render_all(P->diags, P->source, P->source_len,
+    for (int i = P->diag_start; i < P->diags->count; i++) {
+        luna_diag_render(&P->diags->items[i], P->source, P->source_len,
                          P->filename, out_stream, use_color);
+    }
+    if (P->diags->truncated && out_stream) {
+        fprintf((FILE*)out_stream,
+                "    note: only the first %d errors are shown\n",
+                P->diags->max_errors);
+    }
 }

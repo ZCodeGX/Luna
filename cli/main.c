@@ -1,3 +1,5 @@
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -110,7 +112,16 @@ int main(int argc, char** argv) {
             continue;
         }
         if (strncmp(arg, "--max-errors=", 13) == 0) {
-            luna_diag_set_max_errors(atoi(arg + 13));
+            const char* value = arg + 13;
+            char* end = NULL;
+            errno = 0;
+            long v = strtol(value, &end, 10);
+            if (end == value || *end != '\0' || v < 0 ||
+                errno == ERANGE || v > INT_MAX) {
+                fprintf(stderr, "luna: --max-errors requiere un entero >= 0\n");
+                return 1;
+            }
+            luna_diag_set_max_errors((int)v);
             continue;
         }
         break;

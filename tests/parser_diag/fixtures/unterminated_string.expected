@@ -1,0 +1,5 @@
+  File "tests/parser_diag/fixtures/unterminated_string.luna", line 1
+    print("abc
+              ^
+SyntaxError: unterminated string
+

@@ -21,8 +21,29 @@ static uint32_t offset_from_linecol(LunaParser* P, int line, int col) {
     return off;
 }
 
+static void linecol_from_offset(const LunaParser* P, uint32_t off,
+                                int* line, int* col) {
+    int cur_line = 1, cur_col = 1;
+    for (uint32_t i = 0; i < off && i < P->source_len; i++) {
+        if (P->source[i] == '\n') {
+            cur_line++;
+            cur_col = 1;
+        } else {
+            cur_col++;
+        }
+    }
+    *line = cur_line;
+    *col = cur_col;
+}
+
 LunaSpan token_span(LunaParser* P, const LunaToken* tok) {
     if (!tok) return LUNA_SPAN_NONE;
+    if (tok->type == LUNA_TOK_ERROR) {
+        uint32_t start = offset_from_linecol(P, tok->line, tok->column);
+        uint32_t end = start + 1;
+        if (end > P->source_len) end = (uint32_t)P->source_len;
+        return (LunaSpan){ start, end };
+    }
 
     uint32_t start;
     if (tok->start && P->source &&
@@ -98,7 +119,7 @@ static bool close_enough(LunaTokenType got, LunaTokenType want) {
 static bool emit_error(LunaParser* P, LunaErrorType type, LunaSpan span,
                        const LunaToken* tok, const char* help,
                        const char* fmt, ...) {
-    if (P->panic_mode || !P->diags) return false;
+    if (P->failed || P->panic_mode || !P->diags) return false;
 
     char* msg = NULL;
     va_list ap;
@@ -121,13 +142,18 @@ static bool emit_error(LunaParser* P, LunaErrorType type, LunaSpan span,
         luna_diag_add_note(&d, LUNA_SPAN_NONE, "found %s", token_description(tok->type));
     }
 
-    if (P->diags->error_count == 0 && P->error_message[0] == 0) {
+    if (P->error_message[0] == 0) {
         snprintf(P->error_message, sizeof(P->error_message), "%s", d.message);
-        P->error_line = tok ? tok->line : 1;
-        P->error_column = tok ? tok->column : 1;
+        if (tok) {
+            P->error_line = tok->line;
+            P->error_column = tok->column;
+        } else {
+            linecol_from_offset(P, span.start, &P->error_line, &P->error_column);
+        }
     }
 
     luna_diag_emit(P->diags, d);
+    P->error_count++;
     P->panic_mode = true;
     return true;
 }
@@ -159,8 +185,11 @@ void fail_at(LunaParser* P, int line, int col, const char* msg) {
 void fail_current(LunaParser* P, const char* msg) {
     LunaErrorType type = LUNA_ERROR_SYNTAX;
     const char* help = NULL;
-    if (check(P, LUNA_TOK_ERROR) && P->current.start) {
-        msg = (const char*)P->current.start;
+    if (check(P, LUNA_TOK_ERROR)) {
+        P->panic_mode = false;
+        if (P->current.start) {
+            msg = (const char*)P->current.start;
+        }
         if (strstr(msg, "indent") || strstr(msg, "dedent") || strstr(msg, "tab") ||
             strstr(msg, "unindent")) {
             type = LUNA_ERROR_INDENTATION;
@@ -172,6 +201,7 @@ void fail_current(LunaParser* P, const char* msg) {
         }
     }
     emit_error(P, type, token_span(P, &P->current), &P->current, help, "%s", msg);
+    if (check(P, LUNA_TOK_ERROR)) P->failed = true;
 }
 
 bool expect(LunaParser* P, LunaTokenType t, const char* what) {
@@ -190,8 +220,9 @@ bool expect(LunaParser* P, LunaTokenType t, const char* what) {
 }
 
 bool expect_help(LunaParser* P, LunaTokenType t, const char* what, const char* help) {
+    int before = P->diags ? P->diags->count : 0;
     bool ok = expect(P, t, what);
-    if (!ok && help && P->diags && P->diags->count > 0) {
+    if (!ok && help && P->diags && P->diags->count > before) {
         luna_diag_set_help(&P->diags->items[P->diags->count - 1], "%s", help);
     }
     return ok;
@@ -230,7 +261,7 @@ static bool is_statement_start(LunaTokenType t) {
 
 void synchronize(LunaParser* P) {
     P->panic_mode = false;
-    while (!check(P, LUNA_TOK_EOF)) {
+    while (!P->failed && !check(P, LUNA_TOK_EOF) && !check(P, LUNA_TOK_ERROR)) {
         if (check(P, LUNA_TOK_NEWLINE)) {
             advance(P);
             return;

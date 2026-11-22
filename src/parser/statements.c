@@ -5,6 +5,7 @@ LunaNode* parse_block_after(LunaParser* P, const char* context) {
     int line = P->has_previous ? P->previous.line : P->current.line;
     int col = P->has_previous ? P->previous.column : P->current.column;
     if (!check(P, LUNA_TOK_INDENT)) {
+        if (check(P, LUNA_TOK_ERROR)) return luna_node_block(NULL, line, col);
         indentation_error(P, token_span(P, &P->current),
                           "indent the block with 4 spaces",
                           "expected an indented block after %s on line %d",
@@ -16,7 +17,7 @@ LunaNode* parse_block_after(LunaParser* P, const char* context) {
     LunaNodeList* tail = NULL;
     for (;;) {
         while (check(P, LUNA_TOK_NEWLINE)) advance(P);
-        if (check(P, LUNA_TOK_DEDENT) || check(P, LUNA_TOK_EOF)) break;
+        if (P->failed || check(P, LUNA_TOK_DEDENT) || check(P, LUNA_TOK_EOF)) break;
 
         LunaTokenType before_type = P->current.type;
         const char* before_start = P->current.start;
@@ -49,8 +50,10 @@ LunaNode* parse_block(LunaParser* P) {
 static LunaNode* parse_if(LunaParser* P) {
     int line = P->current.line, col = P->current.column;
     advance(P);
+    LunaNode* n = luna_node_new(NODE_IF, line, col);
     LunaNode* cond = parse_expr(P, 0);
-    if (!expect_block_end(P, "'if' condition")) return NULL;
+    if (n) n->as.if_stmt.cond = cond;
+    if (!expect_block_end(P, "'if' condition")) return n;
     LunaNode* then_block = parse_block_after(P, "if statement");
 
     LunaNodeList* elif_head = NULL;
@@ -80,25 +83,26 @@ static LunaNode* parse_if(LunaParser* P) {
         }
     }
 
-    LunaNode* n = luna_node_new(NODE_IF, line, col);
-    n->as.if_stmt.cond = cond;
-    n->as.if_stmt.then_block = then_block;
-    n->as.if_stmt.elifs = elif_head;
-    n->as.if_stmt.else_block = else_block;
+    if (n) {
+        n->as.if_stmt.then_block = then_block;
+        n->as.if_stmt.elifs = elif_head;
+        n->as.if_stmt.else_block = else_block;
+    }
     return n;
 }
 
 static LunaNode* parse_for(LunaParser* P) {
     int line = P->current.line, col = P->current.column;
     advance(P);
+    LunaNode* n = luna_node_new(NODE_FOR, line, col);
     LunaNodeList* vars = NULL;
     LunaNodeList* tail = NULL;
     for (;;) {
         if (!check(P, LUNA_TOK_IDENT)) {
             syntax_error(P, token_span(P, &P->current),
-                     "names must start with a letter or '_'",
-                     "expected identifier");
-            return NULL;
+                      "names must start with a letter or '_'",
+                      "expected identifier");
+            return n;
         }
         char* name = copy_token_text(&P->current);
         LunaNode* id = luna_node_ident(name, P->current.line, P->current.column);
@@ -109,30 +113,29 @@ static LunaNode* parse_for(LunaParser* P) {
         tail = item;
         if (!match(P, LUNA_TOK_COMMA)) break;
     }
-    if (!expect(P, LUNA_TOK_IN, "'in' after loop variable")) return NULL;
+    if (n) n->as.for_stmt.vars = vars;
+    if (!expect(P, LUNA_TOK_IN, "'in' after loop variable")) return n;
     LunaNode* iter = parse_expr(P, 0);
-    if (!expect_block_end(P, "'for' clause")) return NULL;
+    if (n) n->as.for_stmt.iter = iter;
+    if (!expect_block_end(P, "'for' clause")) return n;
     P->loop_depth++;
     LunaNode* body = parse_block_after(P, "for statement");
     P->loop_depth--;
-    LunaNode* n = luna_node_new(NODE_FOR, line, col);
-    n->as.for_stmt.vars = vars;
-    n->as.for_stmt.iter = iter;
-    n->as.for_stmt.body = body;
+    if (n) n->as.for_stmt.body = body;
     return n;
 }
 
 static LunaNode* parse_while(LunaParser* P) {
     int line = P->current.line, col = P->current.column;
     advance(P);
+    LunaNode* n = luna_node_new(NODE_WHILE, line, col);
     LunaNode* cond = parse_expr(P, 0);
-    if (!expect_block_end(P, "'while' condition")) return NULL;
+    if (n) n->as.while_stmt.cond = cond;
+    if (!expect_block_end(P, "'while' condition")) return n;
     P->loop_depth++;
     LunaNode* body = parse_block_after(P, "while statement");
     P->loop_depth--;
-    LunaNode* n = luna_node_new(NODE_WHILE, line, col);
-    n->as.while_stmt.cond = cond;
-    n->as.while_stmt.body = body;
+    if (n) n->as.while_stmt.body = body;
     return n;
 }
 
@@ -181,7 +184,7 @@ static LunaNode* parse_mod(LunaParser* P, int is_pub) {
                      "expected identifier");
         return NULL;
     }
-    char* name = copy_token_text(&P->current);
+        char* name = copy_token_text(&P->current);
     advance(P);
     LunaNode* n = luna_node_new(NODE_MOD, line, col);
     n->as.mod_stmt.name = name;
@@ -192,25 +195,29 @@ static LunaNode* parse_mod(LunaParser* P, int is_pub) {
 static LunaNode* parse_fn_decl(LunaParser* P, int is_pub) {
     int line = P->current.line, col = P->current.column;
     advance(P);
+    LunaNode* n = luna_node_new(NODE_FN, line, col);
+    if (n) n->as.fn.is_pub = is_pub;
     if (!check(P, LUNA_TOK_IDENT)) {
         syntax_error(P, token_span(P, &P->current),
             "names must start with a letter or '_'",
             "expected identifier");
-        return NULL;
+        return n;
     }
     char* name = copy_token_text(&P->current);
     advance(P);
-    if (!expect(P, LUNA_TOK_LPAREN, "'(' after function name")) { free(name); return NULL; }
+    if (!expect(P, LUNA_TOK_LPAREN, "'(' after function name")) { free(name); return n; }
     LunaNodeList* params = parse_param_list(P);
+    if (n) n->as.fn.params = params;
     if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close parameter list",
-                        "insert ')' after parameter list")) { free(name); return NULL; }
-    if (!expect_block_end(P, "function signature")) { free(name); return NULL; }
+                         "insert ')' after parameter list")) { free(name); return n; }
+    if (!expect_block_end(P, "function signature")) { free(name); return n; }
     LunaNode* body = parse_block_after(P, "fn declaration");
-    LunaNode* n = luna_node_new(NODE_FN, line, col);
-    n->as.fn.name = name;
-    n->as.fn.params = params;
-    n->as.fn.body = body;
-    n->as.fn.is_pub = is_pub;
+    if (n) {
+        n->as.fn.name = name;
+        n->as.fn.body = body;
+    } else {
+        free(name);
+    }
     return n;
 }
 
@@ -288,7 +295,8 @@ static LunaNode* parse_simple_statement(LunaParser* P) {
 
     if (is_assign_op(P->current.type)) {
         if (!is_assignable(expr)) {
-            fail_at(P, line, col, "invalid assignment target");
+            fail_at(P, expr ? expr->line : line, expr ? expr->column : col,
+                    "invalid assignment target");
             return expr;
         }
         LunaTokenType op = P->current.type;
@@ -329,29 +337,33 @@ LunaNode* parse_statement(LunaParser* P) {
     if (check(P, LUNA_TOK_TRY)) {
         int line = P->current.line, col = P->current.column;
         advance(P);
-        if (!expect_block_end(P, "'try' block")) return NULL;
+        LunaNode* n = luna_node_new(NODE_TRY, line, col);
+        if (!expect_block_end(P, "'try' block")) return n;
         LunaNode* body = parse_block_after(P, "try statement");
+        if (n) n->as.try_stmt.body = body;
         if (!check(P, LUNA_TOK_CATCH)) {
             syntax_error(P, token_span(P, &P->current),
                          "add 'catch e:' at the same indentation level",
                          "'try' block requires a 'catch' clause");
-            return NULL;
+            return n;
         }
         advance(P);
         if (!check(P, LUNA_TOK_IDENT)) {
             syntax_error(P, token_span(P, &P->current),
                      "names must start with a letter or '_'",
                      "expected identifier");
-            return NULL;
+            return n;
         }
         char* cname = copy_token_text(&P->current);
         advance(P);
-        if (!expect_block_end(P, "'catch' clause")) { free(cname); return NULL; }
+        if (!expect_block_end(P, "'catch' clause")) { free(cname); return n; }
         LunaNode* cbody = parse_block_after(P, "catch clause");
-        LunaNode* n = luna_node_new(NODE_TRY, line, col);
-        n->as.try_stmt.body = body;
-        n->as.try_stmt.catch_name = cname;
-        n->as.try_stmt.catch_body = cbody;
+        if (n) {
+            n->as.try_stmt.catch_name = cname;
+            n->as.try_stmt.catch_body = cbody;
+        } else {
+            free(cname);
+        }
         return n;
     }
 

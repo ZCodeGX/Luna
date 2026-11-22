@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "api_internal.h"
 #include "../compiler/compiler.h"
 #include "../parser/parser.h"
@@ -58,14 +60,17 @@ LunaStatus luna_dostring(LunaState* L, const char* src, const char* chunkname) {
 
     /* Parsear */
     LunaParser P;
-    LunaNode* prog = luna_parse(src, strlen(src), &P);
+    LunaNode* prog = luna_parse_named(src, strlen(src), chunkname, &P);
     if (!prog) {
+        luna_parser_render_diagnostics(&P, stderr, luna_diag_color_enabled());
         luna_error_set(L, LUNA_ERR_SYNTAX,
                        chunkname ? chunkname : "<string>",
                        P.error_line, P.error_column,
                        "%s", luna_parser_error(&P) ? luna_parser_error(&P) : "parse error");
+        luna_parser_destroy(&P);
         return LUNA_ERR_SYNTAX;
     }
+    luna_parser_destroy(&P);
 
     /* Compilar */
     LunaProto* proto = luna_compile(prog);

@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "luna/luna.h"
+#include "luna/diagnostics.h"
 
 static const char* base_name(const char* path) {
     const char* slash = strrchr(path, '/');
@@ -17,6 +19,9 @@ static void print_usage(const char* prog) {
     printf("  -              lee el programa desde stdin\n");
     printf("  -h, --help     muestra esta ayuda\n");
     printf("  -V, --version  muestra la versión\n");
+    printf("  --no-color     desactiva el color en diagnósticos\n");
+    printf("  --color        fuerza el color en diagnósticos\n");
+    printf("  --max-errors=N limita el número de errores mostrados (0 = sin límite)\n");
     printf("\nSin argumentos inicia el intérprete interactivo.\n");
 }
 
@@ -38,7 +43,7 @@ static void set_argv(LunaState* L, int argc, char** argv, int start) {
 static int run_source(LunaState* L, const char* src, const char* chunkname) {
     LunaStatus st = luna_dostring(L, src, chunkname);
     if (st != LUNA_OK) {
-        print_error(L);
+        if (st != LUNA_ERR_SYNTAX) print_error(L);
         return 1;
     }
     return 0;
@@ -83,17 +88,35 @@ static int run_repl(LunaState* L) {
 
 int main(int argc, char** argv) {
     const char* prog = base_name(argc > 0 ? argv[0] : "luna");
+    bool color = isatty(STDERR_FILENO) && !getenv("NO_COLOR");
+    int first = 1;
 
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+    for (; first < argc; first++) {
+        const char* arg = argv[first];
+        if (strcmp(arg, "-h") == 0 || strcmp(arg, "--help") == 0) {
             print_usage(prog);
             return 0;
         }
-        if (strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "--version") == 0) {
+        if (strcmp(arg, "-V") == 0 || strcmp(arg, "--version") == 0) {
             printf("Luna %s\n", LUNA_VERSION_STRING);
             return 0;
         }
+        if (strcmp(arg, "--no-color") == 0) {
+            color = false;
+            continue;
+        }
+        if (strcmp(arg, "--color") == 0) {
+            color = true;
+            continue;
+        }
+        if (strncmp(arg, "--max-errors=", 13) == 0) {
+            luna_diag_set_max_errors(atoi(arg + 13));
+            continue;
+        }
+        break;
     }
+
+    luna_diag_set_color(color);
 
     LunaRuntime* rt = luna_runtime_new(NULL);
     LunaState* L = luna_new(rt);
@@ -105,31 +128,31 @@ int main(int argc, char** argv) {
 
     int result = 0;
 
-    if (argc == 1) {
+    if (first >= argc) {
         result = run_repl(L);
-    } else if (strcmp(argv[1], "-c") == 0) {
-        if (argc < 3) {
+    } else if (strcmp(argv[first], "-c") == 0) {
+        if (first + 1 >= argc) {
             fprintf(stderr, "%s: -c requiere una cadena de código\n", prog);
             result = 1;
         } else {
-            set_argv(L, argc, argv, 1);
-            result = run_source(L, argv[2], "<string>");
+            set_argv(L, argc - first, argv + first, 1);
+            result = run_source(L, argv[first + 1], "<string>");
         }
-    } else if (strcmp(argv[1], "-") == 0) {
+    } else if (strcmp(argv[first], "-") == 0) {
         char* src = read_stdin();
         if (!src) {
             fprintf(stderr, "luna: error leyendo stdin\n");
             result = 1;
         } else {
-            set_argv(L, argc, argv, 1);
+            set_argv(L, argc - first, argv + first, 1);
             result = run_source(L, src, "<stdin>");
             free(src);
         }
     } else {
-        set_argv(L, argc, argv, 1);
-        LunaStatus st = luna_dofile(L, argv[1]);
+        set_argv(L, argc - first, argv + first, 1);
+        LunaStatus st = luna_dofile(L, argv[first]);
         if (st != LUNA_OK) {
-            print_error(L);
+            if (st != LUNA_ERR_SYNTAX) print_error(L);
             result = 1;
         }
     }

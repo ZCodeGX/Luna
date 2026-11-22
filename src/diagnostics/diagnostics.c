@@ -5,6 +5,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+static bool g_use_color = false;
+static int g_max_errors = 20;
+
+void luna_diag_set_color(bool enabled) { g_use_color = enabled; }
+bool luna_diag_color_enabled(void) { return g_use_color; }
+void luna_diag_set_max_errors(int max_errors) {
+    g_max_errors = max_errors > 0 ? max_errors : 20;
+}
+int luna_diag_max_errors(void) { return g_max_errors; }
+
 static char* xstrdup(const char* s) {
     if (!s) return NULL;
     size_t n = strlen(s);
@@ -216,6 +226,7 @@ void luna_diag_render(const LunaDiagnostic* diag, const char* source,
         }
     }
     if (diag->help) fprintf(out, "   = help: %s\n", diag->help);
+    fputc('\n', out);
 }
 
 int luna_diag_render_all(const LunaDiagnosticSink* sink, const char* source,

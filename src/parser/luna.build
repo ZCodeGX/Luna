@@ -15,5 +15,5 @@ HEADERS = [
 ]
 
 INCLUDES = []
-DEPENDS = ['lexer', 'ast']
+DEPENDS = ['lexer', 'ast', 'diagnostics']
 CFLAGS = []

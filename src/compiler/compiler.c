@@ -887,8 +887,9 @@ struct LunaProto* luna_compile_source(struct LunaState* L,
                                       const char* filename,
                                       char* error_out, size_t error_size) {
     LunaParser P;
-    LunaNode* prog = luna_parse(source, length, &P);
+    LunaNode* prog = luna_parse_named(source, length, filename, &P);
     if (!prog) {
+        luna_parser_render_diagnostics(&P, stderr, luna_diag_color_enabled());
         const char* msg = luna_parser_error(&P);
         if (!msg) msg = "parse error";
         if (error_out) {
@@ -900,8 +901,10 @@ struct LunaProto* luna_compile_source(struct LunaState* L,
             luna_error_set(L, LUNA_ERR_SYNTAX, filename,
                            P.error_line, P.error_column, "%s", msg);
         }
+        luna_parser_destroy(&P);
         return NULL;
     }
+    luna_parser_destroy(&P);
 
     LunaProto* proto = luna_compile(prog);
     luna_ast_free(prog);

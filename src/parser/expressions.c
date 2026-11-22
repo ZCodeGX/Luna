@@ -47,7 +47,7 @@ LunaNodeList* parse_param_list(LunaParser* P) {
     if (check(P, LUNA_TOK_RPAREN)) return NULL;
     for (;;) {
         if (!check(P, LUNA_TOK_IDENT)) {
-            fail_current(P, "expected parameter name");
+            fail_current(P, "se esperaba un nombre de parámetro");
             return head;
         }
         char* name = copy_token_text(&P->current);
@@ -80,7 +80,7 @@ static LunaNode* parse_postfix(LunaParser* P, LunaNode* node) {
             int line = P->current.line, col = P->current.column;
             advance(P);
             if (!check(P, LUNA_TOK_IDENT)) {
-                fail_current(P, "expected field name after '.'");
+                fail_current(P, "se esperaba un nombre de campo después de '.'");
                 return node;
             }
             char* name = copy_token_text(&P->current);
@@ -122,7 +122,7 @@ static LunaNode* parse_table_literal(LunaParser* P) {
     if (!check(P, LUNA_TOK_RBRACE)) {
         for (;;) {
             if (!check(P, LUNA_TOK_IDENT)) {
-                fail_current(P, "expected key name in table");
+                fail_current(P, "se esperaba una clave en la tabla");
                 return luna_node_table(head, line, col);
             }
             char* key = copy_token_text(&P->current);
@@ -151,7 +151,7 @@ static LunaNode* parse_lambda(LunaParser* P) {
     if (!expect(P, LUNA_TOK_LPAREN, "'(' after 'fn'")) return NULL;
     LunaNodeList* params = parse_param_list(P);
     if (!expect(P, LUNA_TOK_RPAREN, "')'")) return NULL;
-    if (!expect_block_end(P, "newline before lambda body")) return NULL;
+    if (!expect_block_end(P, "salto de línea antes del cuerpo de la lambda")) return NULL;
     LunaNode* body = parse_block(P);
     return luna_node_lambda(params, body, line, col);
 }
@@ -185,7 +185,7 @@ static LunaNode* parse_primary(LunaParser* P) {
         case LUNA_TOK_LBRACE:   return parse_table_literal(P);
         case LUNA_TOK_FN:       return parse_lambda(P);
         default:
-            fail_current(P, "expected expression");
+            fail_current(P, "se esperaba una expresión");
             return luna_node_nil(tok.line, tok.column);
     }
 }

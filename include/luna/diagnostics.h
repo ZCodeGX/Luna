@@ -44,6 +44,11 @@ typedef struct {
 
 #define LUNA_SPAN_NONE ((LunaSpan){ 0, 0 })
 
+void luna_diag_set_color(bool enabled);
+bool luna_diag_color_enabled(void);
+void luna_diag_set_max_errors(int max_errors);
+int luna_diag_max_errors(void);
+
 void luna_diag_sink_init(LunaDiagnosticSink* sink, int max_errors);
 void luna_diag_sink_free(LunaDiagnosticSink* sink);
 void luna_diag_emit(LunaDiagnosticSink* sink, LunaDiagnostic diag);

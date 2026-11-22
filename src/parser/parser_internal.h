@@ -35,6 +35,7 @@ void fail_at(LunaParser* P, int line, int col, const char* msg);
 void fail_current(LunaParser* P, const char* msg);
 bool expect(LunaParser* P, LunaTokenType t, const char* what);
 bool expect_block_end(LunaParser* P, const char* what);
+void synchronize(LunaParser* P);
 char* copy_token_text(const LunaToken* tok);
 
 #endif

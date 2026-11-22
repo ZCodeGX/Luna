@@ -2,6 +2,19 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.2.7
+
+### Cambiado
+
+- `vm_run` mantiene el frame y el bytecode activos entre instrucciones; `base` se recarga en cada paso para soportar reasignaciones del stack.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.2.7 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.2.6
 
 ### Cambiado

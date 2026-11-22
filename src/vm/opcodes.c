@@ -11,13 +11,12 @@
  * 1 si se hizo una llamada (el caller debe reanudar el dispatch).
  * Actualiza frame->pc a la siguiente instrucción.
  */
-int vm_execute_instruction(LunaState* L, CallFrame* frame) {
+int vm_execute_instruction(LunaState* L, CallFrame* frame,
+                           const uint8_t* code, LunaValue* base) {
     LunaVM* vm = state_vm(L);
-    const uint8_t* code = frame->proto->code;
     size_t pc = frame->pc;
     LunaOpcode op = (LunaOpcode)decode_op(code, pc);
 
-    LunaValue* base = frame->base;
     uint8_t A = decode_A(code, pc);
 
     switch (op) {

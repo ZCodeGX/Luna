@@ -2,6 +2,21 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.2
+
+### Corregido
+
+- El parser ya no ignora texto sobrante después de una sentencia: `print(1 + 2)F` y `let x = 1 let y = 2` son `SyntaxError`.
+- `print(1 + 2):` ahora explica que `:` solo es válido después de headers de bloque.
+- Se añaden fixtures para ambos casos.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.2 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.7.1
 
 ### Corregido

@@ -3,7 +3,7 @@
 ## Declaración
 
 ```luna
-fn suma(a, b)
+fn suma(a, b):
     return a + b
 ```
 
@@ -18,7 +18,7 @@ print(suma(2, 3))
 Los argumentos se evalúan y se separan por comas. Los parámetros omitidos se rellenan con `nil`:
 
 ```luna
-fn f(a)
+fn f(a):
     print(a)
 
 f()  # imprime nil
@@ -29,10 +29,10 @@ f()  # imprime nil
 `return` acepta una expresión opcional:
 
 ```luna
-fn nada()
+fn nada():
     return
 
-fn algo()
+fn algo():
     return 42
 ```
 

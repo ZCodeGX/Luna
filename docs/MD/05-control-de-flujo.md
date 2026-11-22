@@ -7,11 +7,11 @@ Los condicionales usan la verdad del programa: solo `nil` y `false` son falsy.
 ```luna
 let x = 15
 
-if x > 20
+if x > 20:
     print("grande")
-else if x > 10
+else if x > 10:
     print("mediano")
-else
+else:
     print("pequeño")
 ```
 
@@ -22,7 +22,7 @@ Los `else if` se recogen en una lista plana en el AST, no como condicionales ani
 ```luna
 let n = 3
 
-while n > 0
+while n > 0:
     print(n)
     n = n - 1
 ```
@@ -34,7 +34,7 @@ La condición se evalúa antes de cada iteración.
 La gramática prevé:
 
 ```luna
-for clave, valor in coleccion
+for clave, valor in coleccion:
     print(clave, valor)
 ```
 
@@ -44,7 +44,7 @@ for clave, valor in coleccion
 ## break y continue
 
 ```luna
-while true
+while true:
     break
 ```
 
@@ -56,7 +56,7 @@ while true
 Todo bloque requiere una nueva línea y una indentación mayor. Se admite `:` opcional antes del salto de línea:
 
 ```luna
-if true:
+if true::
     print("uno")
 ```
 

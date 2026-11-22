@@ -1,6 +1,6 @@
 # 11 — Estado de implementación
 
-Luna se encuentra en versión `0.6.0` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
+Luna se encuentra en versión `0.7.0` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
 
 ## Soportado de extremo a extremo
 
@@ -18,7 +18,7 @@ Luna se encuentra en versión `0.6.0` (ABI 1). La gramática `luna.ebnf` describ
 | `print` (función nativa) | Disponible |
 | REPL, `-c`, `-` y ejecución de archivos | Disponible |
 | API C y wrapper C++ | Disponible |
-| Diagnósticos con spans y multi-error del parser | Disponible |
+| Diagnósticos estilo Python (tipos con nombre, multi-error, sin códigos) | Disponible |
 | Sistema de build con `luna.build` | Disponible |
 | `import`, `mod` y `pub` | Disponible |
 | Acceso a campos `obj.campo` | Disponible |

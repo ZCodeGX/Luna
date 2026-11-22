@@ -14,7 +14,7 @@ No pueden usarse como identificadores:
 
 ```text
 and  break  catch  const  continue  else   false  fn    for
-if   import in     let    mod       nil     not    or    pub
+if   import in     let    mod       nil     not    or    pub:
 return   throw    true    try       while
 ```
 
@@ -36,7 +36,7 @@ Dentro de paréntesis, corchetes y llaves se ignoran los saltos de línea de ind
 El dos puntos antes de un bloque es opcional; ambas formas son válidas:
 
 ```luna
-fn saluda(a)
+fn saluda(a):
     print(a)
 
 fn despide(a):
@@ -59,7 +59,7 @@ const pi = 3.14159
 ```luna
 pub let version = 1
 pub const nombre = "luna"
-pub fn principal()
+pub fn principal():
     return 0
 ```
 

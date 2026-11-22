@@ -13,9 +13,9 @@ throw "algo salió mal"
 La gramática prevé:
 
 ```luna
-try
+try:
     operacion_riesgosa()
-catch error
+catch error:
     print("falló:", error)
 ```
 

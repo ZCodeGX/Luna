@@ -1,33 +1,55 @@
 # 13 — Diagnósticos
 
-Luna `0.6.0` usa diagnósticos estructurados compartidos por lexer y parser. Ya no se aborta en el primer error: el parser emite varios diagnósticos en un mismo pase y se sincroniza en fronteras de sentencia para evitar cascadas.
+Luna `0.7.0` usa diagnósticos con nombres de tipo estilo Python, texto en inglés y **sin códigos numéricos**. El parser continúa tras un error, se sincroniza en fronteras de sentencia y puede reportar varios problemas en un mismo pase.
 
 ## Formato
 
 ```text
-error[E0001]: se esperaba ; pero se encontró IDENT
-  --> programa.luna:3:15
-3 | let x = 1 + 2 y
-  |               ^
-   = note: token encontrado: identificador
+  File "p.luna", line 1
+    fn foo()
+            ^
+SyntaxError: expected ':' after function signature
 
-error[E0002]: se esperaba una expresión
-  --> programa.luna:4:9
-4 | let z = =
-  |         ^
-   = note: token encontrado: ASSIGN
+    help: insert ':' at the end of the line
 ```
 
-`LunaSpan` guarda offsets `[start, end)` sobre el source; la conversión a `línea:columna` ocurre solo al renderizar. Los strings de un diagnóstico son propiedad del `LunaDiagnosticSink`.
+El encabezado identifica el archivo y la línea; el carets va bajo el token problemático (o al final del token anterior cuando falta `:`). El tipo (`SyntaxError`, `IndentationError`, …) es el identificador del error. No hay `[E000x]`.
 
-## Códigos
+## Tipos de error
 
-| Código | Significado |
+| Tipo | Uso |
 | --- | --- |
-| `E0001` | Token esperado no encontrado (`expect`). |
-| `E0002` | Error sintáctico general o error léxico propagado. |
+| `SyntaxError` | Estructura inválida del programa. |
+| `IndentationError` | Indentación faltante, excesiva, mixta o con tabs. |
+| `NameError` | Nombre no definido. |
+| `TypeError` | Operación con tipos incompatibles. |
+| `ValueError` | Valor correcto en tipo pero inapropiado. |
+| `RuntimeError` | Fallos generales de ejecución. |
+| `ZeroDivisionError` | División por cero. |
+| `IndexError` | Índice fuera de rango. |
+| `KeyError` | Clave inexistente en tabla. |
+| `AttributeError` | Campo inexistente. |
+| `ImportError` | Módulo no importable. |
 
-Cuando el token encontrado está cerca del esperado, el sink añade `help: quizás quisiste decir ...`.
+Los tipos específicos se mantienen porque son más informativos que un código numérico.
+
+## Mensajes habituales
+
+| Tipo | Mensaje | Help |
+| --- | --- | --- |
+| `SyntaxError` | `expected ':' after function signature` | `insert ':' at the end of the line` |
+| `SyntaxError` | `expected ':' after 'if' condition` | `insert ':' at the end of the line` |
+| `SyntaxError` | `expected ':' after 'while' condition` | `insert ':' at the end of the line` |
+| `SyntaxError` | `expected ':' after 'for' clause` | `insert ':' at the end of the line` |
+| `SyntaxError` | `expected ')' to close function call` | `insert ')' after argument list` |
+| `SyntaxError` | `expected identifier` | `names must start with a letter or '_'` |
+| `SyntaxError` | `invalid syntax` | `expected an expression` |
+| `SyntaxError` | `'break' outside loop` | `'break' can only be used inside 'while' or 'for'` |
+| `SyntaxError` | `'try' block requires a 'catch' clause` | `add 'catch e:' at the same indentation level` |
+| `IndentationError` | `expected an indented block after 'fn' declaration on line N` | `indent the block with 4 spaces` |
+| `IndentationError` | `unexpected indent` | `this line is more indented than the previous one` |
+| `IndentationError` | `tabs are not allowed for indentation` | `use spaces only (4 spaces per level)` |
+| `IndentationError` | `unindent does not match any outer indentation level` | `check your indentation; use 4 spaces per level` |
 
 ## CLI
 
@@ -35,9 +57,9 @@ Cuando el token encontrado está cerca del esperado, el sink añade `help: quiz�
 | --- | --- |
 | `--no-color` | Desactiva ANSI en diagnósticos. |
 | `--color` | Fuerza ANSI incluso sin TTY. |
-| `--max-errors=N` | Limita errores mostrados; `0` equivale a sin límite (el intérprete usa 20 por defecto). |
+| `--max-errors=N` | Limita errores mostrados; `0` equivale a sin límite (20 por defecto). |
 
-También se respeta `NO_COLOR`. En TTY el color se activa automáticamente.
+También se respeta `NO_COLOR`.
 
 ## API C
 
@@ -57,7 +79,7 @@ if (!program) {
 }
 ```
 
-Cuando el sink es propio del parser, `luna_parse_named` lo crea y `luna_parser_destroy` lo libera. No llames a `luna_parser_destroy` antes de renderizar.
+`LunaDiagnostic` guarda un `LunaErrorType`, un `LunaSpan` y texto en inglés. El renderer convierte offsets a `File "...", line N` y dibuja los carets.
 
 ## Pruebas
 

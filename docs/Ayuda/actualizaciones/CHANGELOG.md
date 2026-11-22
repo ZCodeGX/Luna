@@ -2,11 +2,34 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.0
+
+### Cambiado
+
+- Los diagnósticos usan tipos con nombre estilo Python (`SyntaxError`, `IndentationError`, `NameError`, `TypeError`, `ValueError`, `RuntimeError` y específicos como `ImportError`, `IndexError`, `KeyError`).
+- Se eliminaron los códigos `E0xxx`: un error se identifica por tipo y mensaje.
+- Formato de salida estilo Python: `File "x.luna", line N`, snippet con carets, `TypeError: ...` y `help:`.
+- Todos los mensajes del parser están en inglés.
+- `require_colon` ubica el caret al final del header; los bloques sin indentación reportan `IndentationError` con el número de línea del header.
+- Tabs al inicio de línea son `IndentationError`.
+- `break`/`continue` fuera de bucle son `SyntaxError`.
+
+### Añadido
+
+- Fixtures para `fn game():`, indentación faltante, tabs y `break` fuera de bucle.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.0 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.6.0
 
 ### Añadido
 
-- `LunaSpan`, `LunaDiagnostic`, `LunaDiagnosticSink` y renderizado estilo rustc con `error[E000x]`, `-->`, snippets con `^^^`, notas y help.
+- `LunaSpan`, `LunaDiagnostic`, `LunaDiagnosticSink` y renderizado estructurado con snippets, notas y help.
 - Recuperación multi-error en el parser: `panic_mode`, `synchronize()` y tokens de error léxico continuables.
 - Flags CLI `--no-color`, `--color` y `--max-errors=N`; color automático en TTY y respeto a `NO_COLOR`.
 - Runner `tests/parser_diag/run.py` con seis fixtures de diagnósticos.

@@ -34,7 +34,7 @@ La última forma abre el REPL, con prompt `>>>`.
 ## Primer programa
 
 ```luna
-fn main()
+fn main():
     let nombre = "Luna"
     print("Hola", nombre)
 

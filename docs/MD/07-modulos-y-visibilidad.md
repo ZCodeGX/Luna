@@ -37,7 +37,7 @@ El modificador `pub` se admite en `fn`, `let` y `const`:
 ```luna
 pub const VERSION = "0.1.0"
 
-pub fn valor()
+pub fn valor():
     return 42
 ```
 

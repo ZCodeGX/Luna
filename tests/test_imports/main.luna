@@ -1,0 +1,8 @@
+import saludo
+
+fn main()
+    print("Probando imports")
+    print(saludo.hola())
+    print(saludo.VERSION)
+
+main()

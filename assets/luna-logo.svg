@@ -1,21 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" width="640" height="160" role="img" aria-labelledby="title">
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 640 160"
+     width="640" height="160"
+     role="img" aria-labelledby="title">
+
   <title id="title">Luna</title>
+
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0b1020"/>
       <stop offset="1" stop-color="#1b2a4a"/>
     </linearGradient>
-    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff4c2"/>
-      <stop offset="1" stop-color="#ffb347"/>
-    </linearGradient>
-    <mask id="crescent">
-      <rect width="160" height="160" fill="black"/>
-      <circle cx="72" cy="80" r="44" fill="white"/>
-      <circle cx="92" cy="62" r="40" fill="black"/>
-    </mask>
   </defs>
+
   <rect width="640" height="160" rx="18" fill="url(#bg)"/>
-  <circle cx="72" cy="80" r="44" fill="url(#moon)" mask="url(#crescent)"/>
-  <text x="150" y="102" fill="#ffffff" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="2">Luna</text>
+
+  <!-- Conjunto centrado -->
+  <g transform="translate(120 10)">
+
+    <g transform="scale(0.24)" fill="#ffffff">
+
+      <g transform="translate(0 512) scale(0.1 -0.1)">
+
+        <path d="M2139 5097 c-116 -61 -118 -229 -4 -294 162 -92 335 114 212 254 -58 66 -132 80 -208 40z"/>
+
+        <path d="M3207 4490 c-20 -63 -68 -218 -106 -343 -61 -195 -82 -258 -94 -269 -1 -1 -165 -5 -363 -8 l-361 -5 249 -190 c320 -244 328 -250 328 -282 0 -15 -45 -173 -101 -352 -55 -179 -103 -335 -106 -345 -3 -12 41 16 118 76 328 250 460 348 473 348 8 0 140 -96 294 -214 293 -224 308 -235 300 -220 -19 33 -218 707 -213 723 3 10 135 117 292 237 l286 219 -356 5 c-308 4 -358 7 -372 21 -9 9 -63 168 -121 355 -57 186 -106 344 -108 349 -2 6 -19 -42 -39 -105z"/>
+
+        <path d="M900 4507 c-115 -97 -236 -222 -333 -342 -243 -301 -436 -708 -511 -1075 -43 -212 -51 -295 -51 -530 0 -312 34 -526 126 -805 53 -159 173 -417 255 -545 205 -322 503 -620 824 -824 100 -64 351 -186 475 -232 129 -47 367 -107 520 -130 148 -22 529 -25 675 -5 828 114 1522 584 1919 1300 41 73 141 284 141 296 0 2 -55 -26 -122 -60 -295 -152 -590 -244 -923 -286 -148 -19 -513 -16 -660 5 -470 67 -887 237 -1245 505 -523 393 -879 943 -1019 1576 -42 192 -55 321 -55 565 -1 247 8 341 50 539 13 63 22 116 21 118 -2 1 -41 -30 -87 -70z"/>
+
+        <path d="M4896 3175 c-162 -58 -150 -287 17 -325 77 -17 147 17 185 90 27 54 28 99 3 148 -24 47 -50 70 -98 88 -47 16 -59 16 -107 -1z"/>
+
+      </g>
+    </g>
+
+    <text x="150" y="92"
+          fill="#ffffff"
+          font-family="Segoe UI, Helvetica, Arial, sans-serif"
+          font-size="64"
+          font-weight="700"
+          letter-spacing="2">Luna</text>
+
+  </g>
 </svg>

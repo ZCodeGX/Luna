@@ -73,7 +73,8 @@ function Find-Gcc {
     (Join-Path $env:LOCALAPPDATA 'MSYS2'),
     (Join-Path $env:ProgramFiles 'MSYS2'),
     'C:\Program Files (x86)\MSYS2',
-    'C:\tools\mingw64'
+    'C:\tools\mingw64',
+    'C:\ProgramData\mingw64\mingw64'
   )
   foreach ($root in $roots) {
     if (-not $root) { continue }
@@ -192,12 +193,12 @@ try {
 #include <process.h>
 #include <stdlib.h>
 int main(int argc, char **argv) {
-  char **args = (char **)malloc((size_t)(argc + 1) * sizeof(char *));
+  const char **args = (const char **)malloc((size_t)(argc + 1) * sizeof(char *));
   if (!args) return 1;
   args[0] = "$gccLiteral";
   for (int i = 1; i < argc; i++) args[i] = argv[i];
   args[argc] = NULL;
-  int code = _spawnv(_P_WAIT, args[0], args);
+  int code = (int)_spawnv(_P_WAIT, args[0], args);
   free(args);
   return code;
 }

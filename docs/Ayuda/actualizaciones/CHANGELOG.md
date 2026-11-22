@@ -2,6 +2,26 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.3.0
+
+### Añadido
+
+- Pool de strings internados con tabla hash y limpieza débil integrada en `luna_gc_collect`.
+- Plegado de constantes en expresiones binarias aritméticas y comparaciones de literales numéricos.
+
+### Cambiado
+
+- `vm_execute_loop` sustituye al bucle de `vm_run` y usa computed goto con tabla de dispatch en GCC/Clang; otros compiladores conservan un fallback con `switch`.
+- El límite de instrucciones se comprueba por presupuestos de 32 instrucciones, ajustando el último tramo para mantener el límite exacto.
+- Benchmarks (5 ejecuciones, 1 calentamiento): `loop` 1.39 s, `fib` 0.050 s, `math` 3.97 s (~30 % más rápido que 0.2.9).
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.3.0 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.2.9
 
 ### Cambiado

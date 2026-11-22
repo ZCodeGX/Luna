@@ -20,4 +20,4 @@ Documentación del lenguaje de programación **Luna**, organizada por temas.
 La gramática completa fuente de verdad está en [`luna.ebnf`](../../luna.ebnf). La versión web de esta guía está en [`../Web/index.html`](../Web/index.html).
 
 > [!WARNING]
-> Luna es `0.2.9`. Muchas construcciones están reconocidas por el parser pero aún no se compilan. Consulta el documento 11 antes de dar algo por soportado.
+> Luna es `0.3.0`. Muchas construcciones están reconocidas por el parser pero aún no se compilan. Consulta el documento 11 antes de dar algo por soportado.

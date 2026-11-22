@@ -1,0 +1,32 @@
+import list
+import table
+
+fn inc(x):
+    return x + 1
+
+fn even(x):
+    return x % 2 == 0
+
+fn add(a, b):
+    return a + b
+
+let xs2 = list.new(1, 2, 3, 2)
+print(list.first(xs2))
+print(list.last(xs2))
+print(list.is_empty(xs2))
+print(list.index_of(xs2, 3))
+print(list.count(xs2, 2))
+print(list.map(xs2, inc)[1])
+print(list.filter(xs2, even)[0])
+print(list.reduce(xs2, add, 0))
+print(list.unique(xs2)[0])
+
+let t2 = table.new()
+table.set(t2, "a", 1)
+print(table.get_or(t2, "b", 9))
+print(table.set_default(t2, "b", 2))
+print(table.has_all(t2, ["a", "b"]))
+print(table.len(table.merge(t2, t2)))
+table.clear(t2)
+print(table.len(t2))
+

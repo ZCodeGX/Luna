@@ -1,0 +1,7 @@
+import math_native
+
+pub let pi = math_native.pi
+pub let e = math_native.e
+pub let inf = math_native.inf
+pub let nan = math_native.nan
+pub let tau = math_native.pi * 2

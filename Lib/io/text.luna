@@ -1,0 +1,15 @@
+import io.fs
+import string
+
+pub fn read_lines(path):
+    return string.split(fs.read(path), "\n")
+
+pub fn write_lines(path, lines):
+    let body = string.join("\n", lines)
+    return fs.write(path, string.concat(body, "\n"))
+
+pub fn append(path, text):
+    if fs.exists(path):
+        let current = fs.read(path)
+        return fs.write(path, string.concat(current, text))
+    return fs.write(path, text)

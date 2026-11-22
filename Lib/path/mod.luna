@@ -1,8 +1,14 @@
-import path_native
+import path.ops
+import path.info
 
-pub let join = path_native.join
-pub let normalize = path_native.normalize
-pub let dirname = path_native.dirname
-pub let basename = path_native.basename
-pub let ext = path_native.ext
-pub let separator = path_native.separator
+pub let join = ops.join
+pub let normalize = ops.normalize
+pub let separator = ops.separator
+pub let build = ops.build
+
+pub let dirname = info.dirname
+pub let basename = info.basename
+pub let ext = info.ext
+pub let stem = info.stem
+pub let has_ext = info.has_ext
+pub let is_absolute = info.is_absolute

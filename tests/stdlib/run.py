@@ -5,6 +5,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 BIN = ROOT / "build" / "luna"
 TESTS = Path(__file__).resolve().parent
+FIXTURES = ["core", "math_string", "collections", "system"]
 
 
 def main():
@@ -12,30 +13,38 @@ def main():
         print(f"No se encontró {BIN}. Ejecuta ./luna.py build primero.")
         return 1
 
-    source = TESTS / "all.luna"
-    expected = (TESTS / "all.expected").read_text()
-    result = subprocess.run(
-        [str(BIN), str(source)],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-    )
+    failures = []
+    for name in FIXTURES:
+        source = TESTS / f"{name}.luna"
+        expected = (TESTS / f"{name}.expected").read_text()
+        result = subprocess.run(
+            [str(BIN), str(source)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
 
-    if result.returncode != 0:
-        print(f"FAIL all.luna (exit={result.returncode})")
-        print(result.stderr, end="")
+        if result.returncode != 0:
+            failures.append(name)
+            print(f"FAIL {name}.luna (exit={result.returncode})")
+            print(result.stderr, end="")
+            continue
+
+        if result.stdout != expected:
+            failures.append(name)
+            print(f"FAIL {name}.luna (salida distinta)")
+            print("--- esperado ---")
+            print(expected, end="")
+            print("--- obtenido ---")
+            print(result.stdout, end="")
+            continue
+
+        print(f"ok   {name}.luna")
+
+    if failures:
+        print(f"\n{len(failures)}/{len(FIXTURES)} pruebas fallaron")
         return 1
-
-    if result.stdout != expected:
-        print("FAIL all.luna (salida distinta)")
-        print("--- esperado ---")
-        print(expected, end="")
-        print("--- obtenido ---")
-        print(result.stdout, end="")
-        return 1
-
-    print("ok   all.luna")
-    print("\n1/1 pruebas pasaron")
+    print(f"\n{len(FIXTURES)}/{len(FIXTURES)} pruebas pasaron")
     return 0
 
 

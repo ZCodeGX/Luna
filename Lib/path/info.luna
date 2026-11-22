@@ -1,0 +1,24 @@
+import path_native
+import string
+
+pub let dirname = path_native.dirname
+pub let basename = path_native.basename
+pub let ext = path_native.ext
+
+pub fn stem(path):
+    let name = path_native.basename(path)
+    let suffix = path_native.ext(path)
+    if len(suffix) == 0:
+        return name
+    return string.sub(name, 0, len(name) - len(suffix))
+
+pub fn has_ext(path, suffix):
+    let current = path_native.ext(path)
+    if len(suffix) == 0:
+        return len(current) == 0
+    if string.starts_with(suffix, "."):
+        return current == suffix
+    return current == string.concat(".", suffix)
+
+pub fn is_absolute(path):
+    return string.starts_with(path, path_native.separator())

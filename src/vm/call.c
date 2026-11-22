@@ -187,6 +187,13 @@ int vm_call_function(LunaState* L, int func_index, int nargs, int nresults) {
         size_t saved_top = L->stack_top;
         if (setup_c_call(L, func, func_index, nargs, nresults) != 0) return -1;
 
+        size_t call_top = (size_t)func_index + (size_t)nargs + 1;
+        if (call_top > L->stack_size) {
+            vm_stack_ensure(L, call_top - L->stack_size);
+            if (L->status != LUNA_OK) return -1;
+        }
+        if (L->stack_top < call_top) L->stack_top = call_top;
+
         LunaVM* vm = state_vm(L);
 
         int ret = func->c_function(L);

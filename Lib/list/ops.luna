@@ -1,0 +1,52 @@
+import list_native
+
+pub fn map(xs, f):
+    let out = list_native.new()
+    let i = 0
+    while i < len(xs):
+        list_native.push(out, f(xs[i]))
+        i += 1
+    return out
+
+pub fn filter(xs, predicate):
+    let out = list_native.new()
+    let i = 0
+    while i < len(xs):
+        if predicate(xs[i]):
+            list_native.push(out, xs[i])
+        i += 1
+    return out
+
+pub fn reduce(xs, f, initial):
+    let acc = initial
+    let i = 0
+    while i < len(xs):
+        acc = f(acc, xs[i])
+        i += 1
+    return acc
+
+pub fn index_of(xs, value):
+    let i = 0
+    while i < len(xs):
+        if xs[i] == value:
+            return i
+        i += 1
+    return -1
+
+pub fn count(xs, value):
+    let total = 0
+    let i = 0
+    while i < len(xs):
+        if xs[i] == value:
+            total += 1
+        i += 1
+    return total
+
+pub fn unique(xs):
+    let out = list_native.new()
+    let i = 0
+    while i < len(xs):
+        if not list_native.contains(out, xs[i]):
+            list_native.push(out, xs[i])
+        i += 1
+    return out

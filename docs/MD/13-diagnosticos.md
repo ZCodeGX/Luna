@@ -1,6 +1,6 @@
 # 13 — Diagnósticos
 
-Luna `0.7.3` usa diagnósticos con nombres de tipo estilo Python, texto en inglés y **sin códigos numéricos**. El parser continúa tras un error, se sincroniza en fronteras de sentencia y puede reportar varios problemas en un mismo pase.
+Luna `0.7.4` usa diagnósticos con nombres de tipo estilo Python, texto en inglés y **sin códigos numéricos**. El parser continúa tras un error, se sincroniza en fronteras de sentencia y puede reportar varios problemas en un mismo pase.
 
 ## Formato
 

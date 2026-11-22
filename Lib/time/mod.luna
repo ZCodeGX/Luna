@@ -1,7 +1,12 @@
-import time_native
+import time.clock
+import time.fmt
 
-pub let now = time_native.now
-pub let nanos = time_native.nanos
-pub let mono = time_native.mono
-pub let sleep = time_native.sleep
-pub let since = time_native.since
+pub let now = clock.now
+pub let nanos = clock.nanos
+pub let mono = clock.mono
+pub let sleep = clock.sleep
+pub let since = clock.since
+pub let elapsed = clock.elapsed
+
+pub let format_duration = fmt.format_duration
+pub let millis = fmt.millis

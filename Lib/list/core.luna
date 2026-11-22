@@ -1,0 +1,40 @@
+import list_native
+
+pub let new = list_native.new
+pub let push = list_native.push
+pub let pop = list_native.pop
+pub let get = list_native.get
+pub let set = list_native.set
+pub let len = list_native.len
+pub let clear = list_native.clear
+pub let reverse = list_native.reverse
+pub let contains = list_native.contains
+
+pub fn first(xs):
+    if len(xs) == 0:
+        return nil
+    return xs[0]
+
+pub fn last(xs):
+    if len(xs) == 0:
+        return nil
+    return xs[len(xs) - 1]
+
+pub fn is_empty(xs):
+    return len(xs) == 0
+
+pub fn extend(xs, other):
+    let i = 0
+    while i < len(other):
+        list_native.push(xs, other[i])
+        i += 1
+    return xs
+
+pub fn slice(xs, start, finish):
+    let out = list_native.new()
+    let i = start
+    while i < finish:
+        if i < len(xs):
+            list_native.push(out, xs[i])
+        i += 1
+    return out

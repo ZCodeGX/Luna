@@ -1,0 +1,15 @@
+import os_native
+
+pub let name = os_native.name
+
+pub fn is_windows():
+    return os_native.name() == "windows"
+
+pub fn is_linux():
+    return os_native.name() == "linux"
+
+pub fn is_macos():
+    return os_native.name() == "macos"
+
+pub fn separator_char():
+    return os_native.separator()

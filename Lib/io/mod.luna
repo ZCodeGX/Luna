@@ -1,8 +1,15 @@
-import io_native
+import io.fs
+import io.text
 
-pub let read = io_native.read
-pub let write = io_native.write
-pub let exists = io_native.exists
-pub let size = io_native.size
-pub let is_dir = io_native.is_dir
-pub let mkdir = io_native.mkdir
+pub let read = fs.read
+pub let write = fs.write
+pub let exists = fs.exists
+pub let size = fs.size
+pub let is_dir = fs.is_dir
+pub let mkdir = fs.mkdir
+pub let ensure_dir = fs.ensure_dir
+pub let read_bytes = fs.read_bytes
+
+pub let read_lines = text.read_lines
+pub let write_lines = text.write_lines
+pub let append = text.append

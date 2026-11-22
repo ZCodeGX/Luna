@@ -1,0 +1,14 @@
+import string
+
+pub fn format_duration(seconds):
+    let total = int(seconds)
+    let hours = int(total / 3600)
+    let minutes = int((total % 3600) / 60)
+    let secs = total % 60
+    let hh = string.pad_left(str(hours), 2, "0")
+    let mm = string.pad_left(str(minutes), 2, "0")
+    let ss = string.pad_left(str(secs), 2, "0")
+    return string.join(":", [hh, mm, ss])
+
+pub fn millis(nanoseconds):
+    return int(nanoseconds / 1000000)

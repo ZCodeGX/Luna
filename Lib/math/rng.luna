@@ -1,0 +1,28 @@
+import math_native
+import list_native
+
+pub let seed = math_native.seed
+pub let random = math_native.random
+
+pub fn randint(lo, hi):
+    return int(random(lo, hi + 1))
+
+pub fn choice(xs):
+    if len(xs) == 0:
+        return nil
+    return xs[randint(0, len(xs) - 1)]
+
+pub fn shuffle(xs):
+    let out = list_native.new()
+    let i = 0
+    while i < len(xs):
+        list_native.push(out, xs[i])
+        i += 1
+    let n = len(out) - 1
+    while n > 0:
+        let j = randint(0, n)
+        let tmp = out[n]
+        out[n] = out[j]
+        out[j] = tmp
+        n -= 1
+    return out

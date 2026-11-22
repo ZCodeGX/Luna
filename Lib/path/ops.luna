@@ -1,0 +1,16 @@
+import path_native
+
+pub let join = path_native.join
+pub let normalize = path_native.normalize
+pub let separator = path_native.separator
+
+pub fn build(parts):
+    let out = ""
+    let i = 0
+    while i < len(parts):
+        if i == 0:
+            out = parts[i]
+        else:
+            out = join(out, parts[i])
+        i += 1
+    return out

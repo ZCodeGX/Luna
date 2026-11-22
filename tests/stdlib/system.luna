@@ -1,0 +1,13 @@
+import os
+import string
+import path
+import time
+
+print(os.is_linux())
+print(os.getenv_or("LUNA_STDLIB_MISSING_VAR_XYZ", "fallback"))
+print(path.build(["a", "b", "c"]))
+print(path.stem("/tmp/x.txt"))
+print(path.has_ext("/tmp/x.txt", "txt"))
+print(path.is_absolute(string.concat(os.separator(), "tmp")))
+print(time.format_duration(3661))
+print(time.millis(1234567))

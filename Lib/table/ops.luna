@@ -1,0 +1,41 @@
+import list_native
+import table_native
+
+pub fn values(t):
+    let out = list_native.new()
+    let names = table_native.keys(t)
+    let i = 0
+    while i < len(names):
+        list_native.push(out, table_native.get(t, names[i]))
+        i += 1
+    return out
+
+pub fn merge(a, b):
+    let out = table_native.new()
+    let akeys = table_native.keys(a)
+    let i = 0
+    while i < len(akeys):
+        table_native.set(out, akeys[i], table_native.get(a, akeys[i]))
+        i += 1
+    let bkeys = table_native.keys(b)
+    let j = 0
+    while j < len(bkeys):
+        table_native.set(out, bkeys[j], table_native.get(b, bkeys[j]))
+        j += 1
+    return out
+
+pub fn has_all(t, names):
+    let i = 0
+    while i < len(names):
+        if not table_native.has(t, names[i]):
+            return false
+        i += 1
+    return true
+
+pub fn clear(t):
+    let names = table_native.keys(t)
+    let i = 0
+    while i < len(names):
+        table_native.remove(t, names[i])
+        i += 1
+    return t

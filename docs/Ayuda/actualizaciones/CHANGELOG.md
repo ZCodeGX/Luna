@@ -2,6 +2,25 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.4
+
+### Añadido
+
+- Implementación de la biblioteca estándar en archivos `.luna` dentro de cada carpeta de `Lib/`: `mod.luna` es la fachada y el resto de archivos contienen la lógica escrita en Luna.
+- Funciones de alto nivel: `math.clamp`, `math.gcd`, `math.median`, `string.split`, `list.map`, `list.reduce`, `table.merge`, `io.read_lines`, `path.stem`, `time.format_duration` y otras.
+- Pruebas de biblioteca estándar divididas en `core`, `math_string`, `collections` y `system`.
+
+### Corregido
+
+- Las llamadas a funciones C con argumentos calculados ya no sobrescriben variables locales: la pila se ajusta antes de ejecutar la función nativa.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.4 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.7.3
 
 ### Añadido

@@ -1,6 +1,13 @@
-import os_native
+import os.env
+import os.info
 
-pub let getenv = os_native.getenv
-pub let cwd = os_native.cwd
-pub let separator = os_native.separator
-pub let name = os_native.name
+pub let getenv = env.getenv
+pub let getenv_or = env.getenv_or
+pub let cwd = env.cwd
+pub let separator = env.separator
+
+pub let name = info.name
+pub let is_windows = info.is_windows
+pub let is_linux = info.is_linux
+pub let is_macos = info.is_macos
+pub let separator_char = info.separator_char

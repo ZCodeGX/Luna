@@ -1,0 +1,16 @@
+import string_native
+
+pub let find = string_native.find
+
+pub fn contains(s, needle):
+    return find(s, needle) >= 0
+
+pub fn starts_with(s, prefix):
+    if len(prefix) > len(s):
+        return false
+    return string_native.sub(s, 0, len(prefix)) == prefix
+
+pub fn ends_with(s, suffix):
+    if len(suffix) > len(s):
+        return false
+    return string_native.sub(s, len(s) - len(suffix), len(s)) == suffix

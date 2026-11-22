@@ -1,17 +1,23 @@
-import string_native
+import string.core
+import string.search
+import string.splitting
 
-pub let len = string_native.len
-pub let upper = string_native.upper
-pub let lower = string_native.lower
-pub let concat = string_native.concat
-pub let find = string_native.find
-pub let contains = string_native.contains
-pub let starts_with = string_native.starts_with
-pub let ends_with = string_native.ends_with
-pub let trim = string_native.trim
-pub let split = string_native.split
-pub let join = string_native.join
-pub let replace = string_native.replace
-pub let repeat = string_native.repeat
-pub let reverse = string_native.reverse
-pub let sub = string_native.sub
+pub let len = core.len
+pub let concat = core.concat
+pub let sub = core.sub
+pub let upper = core.upper
+pub let lower = core.lower
+pub let trim = core.trim
+pub let replace = core.replace
+pub let repeat = core.repeat
+pub let reverse = core.reverse
+pub let pad_left = core.pad_left
+pub let pad_right = core.pad_right
+
+pub let find = search.find
+pub let contains = search.contains
+pub let starts_with = search.starts_with
+pub let ends_with = search.ends_with
+
+pub let split = splitting.split
+pub let join = splitting.join

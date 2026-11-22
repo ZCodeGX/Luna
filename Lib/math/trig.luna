@@ -1,0 +1,17 @@
+import math_native
+
+pub let sin = math_native.sin
+pub let cos = math_native.cos
+pub let tan = math_native.tan
+pub let asin = math_native.asin
+pub let acos = math_native.acos
+pub let atan = math_native.atan
+pub let atan2 = math_native.atan2
+pub let sinh = math_native.sinh
+pub let cosh = math_native.cosh
+pub let tanh = math_native.tanh
+pub let rad = math_native.rad
+pub let deg = math_native.deg
+
+pub fn hypotenuse(a, b):
+    return math_native.sqrt(a * a + b * b)

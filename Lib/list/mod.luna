@@ -1,11 +1,24 @@
-import list_native
+import list.core
+import list.ops
 
-pub let new = list_native.new
-pub let push = list_native.push
-pub let pop = list_native.pop
-pub let get = list_native.get
-pub let set = list_native.set
-pub let len = list_native.len
-pub let clear = list_native.clear
-pub let reverse = list_native.reverse
-pub let contains = list_native.contains
+pub let new = core.new
+pub let push = core.push
+pub let pop = core.pop
+pub let get = core.get
+pub let set = core.set
+pub let len = core.len
+pub let clear = core.clear
+pub let reverse = core.reverse
+pub let contains = core.contains
+pub let first = core.first
+pub let last = core.last
+pub let is_empty = core.is_empty
+pub let extend = core.extend
+pub let slice = core.slice
+
+pub let map = ops.map
+pub let filter = ops.filter
+pub let reduce = ops.reduce
+pub let index_of = ops.index_of
+pub let count = ops.count
+pub let unique = ops.unique

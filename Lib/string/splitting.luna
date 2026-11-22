@@ -1,0 +1,31 @@
+import list_native
+import string.core
+import string.search
+
+pub fn split(s, sep):
+    if len(sep) == 0:
+        return list_native.new()
+    let out = list_native.new()
+    let start = 0
+    let at = search.find(s, sep)
+    while at >= 0:
+        list_native.push(out, core.sub(s, start, at))
+        start = at + len(sep)
+        let rest = core.sub(s, start, core.len(s))
+        let next = search.find(rest, sep)
+        if next < 0:
+            at = -1
+        else:
+            at = start + next
+    list_native.push(out, core.sub(s, start, core.len(s)))
+    return out
+
+pub fn join(sep, xs):
+    let out = ""
+    let i = 0
+    while i < len(xs):
+        if i > 0:
+            out = core.concat(out, sep)
+        out = core.concat(out, str(xs[i]))
+        i += 1
+    return out

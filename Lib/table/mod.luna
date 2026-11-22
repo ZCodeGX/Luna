@@ -1,9 +1,18 @@
-import table_native
+import table.core
+import table.ops
 
-pub let new = table_native.new
-pub let get = table_native.get
-pub let set = table_native.set
-pub let has = table_native.has
-pub let remove = table_native.remove
-pub let keys = table_native.keys
-pub let len = table_native.len
+pub let new = core.new
+pub let get = core.get
+pub let set = core.set
+pub let has = core.has
+pub let remove = core.remove
+pub let keys = core.keys
+pub let len = core.len
+pub let get_or = core.get_or
+pub let set_default = core.set_default
+pub let update = core.update
+
+pub let values = ops.values
+pub let merge = ops.merge
+pub let has_all = ops.has_all
+pub let clear = ops.clear

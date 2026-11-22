@@ -1,0 +1,71 @@
+import list_native
+
+pub fn min_of(xs):
+    if len(xs) == 0:
+        return nil
+    let best = xs[0]
+    let i = 1
+    while i < len(xs):
+        if xs[i] < best:
+            best = xs[i]
+        i += 1
+    return best
+
+pub fn max_of(xs):
+    if len(xs) == 0:
+        return nil
+    let best = xs[0]
+    let i = 1
+    while i < len(xs):
+        if xs[i] > best:
+            best = xs[i]
+        i += 1
+    return best
+
+pub fn sum(xs):
+    let total = 0
+    let i = 0
+    while i < len(xs):
+        total += xs[i]
+        i += 1
+    return total
+
+pub fn mean(xs):
+    if len(xs) == 0:
+        return nil
+    return sum(xs) / len(xs)
+
+pub fn sort(xs):
+    let out = list_native.new()
+    let i = 0
+    while i < len(xs):
+        let value = xs[i]
+        let j = len(out)
+        let moving = true
+        while moving:
+            if j > 0:
+                if out[j - 1] > value:
+                    if j == len(out):
+                        list_native.push(out, out[j - 1])
+                    else:
+                        out[j] = out[j - 1]
+                    j -= 1
+                else:
+                    moving = false
+            else:
+                moving = false
+        if j == len(out):
+            list_native.push(out, value)
+        else:
+            out[j] = value
+        i += 1
+    return out
+
+pub fn median(xs):
+    if len(xs) == 0:
+        return nil
+    let ordered = sort(xs)
+    let mid = int(len(ordered) / 2)
+    if len(ordered) % 2 == 1:
+        return ordered[mid]
+    return (ordered[mid - 1] + ordered[mid]) / 2

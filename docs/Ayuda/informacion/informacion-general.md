@@ -4,7 +4,7 @@
 | --- | --- |
 | Nombre | Luna |
 | Descripción | Lenguaje de programación pequeño, embebible y con CLI estilo Python |
-| Versión | 0.1.0 |
+| Versión | 0.2.5 |
 | ABI | 1 |
 | Licencia | GPL-3.0 |
 | Compilador requerido | C11 |

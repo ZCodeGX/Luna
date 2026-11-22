@@ -24,7 +24,7 @@ El REPL lee una línea por vez (máximo 8192 bytes) y limpia el error después d
 
 ## Sistema de build
 
-`luna.py` es un build declarativo inspirado en `moz.build` (versión `0.1.0`).
+`luna.py` es un build declarativo inspirado en `moz.build` (versión `0.2.5`).
 
 | Comando | Opciones | Descripción |
 | --- | --- | --- |

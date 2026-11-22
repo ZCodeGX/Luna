@@ -18,7 +18,13 @@ import re
 
 # ---------- Configuración ----------
 
-VERSION = "0.1.0"
+def read_version() -> str:
+    header = Path(__file__).resolve().parent / "include" / "luna" / "luna.h"
+    match = re.search(r'#define\s+LUNA_VERSION_STRING\s+"([^"]+)"', header.read_text(encoding="utf-8"))
+    return match.group(1) if match else "0.0.0"
+
+
+VERSION = read_version()
 BUILD_DIR = Path("build")
 SRC_DIR = Path("src")
 INCLUDE_BASE = SRC_DIR

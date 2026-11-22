@@ -1,6 +1,31 @@
 # Registro de cambios
 
-Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`.
+Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
+
+## 0.2.5
+
+### Añadido
+
+- Instaladores `install.sh` (Linux/macOS) e `install.ps1` (Windows): instalan dependencias, compilan, instalan el binario y configuran el PATH.
+- Instrucciones de instalación en `README.md` y reglas ampliadas en `.gitignore`.
+
+### Cambiado
+
+- Versión centralizada en `LUNA_VERSION_STRING` (`include/luna/luna.h`); el CLI y `luna.py` la leen desde ahí.
+- Activación de ANSI y UTF-8 en consolas de Windows.
+
+### Corregido
+
+- Puente `cc.exe` para MinGW-w64: firma de `_spawnv` y detección de rutas del compilador.
+- Declaración de `_getcwd` en Windows mediante `<direct.h>`.
+- Recursividad: el compilador reserva la función en el ámbito padre y el VM enlaza los upvalues desde el closure.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.2.5 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
 
 ## 0.1.0
 

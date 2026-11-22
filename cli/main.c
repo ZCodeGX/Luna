@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
             return 0;
         }
         if (strcmp(argv[i], "-V") == 0 || strcmp(argv[i], "--version") == 0) {
-            printf("Luna %d.%d.%d\n", LUNA_VERSION_MAJOR, LUNA_VERSION_MINOR, LUNA_VERSION_PATCH);
+            printf("Luna %s\n", LUNA_VERSION_STRING);
             return 0;
         }
     }

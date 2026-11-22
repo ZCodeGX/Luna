@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
 #endif
 

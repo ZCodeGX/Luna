@@ -59,7 +59,13 @@ static inline LunaUserdata* luna_val_userdata(LunaValue v) { return (LunaUserdat
 
 /* ---------- Operaciones sobre valores ---------- */
 bool        luna_value_equal(LunaValue a, LunaValue b);
-bool        luna_value_truthy(LunaValue v);
+static inline bool luna_value_truthy(LunaValue v) {
+    switch (v.type) {
+        case LUNA_TNIL:     return false;
+        case LUNA_TBOOLEAN: return v.as.boolean != 0;
+        default:            return true;
+    }
+}
 uint64_t    luna_value_hash(LunaValue v);
 const char* luna_type_name(LunaType t);
 

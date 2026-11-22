@@ -2,6 +2,20 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.2.8
+
+### Cambiado
+
+- `luna_value_truthy` es `static inline` en `value.h`: condicionales y bucles ya no hacen una llamada por evaluación.
+- El límite de instrucciones se comprueba en el propio `vm_run`; el mensaje de error se delega a `luna_report_instruction_limit`.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.2.8 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.2.7
 
 ### Cambiado

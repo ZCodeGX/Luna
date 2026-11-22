@@ -50,8 +50,9 @@ Luna empata con Python en enteros, pero va ~2x más lento en llamadas recursivas
 | `0.2.5` (base) | 2.63 s | 0.097 s | 7.75 s |
 | `0.2.6` | 2.34 s | 0.091 s | 6.64 s |
 | `0.2.7` | 2.27 s | 0.086 s | 6.12 s |
+| `0.2.8` | 1.95 s | 0.080 s | 5.32 s |
 
-Las cifras de `0.2.7` son el promedio de dos tandas de 5 ejecuciones. Acumulado frente a la base: −14 % en `loop`, −11 % en `fib` y −21 % en `math`.
+Las cifras son promedios de dos tandas de 5 ejecuciones. Acumulado frente a la base: −26 % en `loop`, −18 % en `fib` y −31 % en `math`.
 
 ### Fase 2 — Runtime optimizado
 

@@ -7,7 +7,7 @@ extern int vm_execute_instruction(LunaState* L, CallFrame* frame,
                                   const uint8_t* code, LunaValue* base);
 
 /* Declarada en memory/limits.c */
-extern int luna_check_instruction_limit(LunaState* L);
+extern int luna_report_instruction_limit(LunaState* L);
 
 /* ============================================================
  * Inicialización
@@ -46,8 +46,11 @@ static int vm_run(LunaState* L) {
             frame_valid = 1;
         }
 
-        /* Verificar límite de instrucciones */
-        if (luna_check_instruction_limit(L) != 0) {
+        /* Verificar límite de instrucciones (fast path inline) */
+        L->instructions_executed++;
+        if (L->instruction_limit != 0 &&
+            L->instructions_executed > L->instruction_limit) {
+            luna_report_instruction_limit(L);
             return -1;
         }
 

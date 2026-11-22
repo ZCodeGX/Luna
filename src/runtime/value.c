@@ -39,14 +39,6 @@ bool luna_value_equal(LunaValue a, LunaValue b) {
     }
 }
 
-bool luna_value_truthy(LunaValue v) {
-    switch (v.type) {
-        case LUNA_TNIL:     return false;
-        case LUNA_TBOOLEAN: return v.as.boolean != 0;
-        default:            return true;
-    }
-}
-
 /* FNV-1a 64-bit */
 static uint64_t hash_bytes(const void* data, size_t len) {
     const uint8_t* p = (const uint8_t*)data;

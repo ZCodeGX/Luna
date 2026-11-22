@@ -31,25 +31,18 @@ int luna_check_memory_limit(struct LunaState* L, size_t requested) {
 }
 
 /*
- * Verifica que no se haya excedido el límite de instrucciones.
- * Devuelve 0 si OK, -1 si se excede.
+ * Reporta que se excedió el límite de instrucciones.
+ * La comprobación rápida vive en vm_run; esta función es la parte fría.
  */
-int luna_check_instruction_limit(struct LunaState* L) {
-    L->instructions_executed++;
-    
-    if (L->instruction_limit == 0) return 0;  /* ilimitado */
-    
-    if (L->instructions_executed > L->instruction_limit) {
-        if (!L->status) {
-            L->status = 9;  /* LUNA_ERR_LIMIT */
-            snprintf(L->error_message, sizeof(L->error_message),
-                     "instruction limit exceeded (%llu > %llu)",
-                     (unsigned long long)L->instructions_executed,
-                     (unsigned long long)L->instruction_limit);
-        }
-        return -1;
+int luna_report_instruction_limit(struct LunaState* L) {
+    if (!L->status) {
+        L->status = 9;  /* LUNA_ERR_LIMIT */
+        snprintf(L->error_message, sizeof(L->error_message),
+                 "instruction limit exceeded (%llu > %llu)",
+                 (unsigned long long)L->instructions_executed,
+                 (unsigned long long)L->instruction_limit);
     }
-    return 0;
+    return -1;
 }
 
 /*

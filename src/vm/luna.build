@@ -1,0 +1,20 @@
+# Módulo: vm
+# Ejecución de bytecode
+
+SOURCES = [
+    'vm.c',
+    'opcodes.c',
+    'stack.c',
+    'arithmetic.c',
+    'compare.c',
+    'call.c',
+]
+
+HEADERS = [
+    'vm.h',
+    'vm_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = ['runtime', 'bytecode', 'errors', 'memory']
+CFLAGS = []

@@ -1,0 +1,17 @@
+# Módulo: ast
+# Representación del árbol de sintaxis abstracta
+
+SOURCES = [
+    'node.c',
+    'free.c',
+    'print.c',
+]
+
+HEADERS = [
+    'ast.h',
+    'ast_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = ['lexer']
+CFLAGS = []

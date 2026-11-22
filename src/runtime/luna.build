@@ -1,0 +1,26 @@
+# Módulo: runtime
+# Sistema de tipos y valores en tiempo de ejecución
+
+SOURCES = [
+    'value.c',
+    'string.c',
+    'table.c',
+    'list.c',
+    'function.c',
+    'userdata.c',
+    'state.c',
+]
+
+HEADERS = [
+    'value.h',
+    'lstring.h',
+    'table.h',
+    'list.h',
+    'function.h',
+    'userdata.h',
+    'runtime_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = ['memory']
+CFLAGS = []

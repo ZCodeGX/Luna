@@ -1,0 +1,19 @@
+# Módulo: memory
+# Gestión de memoria y garbage collector
+
+SOURCES = [
+    'alloc.c',
+    'gc.c',
+    'limits.c',
+]
+
+HEADERS = [
+    'alloc.h',
+    'gc.h',
+    'gcobject.h',
+    'memory_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = []
+CFLAGS = []

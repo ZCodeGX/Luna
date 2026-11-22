@@ -1,0 +1,19 @@
+# Módulo: parser
+# Análisis sintáctico y construcción del AST
+
+SOURCES = [
+    'parser.c',
+    'errors.c',
+    'expressions.c',
+    'statements.c',
+]
+
+HEADERS = [
+    'parser.h',
+    'parser_internal.h',
+    'precedence.h',
+]
+
+INCLUDES = []
+DEPENDS = ['lexer', 'ast']
+CFLAGS = []

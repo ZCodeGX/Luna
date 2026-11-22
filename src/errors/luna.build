@@ -1,0 +1,17 @@
+# Módulo: errors
+# Gestión de errores, estados y tracebacks
+
+SOURCES = [
+    'error.c',
+    'status_names.c',
+    'traceback.c',
+]
+
+HEADERS = [
+    'error.h',
+    'errors_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = ['runtime']
+CFLAGS = []

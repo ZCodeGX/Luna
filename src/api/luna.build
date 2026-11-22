@@ -1,0 +1,23 @@
+# Módulo: api
+# API pública C (estado, stack, valores, tablas, módulos)
+
+SOURCES = [
+    'api_state.c',
+    'api_stack.c',
+    'api_push.c',
+    'api_get.c',
+    'api_table.c',
+    'api_call.c',
+    'api_error.c',
+    'api_ref.c',
+    'api_register.c',
+    'api_globals.c',
+]
+
+HEADERS = [
+    'api_internal.h',
+]
+
+INCLUDES = ['include']
+DEPENDS = ['runtime', 'errors', 'modules', 'vm', 'memory', 'compiler', 'parser', 'platform']
+CFLAGS = []

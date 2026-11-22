@@ -1,0 +1,28 @@
+# Módulo: platform
+# Abstracción del sistema operativo (filesystem, paths, tiempo, dlopen)
+
+import os
+
+SOURCES = [
+    'path.c',
+    'time.c',
+]
+
+# Selección de implementación según la plataforma
+if os.name == 'nt':
+    SOURCES += ['fs_win32.c', 'dl_win32.c']
+else:
+    SOURCES += ['fs_posix.c', 'dl_posix.c']
+
+HEADERS = [
+    'platform.h',
+    'platform_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = []
+CFLAGS = []
+
+# En POSIX necesitamos linkear con -ldl y -lrt (algunos sistemas)
+if os.name != 'nt':
+    CFLAGS = []  # Los flags de linkeo van en el Makefile principal

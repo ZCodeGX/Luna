@@ -1,0 +1,19 @@
+# Módulo: compiler
+# Compilación de AST a bytecode
+
+SOURCES = [
+    'compiler.c',
+    'scope.c',
+    'emit.c',
+    'closures.c',
+]
+
+HEADERS = [
+    'compiler.h',
+    'compiler_internal.h',
+    'scope.h',
+]
+
+INCLUDES = []
+DEPENDS = ['ast', 'bytecode']
+CFLAGS = []

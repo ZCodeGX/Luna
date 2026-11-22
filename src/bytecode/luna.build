@@ -1,0 +1,20 @@
+# Módulo: bytecode
+# Formato de bytecode, serialización y validación
+
+SOURCES = [
+    'opcodes.c',
+    'proto.c',
+    'serialize.c',
+    'deserialize.c',
+    'validate.c',
+]
+
+HEADERS = [
+    'opcodes.h',
+    'proto.h',
+    'version.h',
+]
+
+INCLUDES = []
+DEPENDS = []
+CFLAGS = []

@@ -1,0 +1,19 @@
+# Módulo: modules
+# Sistema de módulos y carga dinámica
+
+SOURCES = [
+    'cache.c',
+    'resolver.c',
+    'loader.c',
+    'visibility.c',
+    'init.c',
+]
+
+HEADERS = [
+    'module.h',
+    'modules_internal.h',
+]
+
+INCLUDES = []
+DEPENDS = ['runtime']
+CFLAGS = []

@@ -1,0 +1,20 @@
+# Módulo: lexer
+# Tokenización y manejo de indentación
+
+SOURCES = [
+    'lexer.c',
+    'indent.c',
+    'number.c',
+]
+
+HEADERS = [
+    'lexer.h',
+    'token.h',
+    'lexer_internal.h',
+    'indent.h',
+    'number.h',
+]
+
+INCLUDES = []
+DEPENDS = []
+CFLAGS = []

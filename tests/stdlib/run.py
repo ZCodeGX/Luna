@@ -1,6 +1,7 @@
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 BIN = ROOT / "build" / "luna"
@@ -14,32 +15,33 @@ def main():
         return 1
 
     failures = []
-    for name in FIXTURES:
-        source = TESTS / f"{name}.luna"
-        expected = (TESTS / f"{name}.expected").read_text()
-        result = subprocess.run(
-            [str(BIN), str(source)],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-        )
+    with tempfile.TemporaryDirectory() as cwd:
+        for name in FIXTURES:
+            source = TESTS / f"{name}.luna"
+            expected = (TESTS / f"{name}.expected").read_text()
+            result = subprocess.run(
+                [str(BIN), str(source)],
+                cwd=cwd,
+                capture_output=True,
+                text=True,
+            )
 
-        if result.returncode != 0:
-            failures.append(name)
-            print(f"FAIL {name}.luna (exit={result.returncode})")
-            print(result.stderr, end="")
-            continue
+            if result.returncode != 0:
+                failures.append(name)
+                print(f"FAIL {name}.luna (exit={result.returncode})")
+                print(result.stderr, end="")
+                continue
 
-        if result.stdout != expected:
-            failures.append(name)
-            print(f"FAIL {name}.luna (salida distinta)")
-            print("--- esperado ---")
-            print(expected, end="")
-            print("--- obtenido ---")
-            print(result.stdout, end="")
-            continue
+            if result.stdout != expected:
+                failures.append(name)
+                print(f"FAIL {name}.luna (salida distinta)")
+                print("--- esperado ---")
+                print(expected, end="")
+                print("--- obtenido ---")
+                print(result.stdout, end="")
+                continue
 
-        print(f"ok   {name}.luna")
+            print(f"ok   {name}.luna")
 
     if failures:
         print(f"\n{len(failures)}/{len(FIXTURES)} pruebas fallaron")

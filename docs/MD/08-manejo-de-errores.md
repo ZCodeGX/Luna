@@ -10,7 +10,7 @@ throw "algo salió mal"
 
 ## try / catch
 
-La gramática prevé:
+Sintaxis soportada:
 
 ```luna
 try:
@@ -19,10 +19,9 @@ catch error:
     print("falló:", error)
 ```
 
-La VM dispone de los opcodes `OP_SETUP_EXC`, `OP_POP_EXC` y `OP_THROW`, con propagación a través de `handler_pc`.
+El compilador emite `OP_SETUP_EXC`, `OP_POP_EXC` y `OP_GET_EXC`. Cada frame mantiene una pila de manejadores (hasta 32 niveles anidados); `OP_THROW` propaga el valor a través de los frames y `catch` lo recibe en la variable indicada.
 
-> [!WARNING]
-> `try/catch` se parsea y la VM tiene soporte de bajo nivel, pero el compilador aún no genera código para estas sentencias.
+Los errores de runtime se convierten en excepciones lanzables: por ejemplo, `1 / 0` dentro de un `try` se captura como `"division by zero"`. El valor lanzado se conserva en `L->thrown_value` y es una raíz para el GC.
 
 ## Estados de error
 

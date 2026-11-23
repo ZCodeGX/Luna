@@ -1,6 +1,6 @@
 # 11 — Estado de implementación
 
-Luna se encuentra en versión `0.7.4` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
+Luna se encuentra en versión `0.7.5` (ABI 1). La gramática `luna.ebnf` describe el lenguaje objetivo, pero no todas sus construcciones están disponibles en el compilador actual.
 
 ## Soportado de extremo a extremo
 
@@ -26,6 +26,9 @@ Luna se encuentra en versión `0.7.4` (ABI 1). La gramática `luna.ebnf` describ
 | Indexación `lista[i]` / `tabla[clave]` | Disponible |
 | Asignaciones a `lista[i]` y `obj.campo` | Disponible |
 | Asignaciones compuestas `+=`, `-=`, `*=`, `/=` | Disponible |
+| `try` / `catch` | Disponible (pila de handlers por frame) |
+| `throw` | Disponible (`OP_THROW`) |
+| Errores de compilación con archivo/línea/columna | Disponible |
 
 ## Reconocido pero no compilado
 
@@ -33,8 +36,6 @@ Luna se encuentra en versión `0.7.4` (ABI 1). La gramática `luna.ebnf` describ
 | --- | --- | --- |
 | `for` ... `in` | Sí | Emite `for loops not yet implemented` |
 | `break`, `continue` | Sí | Sin generación de código |
-| `try` / `catch` | Sí | La VM tiene opcodes, el compilador no emite |
-| `throw` | Sí | Compilado (`OP_THROW`) |
 | Lambdas `fn(...)` | Sí | Nodo `NODE_LAMBDA` sin compilar |
 
 | Concatenación de strings con `+` | Sí | Error de tipo en runtime |

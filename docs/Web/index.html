@@ -15,7 +15,7 @@
       <img src="luna-logo.svg" alt="Luna" width="40" height="40">
       <span>Luna <small>docs</small></span>
     </a>
-    <span class="version">v0.1.0</span>
+    <span class="version">v0.7.5</span>
     <div class="topbar-actions">
       <label class="search">
         <input type="search" id="search" placeholder="Buscar sección…" aria-label="Buscar sección" autocomplete="off">
@@ -164,7 +164,7 @@ print(string.upper("luna"))</code></pre>
 
       <section id="errores">
         <h2>Manejo de errores</h2>
-        <p>La sintaxis prevista es <code>try</code> / <code>catch nombre</code> y <code>throw expresion</code>. La VM dispone de opcodes para excepciones y <code>throw</code> se compila; <code>try/catch</code> todavía no está disponible desde código fuente.</p>
+        <p>Las sentencias <code>try</code> / <code>catch nombre</code> y <code>throw expresion</code> están disponibles desde código fuente. Los errores de runtime, como la división por cero, se convierten en excepciones capturables.</p>
       </section>
 
       <section id="cli">
@@ -198,7 +198,7 @@ luna_close(L);</code></pre>
 
       <section id="estado">
         <h2>Estado y límites</h2>
-        <p>Luna es <strong>0.1.0</strong> (ABI 1) y se distribuye bajo <strong>GPL-3.0</strong>. Parte de la gramática aún no está implementada de extremo a extremo: <code>for</code>, <code>break</code>, <code>continue</code>, <code>try/catch</code>, <code>import</code>, <code>mod</code>, literales de lista/tabla, lambdas, indexación y asignaciones compuestas.</p>
+        <p>Luna es <strong>0.7.5</strong> (ABI 1) y se distribuye bajo <strong>GPL-3.0</strong>. Parte de la gramática aún no está implementada de extremo a extremo: <code>for</code>, <code>break</code>, <code>continue</code> y lambdas anónimas.</p>
         <p>Consulta la <a href="../MD/11-estado-de-implementacion.md">tabla de estado completa</a> y las <a href="../Ayuda/extra/solucion-de-problemas.md">notas de solución de problemas</a>.</p>
       </section>
 

@@ -1,6 +1,6 @@
 # 14 — Biblioteca estándar
 
-Luna 0.7.4 incluye una biblioteca estándar disponible al crear el estado. Cada carpeta de `Lib/` contiene varios archivos `.luna`: `mod.luna` actúa como fachada pública y el resto de archivos implementan la funcionalidad en el propio lenguaje.
+Luna 0.7.5 incluye una biblioteca estándar disponible al crear el estado. Cada carpeta de `Lib/` contiene varios archivos `.luna`: `mod.luna` actúa como fachada pública y el resto de archivos implementan la funcionalidad en el propio lenguaje.
 
 La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisible para el código de usuario habitual: los módulos `.luna` las envuelven, las combinan y añaden lógica escrita en Luna.
 
@@ -40,6 +40,17 @@ La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisibl
 | `os` | `getenv_or`, `is_windows`, `is_linux`, `is_macos`, `separator_char`. |
 | `time` | `elapsed`, `format_duration`, `millis`. |
 | `path` | `build`, `stem`, `has_ext`, `is_absolute`. |
+
+## Resolución en runtime
+
+`luna_new()` registra automáticamente las rutas `Lib` que encuentra en este orden:
+
+1. `LUNA_HOME/Lib` y `LUNA_HOME/share/luna/Lib`.
+2. Cada entrada de `LUNA_PATH` (separada por `:` en Unix y `;` en Windows) y su subdirectorio `Lib`.
+3. `Lib` junto al ejecutable, `Lib` en el directorio padre y `share/luna/Lib` en el padre.
+4. La ruta relativa `Lib` del directorio de trabajo, como último recurso.
+
+Las rutas duplicadas se ignoran. Desde C también se puede añadir una ruta con `luna_add_path()` (alias de `luna_add_module_path()`).
 
 ## Ejemplo
 

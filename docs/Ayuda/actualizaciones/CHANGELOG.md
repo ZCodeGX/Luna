@@ -2,6 +2,31 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.5
+
+### Añadido
+
+- `try` / `catch` totalmente compilados: pila de handlers por frame, `OP_SETUP_EXC`, `OP_POP_EXC`, `OP_GET_EXC` y conversión de errores de runtime en excepciones.
+- Mensajes de error del compilador con archivo, línea y columna; la CLI ya no imprime solo `compilation failed`.
+- Descubrimiento de `Lib` en runtime: `LUNA_HOME`, `LUNA_PATH`, directorio del ejecutable y rutas relativas habituales.
+- Alias público `luna_add_path()`.
+- Comando `./luna.py test` con suites de stdlib, diagnósticos, regresiones y tests unitarios.
+
+### Corregido
+
+- El crecimiento de la pila reubica frames y upvalues; la recursión profunda ya no corrompe la VM.
+- Reasignar una variable `const` falla con un mensaje útil.
+- Los errores de runtime lanzados dentro de `try` se capturan correctamente (incluida división por cero).
+- Los upvalues usan conteo de referencias y `L->thrown_value` es raíz del GC; se liberan los protos y handlers de módulos al cerrar el estado.
+- Las pruebas de stdlib ya no dependen del directorio de trabajo.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.5 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.7.4
 
 ### Añadido

@@ -280,6 +280,7 @@ def compile_module(module: Module, modules: Dict[str, Module], verbose: bool = F
         "-g",
         "-O2",
     ]
+    base_cflags += os.environ.get("LUNA_CFLAGS", "").split()
     
     all_cflags = base_cflags + include_flags + module.cflags
     
@@ -363,7 +364,8 @@ def link_executable(modules: Dict[str, Module], target: str, main_source: Option
     libs = ["-lm"]
     if os.name != 'nt':
         libs.append("-ldl")
-    cmd = ["cc"] + objects + ["-o", str(output_path)] + libs
+    cmd = ["cc"] + os.environ.get("LUNA_CFLAGS", "").split() + objects + \
+          ["-o", str(output_path)] + libs
     
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -464,6 +466,43 @@ def cmd_graph(args):
     
     print("}")
 
+
+def cmd_test(args):
+    """Comando: test - ejecuta todas las suites del proyecto"""
+    root = Path(__file__).resolve().parent
+    binary = root / "build" / "luna"
+
+    if not binary.exists():
+        result = subprocess.run(
+            [sys.executable, str(root / "luna.py"), "build"],
+            cwd=root,
+        )
+        if result.returncode != 0:
+            return result.returncode
+
+    suites = [
+        "tests/stdlib/run.py",
+        "tests/parser_diag/run.py",
+        "tests/regression/run.py",
+        "tests/unit/run.py",
+    ]
+    failed = []
+
+    for suite in suites:
+        print(f"\n== {suite} ==")
+        result = subprocess.run(
+            [sys.executable, str(root / suite)],
+            cwd=root,
+        )
+        if result.returncode != 0:
+            failed.append(suite)
+
+    if failed:
+        print(f"\n{len(failed)}/{len(suites)} suites fallaron")
+        return 1
+    print(f"\n{len(suites)}/{len(suites)} suites pasaron")
+    return 0
+
 # ---------- Main ----------
 
 def main():
@@ -474,6 +513,7 @@ def main():
 Comandos:
   build     Compila el proyecto
   clean     Elimina el directorio build/
+  test      Ejecuta todas las suites de tests
   info      Muestra información del proyecto
   graph     Genera grafo de dependencias (formato DOT)
 
@@ -481,6 +521,7 @@ Ejemplos:
   ./luna.py build
   ./luna.py build -v
   ./luna.py clean
+  ./luna.py test
   ./luna.py info
   ./luna.py graph > deps.dot
         """
@@ -495,6 +536,9 @@ Ejemplos:
     
     # clean
     subparsers.add_parser('clean', help='Elimina el directorio build/')
+
+    # test
+    subparsers.add_parser('test', help='Ejecuta todas las suites de tests')
     
     # info
     subparsers.add_parser('info', help='Muestra información del proyecto')
@@ -508,6 +552,8 @@ Ejemplos:
         cmd_build(args)
     elif args.command == 'clean':
         cmd_clean(args)
+    elif args.command == 'test':
+        sys.exit(cmd_test(args))
     elif args.command == 'info':
         cmd_info(args)
     elif args.command == 'graph':

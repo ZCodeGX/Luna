@@ -1,0 +1,19 @@
+fn make():
+    let x = 10
+    fn get():
+        return x
+    fn set(v):
+        x = v
+    return [get, set]
+
+fn deep(n):
+    if n == 0:
+        return 0
+    let tmp = n
+    return deep(n - 1)
+
+let p = make()
+print(p[0]())
+deep(120)
+p[1](99)
+print(p[0]())

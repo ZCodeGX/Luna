@@ -1,4 +1,4 @@
-# Gramática EBNF completa de Luna 1.0
+# Gramática EBNF del lenguaje objetivo de Luna (0.7.5)
 
 Esta gramática es la **fuente de verdad** del lenguaje. Refleja exactamente lo que implementan el lexer y parser actuales.
 

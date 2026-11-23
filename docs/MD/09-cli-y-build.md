@@ -33,6 +33,7 @@ El REPL lee una línea por vez (máximo 8192 bytes) y limpia el error después d
 | --- | --- | --- |
 | `build` | `-v` / `--verbose`, `--main` | Descubre módulos, resuelve dependencias, compila y linkea `build/luna` |
 | `clean` | — | Elimina `build/` |
+| `test` | — | Ejecuta las suites stdlib, diagnósticos, regresiones y tests unitarios |
 | `info` | — | Lista módulos, rutas, fuentes, headers y dependencias |
 | `graph` | — | Imprime el grafo de dependencias en formato DOT |
 

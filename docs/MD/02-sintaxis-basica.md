@@ -64,6 +64,6 @@ pub fn principal():
 ```
 
 > [!NOTE]
-> `const` se registra en el ámbito, pero el compilador actual no impide reasignarla.
+> `const` se registra en el ámbito y el compilador rechaza cualquier reasignación con un error que incluye archivo, línea y columna.
 
 Continúa con [tipos de datos](03-tipos-de-datos.md).

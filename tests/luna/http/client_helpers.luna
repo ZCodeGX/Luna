@@ -1,0 +1,25 @@
+import assert
+import http
+
+assert.eq(http.encode("a b&c"), "a%20b%26c", "codificar consulta")
+assert.eq(http.decode("a%20b%26c"), "a b&c", "decodificar consulta")
+assert.eq(http.build_url("http://localhost/x", {q = "a b"}), "http://localhost/x?q=a%20b", "construir url con query")
+assert.eq(http.build_url("http://localhost/x?y=1", {q = "a b"}), "http://localhost/x?y=1&q=a%20b", "añadir query a url existente")
+assert.eq(http.build_url("http://localhost/x", nil), "http://localhost/x", "url sin query")
+
+let res = http.reply(204, "")
+assert.eq(res.status, 204, "estado de reply")
+assert.eq(res.body, "", "cuerpo de reply")
+assert.eq(res.headers, nil, "reply sin cabeceras")
+
+let txt = http.text("hola", nil)
+assert.eq(txt.status, 200, "estado de text")
+assert.eq(txt.headers["Content-Type"], "text/plain; charset=utf-8", "content-type de text")
+
+let page = http.html("<b>hola</b>", nil)
+assert.eq(page.headers["Content-Type"], "text/html; charset=utf-8", "content-type de html")
+
+assert.eq(http.is_ok({status = 200}), true, "respuesta 200 es ok")
+assert.eq(http.is_ok({status = 404}), false, "respuesta 404 no es ok")
+
+assert.report()

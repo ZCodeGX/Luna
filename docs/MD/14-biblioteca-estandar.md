@@ -16,6 +16,7 @@ La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisibl
 | `os` | `env.luna`, `info.luna`, `mod.luna` |
 | `time` | `clock.luna`, `fmt.luna`, `mod.luna` |
 | `path` | `ops.luna`, `info.luna`, `mod.luna` |
+| `http` | `client.luna`, `server.luna`, `mod.luna` (fachada del módulo nativo `http_native`) |
 | `ffi` | `mod.luna` (fachada del módulo nativo `ffi_native`) |
 
 ## Funciones globales
@@ -59,6 +60,7 @@ integer
 | `os` | `getenv_or`, `is_windows`, `is_linux`, `is_macos`, `separator_char`. |
 | `time` | `elapsed(start)`, `format_duration(seconds)`, `millis(nanoseconds)`. |
 | `path` | `build`, `stem`, `has_ext`, `is_absolute`. |
+| `http` | `encode`, `decode`, `build_url`, `request`, `get`, `post`, `put`, `delete`, `is_ok`, `listen`, `serve`, `serve_once`, `close`, `reply`, `text`, `html`. |
 
 ## Ejemplo: cálculo y cadenas
 
@@ -109,6 +111,36 @@ x
 ```
 
 En macOS o Windows la primera línea cambia. `time.millis` convierte nanosegundos a milisegundos; `time.elapsed(start)` usa el valor devuelto por `time.nanos()`.
+
+## Módulo `http`
+
+`http` ofrece un cliente HTTP/1.1 sobre `http://` y un servidor básico para escuchar en una interfaz local. Las funciones nativas viven en `http_native`; el módulo `http` añade codificación de consultas, cabeceras de respuesta y el bucle de aceptación escrito en Luna.
+
+```luna
+import http
+
+let response = http.get("http://127.0.0.1:8080/index.html", {timeout = 3})
+print(response.ok)
+print(response.status)
+print(response.reason)
+print(response.body)
+```
+
+`response.headers` es una tabla con las cabeceras de respuesta en minúsculas. `get`, `post`, `put` y `delete` devuelven `{ok, status, reason, headers, body}` o lanzan una excepción si la petición falla. `https://` no está soportado: se requiere una capa TLS.
+
+```luna
+import http
+import string
+
+fn handler(req):
+    return http.reply(200, string.concat("recibido: ", req.body), nil)
+
+let server = http.listen("127.0.0.1", 8080)
+http.serve(server, handler, 4, 1)
+http.close(server)
+```
+
+`req` contiene `method`, `path`, `body` y `headers`. `serve_once(server, handler, timeout)` devuelve `false` cuando expira el tiempo de espera; `serve(server, handler, max_requests, timeout)` repite hasta alcanzar `max_requests` o hasta que se cierre el servidor. `reply`, `text` y `html` construyen la tabla de respuesta que consume `http_native.respond`.
 
 ## Módulo `ffi`
 

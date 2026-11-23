@@ -6,17 +6,22 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 
 ### Añadido
 
-- Suite modular `tests/luna/` con 73 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI y estrés de VM.
+- Suite modular `tests/luna/` con 76 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI, HTTP y estrés de VM.
 - Caso de estrés con 2000 aserciones ejecutadas desde Luna y cobertura explícita de comentarios `#`.
 - Regresiones para `else if`, upvalues de segundo nivel y `throw` desde funciones llamadas.
 - Interfaz animada de `install.sh` con banner, colores, progreso, resumen de versiones, rutas y modo `--info` para Linux/macOS.
 - Script `uninstall.sh` independiente para Linux/macOS con desinstalación completa, `--dry-run` y `--keep-source`.
+- Módulo `http` con cliente HTTP/1.1, servidor básico, helpers de URL y respuestas `reply`, `text` y `html`.
+- Primitivas nativas `http_native.request`, `listen`, `accept`, `respond`, `close` y `close_connection`.
+- Pruebas HTTP de helpers, errores, contrato de servidor y petición real contra un servidor local.
 
 ### Corregido
 
 - `else if` vuelve a compilar toda la cadena de ramas en vez de saltar directo al `else`.
 - La resolución de upvalues propaga capturas a través de scopes intermedios.
 - `throw` recarga el frame que maneja la excepción, permitiendo capturar errores lanzados dentro de funciones.
+- El cliente HTTP conserva el puerto tras liberar la copia de la autoridad de la URL.
+- El servidor HTTP no espera EOF en peticiones GET sin `Content-Length`, evitando bloqueos antes de responder.
 
 ## 0.7.6
 

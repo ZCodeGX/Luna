@@ -28,7 +28,7 @@ Aprende Luna en 20 minutos y escribe tu primer programa. Esta guía Markdown es 
 | [11 — Estado de implementación](11-estado-de-implementacion.md) | Qué funciona de extremo a extremo y qué no |
 | [12 — Rendimiento y Luna 0.3](12-rendimiento-0-3.md) | Plan de optimización del runtime y benchmarks |
 | [13 — Diagnósticos](13-diagnosticos.md) | Errores con spans, multi-error y renderizado |
-| [14 — Biblioteca estándar](14-biblioteca-estandar.md) | Funciones globales y módulos `math`, `string`, `list`, `table`, `io`, `os`, `time`, `path` y `ffi` |
+| [14 — Biblioteca estándar](14-biblioteca-estandar.md) | Funciones globales y módulos `math`, `string`, `list`, `table`, `io`, `os`, `time`, `path`, `http` y `ffi` |
 | [15 — FFI](15-ffi.md) | `extern`, firmas, alias de librería, módulo `ffi` y límites |
 | [16 — Primer proyecto](16-primer-proyecto.md) | Mini agenda: listas, tablas, funciones y errores |
 | [17 — Recetas](17-recetas.md) | Ejemplos cortos con problema, código y salida |

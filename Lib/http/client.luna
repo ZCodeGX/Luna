@@ -1,0 +1,99 @@
+import http_native
+import string
+import table
+import list_native
+
+ENCODE_MAP = table.new()
+table.set(ENCODE_MAP, "%", "%25")
+table.set(ENCODE_MAP, " ", "%20")
+table.set(ENCODE_MAP, "&", "%26")
+table.set(ENCODE_MAP, "\"", "%22")
+table.set(ENCODE_MAP, "#", "%23")
+table.set(ENCODE_MAP, "+", "%2B")
+table.set(ENCODE_MAP, ",", "%2C")
+table.set(ENCODE_MAP, "/", "%2F")
+table.set(ENCODE_MAP, ":", "%3A")
+table.set(ENCODE_MAP, ";", "%3B")
+table.set(ENCODE_MAP, "=", "%3D")
+table.set(ENCODE_MAP, "?", "%3F")
+table.set(ENCODE_MAP, "@", "%40")
+table.set(ENCODE_MAP, "[", "%5B")
+table.set(ENCODE_MAP, "]", "%5D")
+
+pub fn encode(value):
+    let text = str(value)
+    let parts = table.keys(ENCODE_MAP)
+    let i = 0
+    while i < len(parts):
+        let key = parts[i]
+        text = string.replace(text, key, table.get(ENCODE_MAP, key))
+        i += 1
+    return text
+
+pub fn decode(value):
+    let text = str(value)
+    text = string.replace(text, "%20", " ")
+    text = string.replace(text, "%26", "&")
+    text = string.replace(text, "%2B", "+")
+    text = string.replace(text, "%2F", "/")
+    text = string.replace(text, "%3A", ":")
+    text = string.replace(text, "%3D", "=")
+    text = string.replace(text, "%3F", "?")
+    text = string.replace(text, "%25", "%")
+    return text
+
+fn query(params):
+    if params == nil:
+        return ""
+    let parts = list_native.new()
+    let keys = table.keys(params)
+    let i = 0
+    while i < len(keys):
+        let key = keys[i]
+        list_native.push(parts, string.concat(encode(key), "=", encode(table.get(params, key))))
+        i += 1
+    return string.join("&", parts)
+
+pub fn build_url(url, params):
+    let text = str(url)
+    let extra = query(params)
+    if extra == "":
+        return text
+    if string.contains(text, "?"):
+        return string.concat(text, "&", extra)
+    return string.concat(text, "?", extra)
+
+pub fn request(method, url, options):
+    let opts = options
+    if opts == nil:
+        opts = table.new()
+    return http_native.request(
+        str(method),
+        build_url(url, table.get(opts, "params")),
+        table.get(opts, "headers"),
+        table.get(opts, "body"),
+        table.get_or(opts, "timeout", 5)
+    )
+
+pub fn get(url, options):
+    return request("GET", url, options)
+
+pub fn post(url, body, options):
+    let opts = options
+    if opts == nil:
+        opts = table.new()
+    table.set(opts, "body", body)
+    return request("POST", url, opts)
+
+pub fn put(url, body, options):
+    let opts = options
+    if opts == nil:
+        opts = table.new()
+    table.set(opts, "body", body)
+    return request("PUT", url, opts)
+
+pub fn delete(url, options):
+    return request("DELETE", url, options)
+
+pub fn is_ok(response):
+    return response.status >= 200 and response.status < 400

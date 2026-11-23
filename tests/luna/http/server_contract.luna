@@ -1,0 +1,8 @@
+import assert
+import http
+import http_native
+
+let server = http.listen("127.0.0.1", 18771)
+assert.eq(http_native.accept(server, 0), nil, "accept sin conexiones devuelve nil")
+assert.eq(http.close(server), true, "cerrar servidor")
+assert.report()

@@ -344,4 +344,5 @@ void luna_open_stdlib(LunaState* L) {
     luna_open_collection_lib(L);
     luna_open_system_lib(L);
     luna_open_ffi_lib(L);
+    luna_open_http_lib(L);
 }

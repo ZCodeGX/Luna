@@ -1,0 +1,21 @@
+import http.client
+import http.server
+
+pub let request = client.request
+pub let get = client.get
+pub let post = client.post
+pub let put = client.put
+pub let delete = client.delete
+pub let build_url = client.build_url
+pub let encode = client.encode
+pub let decode = client.decode
+pub let is_ok = client.is_ok
+
+pub let listen = server.listen
+pub let close = server.close
+pub let close_connection = server.close_connection
+pub let serve_once = server.serve_once
+pub let serve = server.serve
+pub let reply = server.reply
+pub let text = server.text
+pub let html = server.html

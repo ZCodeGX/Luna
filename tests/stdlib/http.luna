@@ -1,0 +1,8 @@
+import http
+import os
+
+let url = os.getenv("LUNA_HTTP_TEST_URL")
+let response = http.get(url, {timeout = 3})
+print(response.ok)
+print(response.status)
+print(response.body)

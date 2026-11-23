@@ -1,0 +1,48 @@
+import http_native
+import table
+
+pub let listen = http_native.listen
+pub let close = http_native.close
+pub let close_connection = http_native.close_connection
+
+pub fn serve_once(server, handler, timeout):
+    let incoming = http_native.accept(server, timeout)
+    if incoming == nil:
+        return false
+    let response = handler(incoming.request)
+    http_native.respond(incoming.connection, response)
+    return true
+
+pub fn serve(server, handler, max_requests, timeout):
+    let limit = max_requests
+    if limit == nil:
+        limit = 0
+    let wait = timeout
+    if wait == nil:
+        wait = 1
+    let count = 0
+    while limit <= 0 or count < limit:
+        if not serve_once(server, handler, wait):
+            return count
+        count += 1
+    return count
+
+pub fn reply(status, body, headers):
+    let out = {status = status, body = body}
+    if headers != nil:
+        out.headers = headers
+    return out
+
+pub fn text(body, headers):
+    let out_headers = headers
+    if out_headers == nil:
+        out_headers = table.new()
+    out_headers["Content-Type"] = "text/plain; charset=utf-8"
+    return reply(200, body, out_headers)
+
+pub fn html(body, headers):
+    let out_headers = headers
+    if out_headers == nil:
+        out_headers = table.new()
+    out_headers["Content-Type"] = "text/html; charset=utf-8"
+    return reply(200, body, out_headers)

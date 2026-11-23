@@ -1,0 +1,18 @@
+import assert
+import http
+
+let message = ""
+try:
+    http.get("https://ejemplo.com")
+catch e:
+    message = e
+assert.eq(message, "https requiere TLS: usa un cliente con TLS", "https rechazado")
+
+message = ""
+try:
+    http.get("ftp://ejemplo.com")
+catch e:
+    message = e
+assert.eq(message, "url http inválida", "protocolo inválido rechazado")
+
+assert.report()

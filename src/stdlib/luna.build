@@ -5,6 +5,7 @@ SOURCES = [
     'collectionlib.c',
     'systemlib.c',
     'ffilib.c',
+    'httplib.c',
 ]
 
 HEADERS = [

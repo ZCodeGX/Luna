@@ -430,6 +430,7 @@ Hola desde saludo
               <tr><td><code>os</code></td><td>Entorno, argumentos y operaciones del sistema.</td></tr>
               <tr><td><code>time</code></td><td>Fecha, hora y temporizadores.</td></tr>
               <tr><td><code>path</code></td><td>Composición y consulta de rutas.</td></tr>
+              <tr><td><code>http</code></td><td>Cliente y servidor HTTP/1.1. Ver <a href="#http">HTTP</a>.</td></tr>
               <tr><td><code>ffi</code></td><td>Declaración dinámica de símbolos nativos. Ver <a href="#ffi">FFI</a>.</td></tr>
             </tbody>
           </table>
@@ -540,6 +541,31 @@ Fin de la agenda</code></pre></div>
           <p>Recorre la lista con <code>while</code>, compara <code>agenda[i].nombre</code> y usa <code>list.pop(agenda, i)</code> cuando encuentres el nombre. Devuelve <code>nil</code> al terminar.</p>
         </details>
         <p>También disponible como <a href="../MD/16-primer-proyecto.md">16 — Primer proyecto</a> y <a href="../MD/17-recetas.md">17 — Recetas</a>.</p>
+      </section>
+
+      <section id="http">
+        <h2>HTTP</h2>
+        <p class="lead">El módulo <code>http</code> añade un cliente HTTP/1.1 y un servidor básico sobre <code>http_native</code>. No incluye TLS: las URL <code>https://</code> se rechazan con un error explícito.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import http
+
+let response = http.get("http://127.0.0.1:8080/index.html", {timeout = 3})
+print(response.ok)
+print(response.status)
+print(response.body)</code></pre>
+        </div>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import http
+import string
+
+fn handler(req):
+    return http.text(string.concat("recibido: ", req.body), nil)
+
+let server = http.listen("127.0.0.1", 8080)
+http.serve(server, handler, 4, 1)
+http.close(server)</code></pre>
+        </div>
+        <p>Referencia completa: <a href="../MD/14-biblioteca-estandar.md#módulo-http">14 — Biblioteca estándar</a>.</p>
       </section>
 
       <section id="ffi">

@@ -1,0 +1,12 @@
+# @helper: fachada pública del paquete geometria (directorio con mod.luna)
+mod geometria
+
+# Desde un módulo anidado se usa la ruta completa desde la raíz de búsqueda.
+import geometria.formas
+
+pub let VERSION = 2
+
+# Reexportar funciones es asignarlas a nombres públicos con `pub let`.
+pub let area = formas.area
+pub let perimetro = formas.perimetro
+pub let PI = formas.PI

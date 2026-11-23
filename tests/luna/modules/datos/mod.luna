@@ -1,0 +1,7 @@
+# @helper: fachada que reexporta símbolos de datos/registros.luna.
+mod datos
+import datos.registros
+
+pub let VERSION = "1.0"
+pub let crear = registros.crear
+pub let cumpleanos = registros.cumpleanos

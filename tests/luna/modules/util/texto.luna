@@ -1,0 +1,15 @@
+# @helper: imports anidados; texto reutiliza numeros del mismo paquete.
+# `import util.numeros` enlaza el nombre local `numeros`.
+mod texto
+import util.numeros
+
+# `if` / `else` son bloques: llevan ':' y cuerpo indentado con espacios.
+pub fn etiqueta(n):
+    if numeros.es_par(n):
+        return "par"
+    else:
+        return "impar"
+
+# str() convierte el resultado numérico a cadena.
+pub fn cuadrado_como_texto(n):
+    return str(numeros.al_cuadrado(n))

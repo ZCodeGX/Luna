@@ -1,0 +1,4 @@
+# @expect-error: attempt to index a
+# Solo se pueden indexar listas y tablas; un entero no.
+let x = 5
+print(x[0])

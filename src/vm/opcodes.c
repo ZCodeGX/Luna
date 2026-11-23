@@ -690,9 +690,7 @@ VM_SWITCH_BEGIN
         VM_CASE(OP_THROW) {
             LunaValue v = base[A + 1];
             if (vm_throw(L, v) != 0) return -1;
-            VM_SYNC_PC();
-            VM_SYNC_BASE();
-            VM_END_INSTR();
+            VM_FRAME_CHANGED();
         }
 
         VM_CASE(OP_SETUP_EXC) {

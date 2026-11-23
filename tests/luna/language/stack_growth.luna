@@ -1,0 +1,15 @@
+import assert
+
+# Recursión moderada con varias locales vivas por frame: fuerza el crecimiento del stack VM.
+# 150 está por debajo del límite real de frames (~195).
+fn deep(n):
+    if n == 0:
+        return 0
+    let a = n
+    let b = a - 1
+    let c = b + 0
+    return deep(c)
+
+print(deep(150))
+assert.eq(deep(100), 0, "profundidad")
+assert.report()

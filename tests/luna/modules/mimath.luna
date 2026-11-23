@@ -1,0 +1,18 @@
+# @helper: librería de ejemplo con un solo fichero (import ./mimath.luna)
+# `mod` declara el nombre de la librería y NO lleva ':'.
+mod mimath
+
+# `pub let` exporta una variable; `let` sin pub queda privada.
+pub let VERSION = 1
+let escala = 10  # privada: no aparece en la tabla de exports
+
+# `pub fn` exporta una función; las cabeceras de bloque siempre terminan en ':'.
+pub fn doble(x):
+    return x * 2
+
+pub fn suma(a, b):
+    return a + b
+
+# La función pública puede usar la variable privada (closure sobre el módulo).
+pub fn escalado(x):
+    return x * escala

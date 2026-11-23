@@ -1,0 +1,10 @@
+# Caso: un directorio con mod.luna se importa como una librería.
+# La fachada geometria/mod.luna importa a su vez geometria/formas.luna.
+import assert
+import geometria
+
+assert.eq(geometria.VERSION, 2, "version de la fachada")
+assert.eq(geometria.area(3, 4), 12, "area reexportada")
+assert.eq(geometria.perimetro(3, 4), 14, "perimetro reexportado")
+assert.eq(geometria.PI, 3.14159, "constante del submodulo")
+assert.report()

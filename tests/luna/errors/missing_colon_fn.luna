@@ -1,0 +1,6 @@
+# @expect-error: expected ':' after function signature
+# Las cabeceras de bloque llevan ':' al final; aquí falta y el parser falla.
+fn doble(x)
+    return x * 2
+
+print(doble(3))

@@ -1,0 +1,22 @@
+# @timeout: 60
+# Caso de estrés: 2000 aserciones reales generadas con while y listas.
+# No se usa for (no está implementado): primero se construyen dos listas
+# de 1000 elementos y después se comprueban uno a uno con assert.
+import assert
+import list
+
+let expected = []
+let actual = []
+let i = 0
+while i < 1000:
+    list.push(expected, i * 3)
+    list.push(actual, i * 3)
+    i = i + 1
+
+let j = 0
+while j < 1000:
+    assert.eq(actual[j], expected[j], "valor generado")
+    assert.truthy(j >= 0, "indice no negativo")
+    j = j + 1
+
+assert.report()

@@ -1,0 +1,40 @@
+# Mini calculadora: tablas como registros, while para recorrer y try/catch.
+# `+` no concatena cadenas: aquí solo se usa para sumar números.
+# El try vive dentro de la función que puede fallar (catch en el mismo marco).
+
+fn aplicar(nombre, a, b):
+    try:
+        if nombre == "suma":
+            return { ok = true, valor = a + b }
+        if nombre == "resta":
+            return { ok = true, valor = a - b }
+        if nombre == "producto":
+            return { ok = true, valor = a * b }
+        if nombre == "division":
+            if b == 0:
+                throw "division por cero"
+            return { ok = true, valor = a / b }
+        # throw lanza un string; el catch local recibe ese mensaje.
+        throw "operacion desconocida"
+    catch error:
+        return { ok = false, mensaje = error }
+
+let operaciones = [
+    { nombre = "suma", a = 6, b = 3 },
+    { nombre = "resta", a = 6, b = 3 },
+    { nombre = "producto", a = 7, b = 4 },
+    { nombre = "division", a = 7, b = 2 },
+    { nombre = "division", a = 8, b = 2 },
+    { nombre = "division", a = 8, b = 0 },
+    { nombre = "potencia", a = 2, b = 3 },
+]
+
+let i = 0
+while i < len(operaciones):
+    let op = operaciones[i]
+    let resultado = aplicar(op.nombre, op.a, op.b)
+    if resultado.ok:
+        print(op.nombre, resultado.valor)
+    else:
+        print(op.nombre, "error:", resultado.mensaje)
+    i += 1

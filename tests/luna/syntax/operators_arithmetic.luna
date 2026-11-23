@@ -1,0 +1,9 @@
+# Aritmética: int op int devuelve int salvo / y **, que devuelven float.
+# Si algún operando es float, el resultado es float.
+print(7 + 2)
+print(7 - 2)
+print(7 * 2)
+print(7 / 2)
+print(7 % 2)
+print(2 ** 10)
+print(1 + 2.5)

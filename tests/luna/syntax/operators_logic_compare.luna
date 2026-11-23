@@ -1,0 +1,10 @@
+# and / or devuelven uno de sus operandos y cortan la evaluación.
+# == y != aceptan cualquier tipo; < <= > >= aceptan números o strings.
+print(nil or "por defecto")
+print(1 and "si")
+print(not false)
+print(1 == 1.0)
+print("a" < "b")
+print(2 <= 2)
+print(1 != 2)
+print(3 > 1)

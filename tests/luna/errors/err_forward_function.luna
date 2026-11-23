@@ -1,0 +1,7 @@
+# @expect-error: attempt to call a nil value
+# @case: referencia forward a una función aún no declarada (limitación conocida)
+
+f()
+
+fn f():
+    print("ok")

@@ -1,0 +1,12 @@
+# @helper: subfichero del paquete geometria (import geometria.formas)
+# Cada fichero de una librería modular declara su propio nombre con `mod`.
+mod formas
+
+pub let PI = 3.14159
+
+# Las funciones públicas se exportan con `pub fn`.
+pub fn area(base, altura):
+    return base * altura
+
+pub fn perimetro(base, altura):
+    return (base + altura) * 2

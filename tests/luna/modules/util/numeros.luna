@@ -1,0 +1,8 @@
+# @helper: módulo numérico dentro del paquete util
+mod numeros
+
+pub fn al_cuadrado(x):
+    return x * x
+
+pub fn es_par(x):
+    return x % 2 == 0

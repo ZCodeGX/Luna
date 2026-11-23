@@ -1,0 +1,6 @@
+# @expect-error: ffi: dlsym(
+# Ese símbolo no existe en libc, por lo que falla la búsqueda con dlsym.
+import ffi
+
+let f = ffi.declare("no_such_symbol_xyz", "c", "int()")
+print("inalcanzable")

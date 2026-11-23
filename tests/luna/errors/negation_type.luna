@@ -1,0 +1,3 @@
+# @expect-error: attempt to negate a
+# El operador unario '-' solo se aplica a números.
+print(-"x")

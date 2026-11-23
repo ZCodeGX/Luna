@@ -1,0 +1,43 @@
+# Mini intérprete de comandos: while + if + try/catch.
+# No hay `break`: el bucle termina cuando la variable `activo` es false.
+# El try se coloca en la función que lanza, para capturar allí el error.
+import string
+
+fn ejecutar(linea):
+    let partes = string.split(linea, " ")
+    let cmd = partes[0]
+    try:
+        if cmd == "ayuda":
+            print("comandos: ayuda, sumar, saludo, salir")
+            return true
+        if cmd == "sumar":
+            print("suma:", int(partes[1]) + int(partes[2]))
+            return true
+        if cmd == "saludo":
+            print("hola:", partes[1])
+            return true
+        if cmd == "salir":
+            print("adios")
+            return false
+        throw "comando desconocido"
+    catch error:
+        print("error:", error)
+    return true
+
+let comandos = [
+    "ayuda",
+    "sumar 2 3",
+    "saludo Ana",
+    "desconocido",
+    "salir",
+    "sumar 9 9",
+]
+
+let i = 0
+let activo = true
+while activo and i < len(comandos):
+    let linea = comandos[i]
+    print(">", linea)
+    activo = ejecutar(linea)
+    i += 1
+print("procesados:", i)

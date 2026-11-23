@@ -1,0 +1,4 @@
+# @expect-error: cannot reassign 'const' variable
+# 'const' crea una variable de una sola asignación.
+const LIMITE = 10
+LIMITE = 20

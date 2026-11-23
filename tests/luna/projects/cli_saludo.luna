@@ -1,0 +1,10 @@
+# @args: saludo Luna
+# Segunda mini CLI: imprime los argumentos recibidos y saluda por nombre.
+# `argv[0]` es el primer argumento del programa (el archivo no cuenta).
+print("argumentos:", len(argv))
+print("comando:", argv[0])
+
+if argv[0] == "saludo":
+    print("hola:", argv[1])
+else:
+    print("comando no reconocido")

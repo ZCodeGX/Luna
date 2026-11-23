@@ -1,0 +1,10 @@
+# getenv devuelve const char*: se declara con retorno 'str'.
+# La cadena obtenida se reutiliza pasándola a strlen.
+import assert
+extern strlen("c", "int(str)")
+import ffi
+
+let getenv = ffi.declare("getenv", "c", "str(str)")
+let home = getenv("HOME")
+assert.gt(strlen(home), 0, "getenv devuelve una cadena")
+assert.report()

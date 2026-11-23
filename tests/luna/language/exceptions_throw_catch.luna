@@ -1,0 +1,8 @@
+# throw lanza un string; try/catch (ambos con :) captura el valor lanzado.
+# Aquí el throw ocurre dentro del propio bloque try.
+try:
+    throw "boom"
+catch e:
+    print("capturado:", e)
+
+print("despues")

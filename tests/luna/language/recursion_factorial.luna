@@ -1,0 +1,12 @@
+import assert
+
+# La recursión llama a la propia función; la condición de parada evita el overflow.
+fn factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+print(factorial(0))
+print(factorial(5))
+assert.eq(factorial(6), 720, "factorial")
+assert.report()

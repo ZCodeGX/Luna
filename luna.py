@@ -484,6 +484,7 @@ def cmd_test(args):
         "tests/stdlib/run.py",
         "tests/parser_diag/run.py",
         "tests/regression/run.py",
+        "tests/luna/run.py",
         "tests/unit/run.py",
     ]
     failed = []

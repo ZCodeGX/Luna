@@ -1,0 +1,4 @@
+# @expect-error: list index 9 out of range
+# Escribir fuera de rango también falla (el mensaje no incluye 'len').
+let xs = [10, 20]
+xs[9] = 99

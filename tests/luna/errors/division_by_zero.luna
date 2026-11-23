@@ -1,0 +1,5 @@
+# @expect-error: division by zero
+# El divisor cero se detecta en tiempo de ejecución.
+let x = 8
+let y = 0
+print(x / y)

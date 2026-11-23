@@ -1,0 +1,3 @@
+# @helper: primer eslabón de un ciclo de importación deliberado.
+mod ciclo_a
+import ciclo_b

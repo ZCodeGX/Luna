@@ -1,0 +1,3 @@
+# @helper: segundo eslabón del ciclo; vuelve a importar ciclo_a.
+mod ciclo_b
+import ciclo_a

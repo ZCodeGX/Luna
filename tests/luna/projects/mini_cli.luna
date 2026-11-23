@@ -1,0 +1,19 @@
+# @args: suma 3 7
+# Mini CLI: `argv` es una lista global con los argumentos tras el archivo.
+# Las directivas '@args' las divide el runner con shlex; aquí: suma, 3, 7.
+fn main():
+    if len(argv) < 3:
+        print("uso: mini_cli <comando> <a> <b>")
+        return
+    let comando = argv[0]
+    let a = int(argv[1])  # int() convierte el string a entero
+    let b = int(argv[2])
+    if comando == "suma":
+        print("resultado:", a + b)
+    else if comando == "resta":
+        print("resultado:", a - b)
+    else:
+        print("comando desconocido:", comando)
+
+# Las funciones se declaran con `fn nombre(...):` y se llaman con nombre(...).
+main()

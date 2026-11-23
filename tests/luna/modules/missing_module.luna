@@ -1,0 +1,3 @@
+# Caso de error: resolver un nombre que no existe en ninguna ruta de búsqueda.
+# @expect-error: module 'modulo_inexistente_xyz' not found
+import modulo_inexistente_xyz

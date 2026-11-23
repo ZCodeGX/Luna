@@ -1,0 +1,13 @@
+import assert
+
+# Recursión a profundidad 150 (<=150 como pide la suite),
+# por debajo del límite real de ~195 frames del VM.
+fn countdown(n):
+    if n == 0:
+        return 0
+    let a = n
+    let b = a - 1
+    return countdown(b)
+
+assert.eq(countdown(150), 0, "profundidad")
+assert.report()

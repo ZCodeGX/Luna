@@ -767,26 +767,36 @@ static void compile_throw(LunaCompiler* C, LunaNode* node) {
     luna_proto_emit_op_A(compiler_current_proto(C), OP_THROW, expr_base(C));
 }
 
-static void compile_if(LunaCompiler* C, LunaNode* node) {
+static void compile_if_chain(LunaCompiler* C, LunaNode* cond, LunaNode* then_block,
+                             LunaNodeList* elifs, LunaNode* else_block) {
     LunaProto* proto = compiler_current_proto(C);
 
-    compile_expr(C, node->as.if_stmt.cond, expr_base(C));
+    compile_expr(C, cond, expr_base(C));
 
     size_t jump_pos = proto->code_len;
     luna_proto_emit_op_AsBx(proto, OP_JUMP_IF_FALSE, expr_base(C), 0);
 
-    compile_block(C, node->as.if_stmt.then_block);
+    compile_block(C, then_block);
 
     size_t end_jump_pos = proto->code_len;
     luna_proto_emit_op_sBx(proto, OP_JUMP, 0);
 
     patch_jump_AsBx(proto, jump_pos);
 
-    if (node->as.if_stmt.else_block) {
-        compile_block(C, node->as.if_stmt.else_block);
+    if (elifs) {
+        LunaNode* next = elifs->node;
+        compile_if_chain(C, next->as.if_stmt.cond, next->as.if_stmt.then_block,
+                         next->as.if_stmt.elifs, else_block);
+    } else if (else_block) {
+        compile_block(C, else_block);
     }
 
     patch_jump_sBx(proto, end_jump_pos);
+}
+
+static void compile_if(LunaCompiler* C, LunaNode* node) {
+    compile_if_chain(C, node->as.if_stmt.cond, node->as.if_stmt.then_block,
+                     node->as.if_stmt.elifs, node->as.if_stmt.else_block);
 }
 
 static void compile_while(LunaCompiler* C, LunaNode* node) {

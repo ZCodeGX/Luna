@@ -1,0 +1,5 @@
+# ffi.extension() indica la extensión de biblioteca dinámica de la plataforma.
+# En Linux la extensión es '.so'.
+import ffi
+
+print(ffi.extension())

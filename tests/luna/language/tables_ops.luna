@@ -1,0 +1,13 @@
+import table
+import assert
+
+# Tablas: claves como identificador, acceso con . o con [], asignación en ambas formas.
+let p = { nombre = "Ada", edad = 36, }
+print(p.nombre)
+p.edad += 1
+print(p["edad"])
+p["ciudad"] = "Londres"
+print(p.ciudad)
+print(table.len(p))
+assert.eq(p.edad, 37, "edad")
+assert.report()

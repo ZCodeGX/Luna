@@ -1,0 +1,3 @@
+# El archivo termina justo tras el comentario final, sin salto de línea.
+let x = 7
+print(x) # comentario final sin newline

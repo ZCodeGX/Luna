@@ -1,0 +1,32 @@
+# Mini agenda: list.push añade registros y un while busca por nombre.
+# `nil` es el valor ausente; solo nil y false son falsy.
+import list
+
+let agenda = []
+
+# Cada contacto es una tabla con dos campos.
+fn anadir(nombre, telefono):
+    list.push(agenda, { nombre = nombre, telefono = telefono })
+
+fn buscar(nombre):
+    let i = 0
+    while i < len(agenda):
+        if agenda[i].nombre == nombre:
+            return agenda[i]
+        i += 1
+    return nil
+
+fn mostrar(nombre):
+    let contacto = buscar(nombre)
+    if contacto == nil:
+        print("no encontrado:", nombre)
+    else:
+        print("contacto:", nombre, contacto.telefono)
+
+anadir("Ada", "111")
+anadir("Grace", "222")
+anadir("Alan", "333")
+print("total:", len(agenda))
+mostrar("Ada")
+mostrar("Grace")
+mostrar("Linus")

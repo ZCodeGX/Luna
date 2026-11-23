@@ -1,0 +1,16 @@
+# @case: captura de upvalue a dos niveles de profundidad
+
+fn outer():
+    let answer = 42
+
+    fn middle():
+        fn inner():
+            return answer
+        return inner
+
+    return middle
+
+let read_answer = outer()()
+
+# answer vive en outer, pero inner la captura a través de middle.
+print(read_answer())

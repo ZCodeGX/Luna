@@ -1,0 +1,5 @@
+# @expect-error: expected ':' after 'if' condition
+# Lo mismo ocurre con 'if': la condición debe terminar con ':'.
+let x = 3
+if x > 2
+    print("mayor")

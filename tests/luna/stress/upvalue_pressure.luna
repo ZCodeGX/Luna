@@ -1,0 +1,35 @@
+# @timeout: 60
+# Presión de upvalues: muchas clausuras vivas capturando valores distintos.
+import assert
+import list
+
+fn make_getter(v):
+    fn get():
+        return v
+    return get
+
+fn build(n):
+    let fs = []
+    let i = 0
+    while i < n:
+        list.push(fs, make_getter(i * 7))
+        i = i + 1
+    return fs
+
+fn make_pair(a, b):
+    fn read_sum():
+        return a + b
+    fn read_diff():
+        return a - b
+    return [read_sum, read_diff]
+
+let fs = build(64)
+let i = 0
+while i < 64:
+    assert.eq(fs[i](), i * 7, "upvalue")
+    i = i + 1
+
+let p = make_pair(10, 4)
+assert.eq(p[0](), 14, "suma capturada")
+assert.eq(p[1](), 6, "resta capturada")
+assert.report()

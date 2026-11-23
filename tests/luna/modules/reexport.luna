@@ -1,0 +1,10 @@
+# Caso: reexportar funciones desde la fachada de un paquete.
+import assert
+import datos
+
+let ada = datos.crear("Ada", 36)
+assert.eq(datos.VERSION, "1.0", "version como cadena")
+assert.eq(ada.nombre, "Ada", "campo de la tabla")
+assert.eq(datos.cumpleanos(ada), 37, "funcion reexportada")
+assert.eq(ada.edad, 37, "la tabla se modifica por referencia")
+assert.report()

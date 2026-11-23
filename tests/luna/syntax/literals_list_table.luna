@@ -1,0 +1,9 @@
+# Listas y tablas: literales con coma final opcional.
+# Las listas se indexan desde 0; las tablas admiten clave.nombre y clave["nombre"].
+let nums = [1, 2, 3,]
+print("elemento 0:", nums[0])
+print("elemento 2:", nums[2])
+
+let cfg = { nombre = "luna", version = 1, }
+print("tabla:", cfg.nombre, cfg.version)
+print("corchetes:", cfg["nombre"])

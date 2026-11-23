@@ -1,0 +1,8 @@
+# Escapes admitidos: \n, \t, \r, \0, \\ y \".
+# Un escape desconocido se conserva como \ seguido del carácter.
+print("linea1\nlinea2")
+print("col:\tvalor")
+print("longitud nul:", len("a\0b"))
+print("comilla: \"luna\"")
+print("barras: a\\b")
+print("desconocido: a\q")

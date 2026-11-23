@@ -1,0 +1,51 @@
+# Mini biblioteca: catálogo con estado de préstamo.
+# Las funciones devuelven cadenas de estado para imprimirlas después.
+import list
+
+let catalogo = []
+
+fn anadir(titulo):
+    list.push(catalogo, { titulo = titulo, prestado = false })
+
+fn encontrar(titulo):
+    let i = 0
+    while i < len(catalogo):
+        if catalogo[i].titulo == titulo:
+            return catalogo[i]
+        i += 1
+    return nil
+
+fn prestar(titulo):
+    let libro = encontrar(titulo)
+    if libro == nil:
+        return "no existe"
+    if libro.prestado:
+        return "ya prestado"
+    libro.prestado = true
+    return "prestado"
+
+fn devolver(titulo):
+    let libro = encontrar(titulo)
+    if libro == nil:
+        return "no existe"
+    libro.prestado = false
+    return "devuelto"
+
+fn disponibles():
+    let n = 0
+    let i = 0
+    while i < len(catalogo):
+        if not catalogo[i].prestado:
+            n += 1
+        i += 1
+    return n
+
+anadir("El Principito")
+anadir("1984")
+anadir("Dune")
+print("prestar", "El Principito", prestar("El Principito"))
+print("prestar", "1984", prestar("1984"))
+print("prestar", "El Principito", prestar("El Principito"))
+print("devolver", "El Principito", devolver("El Principito"))
+print("prestar", "Libro ausente", prestar("Libro ausente"))
+print("disponibles:", disponibles())

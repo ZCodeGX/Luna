@@ -1,0 +1,5 @@
+# @expect-error: modulo by zero
+# El operador '%' también rechaza un divisor cero.
+let x = 8
+let y = 0
+print(x % y)

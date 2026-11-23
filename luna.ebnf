@@ -240,8 +240,9 @@ DEDENT          = disminución de espacios al inicio de línea lógica ;
 
 ```
 and       break     catch     const     continue
-else      false     fn        for       if
-import    in        let       mod       nil
+else      false     extern    fn        for
+if        import    in        let       mod
+nil
 not       or        pub       return    throw
 true      try       while
 ```

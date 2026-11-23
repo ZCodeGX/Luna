@@ -1,0 +1,8 @@
+# Una firma con retorno 'void' no produce valor utilizable.
+# puts escribe su argumento en stdout y pertenece a libc.
+extern puts("c", "void(str)")
+import assert
+
+puts("ffi void ok")
+assert.truthy(true, "la llamada void no devuelve valor")
+assert.report()

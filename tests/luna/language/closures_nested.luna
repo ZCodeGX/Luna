@@ -1,0 +1,13 @@
+# Closures anidados: cada función interna captura una variable de su padre inmediato.
+# middle captura a (de outer) y inner captura d (de middle).
+fn outer(a):
+    fn middle(c):
+        let d = a + c
+        fn inner():
+            return d
+        return inner
+    return middle
+
+let make = outer(3)
+let f = make(4)
+print(f())   # 3 + 4 = 7

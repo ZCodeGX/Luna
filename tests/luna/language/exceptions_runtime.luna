@@ -1,0 +1,13 @@
+# Los errores de runtime también son capturables con try/catch.
+try:
+    print(1 / 0)
+catch e:
+    print("division:", e)
+
+let xs = [1]
+try:
+    print(xs[5])
+catch e:
+    print("indice:", e)
+
+print("sigo")

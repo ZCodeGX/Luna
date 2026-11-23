@@ -1,0 +1,11 @@
+# @helper: estructura de datos del paquete datos
+mod registros
+
+# Una tabla literal usa claves identificadoras: { clave = valor }.
+pub fn crear(nombre, edad):
+    return { nombre = nombre, edad = edad }
+
+# Los campos de tabla se pueden asignar con notación de punto.
+pub fn cumpleanos(persona):
+    persona.edad += 1
+    return persona.edad

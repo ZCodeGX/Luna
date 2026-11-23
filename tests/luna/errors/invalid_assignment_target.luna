@@ -1,0 +1,3 @@
+# @expect-error: invalid assignment target
+# El lado izquierdo de '=' debe ser una variable o un índice.
+1 = 2

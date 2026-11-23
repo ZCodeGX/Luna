@@ -1,0 +1,11 @@
+# @case: throw lanzado dentro de una función llamada desde try
+
+fn boom():
+    throw "bang"
+
+try:
+    boom()
+catch e:
+    print("caught:", e)
+
+print("after")

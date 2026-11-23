@@ -1,0 +1,4 @@
+# @expect-error: out of range (len
+# Leer más allá del final de una lista es un error de runtime.
+let xs = [10, 20]
+print(xs[9])

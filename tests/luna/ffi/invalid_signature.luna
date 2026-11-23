@@ -1,0 +1,6 @@
+# @expect-error: ffi: invalid signature
+# Una firma debe tener la forma "retorno(arg1,...)": 'badsig' no es válida.
+import ffi
+
+let f = ffi.declare("strlen", "c", "badsig")
+print("inalcanzable")

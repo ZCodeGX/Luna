@@ -1,0 +1,5 @@
+# @expect-error: boom
+# Una excepción lanzada sin try/catch termina el programa.
+print("antes")
+throw "boom"
+print("despues")

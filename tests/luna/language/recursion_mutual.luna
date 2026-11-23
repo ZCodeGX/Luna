@@ -1,0 +1,21 @@
+# Funciones mutuamente recursivas mediante una tabla de despacho:
+# las funciones se crean primero y la tabla se rellena después, para que
+# cada una pueda llamar a la otra sin referencias forward.
+let fns = {}
+
+fn es_par(n):
+    if n == 0:
+        return true
+    return fns.impar(n - 1)
+
+fn es_impar(n):
+    if n == 0:
+        return false
+    return fns.par(n - 1)
+
+fns.par = es_par
+fns.impar = es_impar
+
+print(fns.par(10))
+print(fns.impar(10))
+print(fns.par(7))

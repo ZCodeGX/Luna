@@ -1,0 +1,8 @@
+# Los strings usan comillas dobles; no existen literales con comilla simple.
+let saludo = "hola"
+let vacio = ""
+let con_hash = "# valor"
+
+print(saludo)
+print(vacio)          # imprime una línea vacía
+print(con_hash)

@@ -1,0 +1,21 @@
+import assert
+
+# Un closure captura variables del ámbito contenedor (upvalues).
+# Dos closures comparten la misma variable capturada.
+fn make_counter(start):
+    let n = start
+    fn inc():
+        n = n + 1
+        return n
+    fn get():
+        return n
+    return [inc, get]
+
+let c = make_counter(10)
+print(c[1]())
+print(c[0]())
+print(c[0]())
+print(c[0]())
+print(c[1]())
+assert.eq(c[1](), 13, "contador")
+assert.report()

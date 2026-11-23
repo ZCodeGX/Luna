@@ -1,0 +1,14 @@
+# if / else: las cabeceras llevan : y el cuerpo se indenta con espacios.
+# Para encadenar condiciones, anida un if dentro del else.
+fn clasificar(x):
+    if x > 10:
+        return "grande"
+    else:
+        if x > 5:
+            return "mediano"
+        else:
+            return "pequeño"
+
+print(clasificar(42))
+print(clasificar(8))
+print(clasificar(1))

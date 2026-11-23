@@ -1,0 +1,3 @@
+# @expect-error: attempt to perform arithmetic on a string value
+# Luna no suma números con strings: para mostrar varios valores usa print.
+print(1 + "x")

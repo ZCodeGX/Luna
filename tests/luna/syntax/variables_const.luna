@@ -1,0 +1,7 @@
+# const declara una variable que no se puede reasignar.
+# Es un error de compilación intentar cambiar su valor (ver const_reassign.luna).
+const PI = 3
+const SALUDO = "hola"
+
+print("PI:", PI)
+print("SALUDO:", SALUDO)

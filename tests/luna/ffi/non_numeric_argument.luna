@@ -1,0 +1,6 @@
+# @expect-error: ffi: invalid value for argument 1
+# abs espera un entero; una cadena no se convierte automáticamente.
+import ffi
+
+let f = ffi.declare("abs", "c", "int(int)")
+print(f("x"))

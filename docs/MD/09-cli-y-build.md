@@ -55,7 +55,7 @@ Las opciones `--no-color`, `--color` y `--max-errors=N` controlan el renderizado
 | --- | --- | --- |
 | `build` | `-v` / `--verbose`, `--main` | Descubre módulos, resuelve dependencias, compila y linkea `build/luna` |
 | `clean` | — | Elimina `build/` |
-| `test` | — | Ejecuta las suites stdlib, diagnósticos, regresiones y tests unitarios |
+| `test` | — | Ejecuta las suites stdlib, diagnósticos, regresiones, lenguaje y tests unitarios |
 | `info` | — | Lista módulos, rutas, fuentes, headers y dependencias |
 | `graph` | — | Imprime el grafo de dependencias en formato DOT |
 

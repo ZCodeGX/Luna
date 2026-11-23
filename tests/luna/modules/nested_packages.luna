@@ -1,0 +1,9 @@
+# Caso: imports con ruta de paquete (util.texto) e imports anidados.
+# El nombre local del import es el último segmento de la ruta.
+import assert
+import util.texto
+
+assert.eq(texto.etiqueta(4), "par", "numero par")
+assert.eq(texto.etiqueta(7), "impar", "numero impar")
+assert.eq(texto.cuadrado_como_texto(5), "25", "cuadrado como texto")
+assert.report()

@@ -1,0 +1,11 @@
+> ayuda
+comandos: ayuda, sumar, saludo, salir
+> sumar 2 3
+suma: 5
+> saludo Ana
+hola: Ana
+> desconocido
+error: comando desconocido
+> salir
+adios
+procesados: 5

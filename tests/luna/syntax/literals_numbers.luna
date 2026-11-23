@@ -1,0 +1,15 @@
+# Literales numéricos: decimal, hexadecimal, binario y float.
+# Los enters hexadecimales usan 0x / 0X y los binarios 0b / 0B.
+let dec = 42
+let hex = 0x2A
+let bin = 0b101010
+let f = 3.14
+let exp = 1e-3
+let pot = 2 ** 10
+
+print("decimal:", dec)
+print("hex:", hex)
+print("binario:", bin)
+print("float:", f)
+print("exponente:", exp)
+print("potencia:", pot)

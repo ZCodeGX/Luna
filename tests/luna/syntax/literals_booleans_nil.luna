@@ -1,0 +1,18 @@
+# true y false son booleanos; nil es el valor ausente.
+# Solo nil y false son falsy: 0 y "" son truthy.
+let a = true
+let b = false
+let c = nil
+
+print(a)
+print(b)
+print(c)
+
+if 0:
+    print("cero truthy")
+
+if "":
+    print("vacio truthy")
+
+if nil:
+    print("no deberia imprimirse")

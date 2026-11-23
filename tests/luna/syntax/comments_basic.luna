@@ -1,0 +1,14 @@
+# Los comentarios empiezan con # y llegan hasta el final de la línea.
+# Una línea completa que empieza por # no produce ningún token.
+
+let x = 10          # comentario al final de línea (trailing)
+
+print("x:", x)      # otro comentario trailing
+
+# Dentro de paréntesis el salto de línea no termina la expresión.
+print(1,            # comentario dentro de la llamada
+      2,            # otro comentario dentro de la llamada
+      3)
+
+# El # dentro de un string NO es un comentario.
+print("# esto se imprime")

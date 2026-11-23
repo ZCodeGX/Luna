@@ -1,0 +1,9 @@
+# Conversiones: str, int y float; type devuelve el nombre del tipo.
+print(int("10"))
+print(float("2.5"))
+print(str(42))
+print(str(3.5))
+print(str(true))
+print(str(nil))
+print(type("10"))
+print(type(int("10")))

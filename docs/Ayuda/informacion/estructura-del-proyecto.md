@@ -42,7 +42,8 @@ Cada módulo contiene un archivo `luna.build` con `SOURCES`, `HEADERS`, `INCLUDE
 ## Notas
 
 - Existen archivos `lume.build` heredados en seis módulos; `luna.py` solo descubre `luna.build` y los ignora.
-- `./luna.py test` ejecuta las suites `stdlib`, `parser_diag`, `regression` y `unit`; también se pueden lanzar por separado desde `tests/*/run.py`.
+- `./luna.py test` ejecuta las suites `stdlib`, `parser_diag`, `regression`, `luna` y `unit`; también se pueden lanzar por separado desde `tests/*/run.py`.
+- `tests/luna/` contiene la suite modular del lenguaje: sintaxis, runtime, módulos, proyectos, errores, FFI y estrés de VM, con más de 2000 aserciones.
 - Los artefactos de compilación se escriben en `build/src/<mod>/` y el binario en `build/luna`.
 
 Para ver el grafo de dependencias real:

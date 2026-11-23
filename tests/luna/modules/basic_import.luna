@@ -1,0 +1,12 @@
+# Caso: importar una librería de un solo fichero.
+# El runner fija LUNA_PATH, pero aquí basta el directorio del script: mimath.luna.
+import assert
+import mimath
+
+# Los símbolos públicos se leen con nombre_de_modulo.simbolor.
+assert.eq(mimath.VERSION, 1, "version exportada")
+assert.eq(mimath.doble(21), 42, "funcion publica")
+assert.eq(mimath.suma(2, 3), 5, "suma publica")
+assert.eq(mimath.escalado(4), 40, "funcion usa variable privada")
+assert.eq(mimath.escala, nil, "variable privada no exportada")
+assert.report()

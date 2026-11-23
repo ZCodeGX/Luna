@@ -1,0 +1,6 @@
+# @expect-error: ffi: cannot load
+# Un alias de librería inexistente falla al cargarse con dlopen.
+import ffi
+
+let f = ffi.declare("strlen", "libnoexiste_xyz", "int(str)")
+print("inalcanzable")

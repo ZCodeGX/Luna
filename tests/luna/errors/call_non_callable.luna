@@ -1,0 +1,4 @@
+# @expect-error: attempt to call a
+# Un entero no es invocable; solo se pueden llamar funciones.
+let numero = 5
+numero()

@@ -1,0 +1,4 @@
+# @expect-error: cannot reassign 'const' variable
+# const no se puede reasignar: este caso DEBE fallar en compilación.
+const x = 1
+x = 2

@@ -1,0 +1,6 @@
+# + NO concatena strings (es error de tipo): usa string.concat o string.join.
+import string
+
+print(string.concat("a", "b", "c"))
+print(string.join("-", ["x", "y", "z"]))
+print(string.upper("luna"))

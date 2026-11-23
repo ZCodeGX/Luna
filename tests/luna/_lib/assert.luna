@@ -1,0 +1,55 @@
+# @helper: biblioteca de aserciones para la suite tests/luna
+
+pub let counter = [0]
+
+pub fn pass():
+    counter[0] = counter[0] + 1
+
+pub fn fail(label, expected, actual):
+    print("ASSERT FAILED:", label)
+    print("  expected:", expected)
+    print("  actual:  ", actual)
+    throw "assertion failed"
+
+pub fn eq(actual, expected, label):
+    if actual != expected:
+        fail(label, expected, actual)
+    pass()
+
+pub fn neq(actual, expected, label):
+    if actual == expected:
+        fail(label, expected, actual)
+    pass()
+
+pub fn lt(actual, expected, label):
+    if actual >= expected:
+        fail(label, expected, actual)
+    pass()
+
+pub fn lte(actual, expected, label):
+    if actual > expected:
+        fail(label, expected, actual)
+    pass()
+
+pub fn gt(actual, expected, label):
+    if actual <= expected:
+        fail(label, expected, actual)
+    pass()
+
+pub fn gte(actual, expected, label):
+    if actual < expected:
+        fail(label, expected, actual)
+    pass()
+
+pub fn truthy(value, label):
+    if not value:
+        fail(label, true, value)
+    pass()
+
+pub fn falsy(value, label):
+    if value:
+        fail(label, false, value)
+    pass()
+
+pub fn report():
+    print("assertions:", counter[0])

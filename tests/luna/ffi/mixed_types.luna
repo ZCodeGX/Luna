@@ -1,0 +1,6 @@
+# @expect-error: ffi: mixed float/integer arguments are not supported
+# La FFI no permite mezclar floats con enteros en una misma llamada.
+import ffi
+
+let f = ffi.declare("pow", "m", "int(int,float)")
+print(f(1, 2.0))

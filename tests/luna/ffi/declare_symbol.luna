@@ -1,0 +1,6 @@
+# ffi.declare_symbol permite que el nombre Luna difiera del símbolo C.
+# 'pow' vive en libm; aquí se expone en Luna como 'mi_pow'.
+import ffi
+
+let mi_pow = ffi.declare_symbol("mi_pow", "pow", "m", "float(float,float)")
+print(mi_pow(2.0, 4.0))

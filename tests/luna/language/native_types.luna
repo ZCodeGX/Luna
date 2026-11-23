@@ -1,0 +1,10 @@
+# Tipos nativos del runtime: nil, boolean, integer, float, string,
+# list, table y function (las funciones nativas también son function).
+print(type(nil))
+print(type(true))
+print(type(42))
+print(type(3.5))
+print(type("hola"))
+print(type([]))
+print(type({}))
+print(type(print))

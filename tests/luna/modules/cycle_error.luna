@@ -1,0 +1,4 @@
+# Caso de error: el cargador detecta el ciclo ciclo_a -> ciclo_b -> ciclo_a.
+# @expect-error: circular import detected
+import ciclo_a
+print("esta línea no debe ejecutarse")

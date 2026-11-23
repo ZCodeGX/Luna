@@ -1,0 +1,9 @@
+# Ejemplo básico de FFI: strlen y abs están en libc, pow en libm.
+# La firma describe el tipo de retorno y el de los argumentos.
+extern strlen("c", "int(str)")
+extern abs("c", "int(int)")
+extern pow("m", "float(float,float)")
+
+print(strlen("luna"))
+print(abs(-7))
+print(pow(2.0, 3.0))

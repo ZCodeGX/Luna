@@ -1,0 +1,3 @@
+# @expect-error: attempt to compare integer with string
+# Comparar valores de tipos distintos con '<' no está definido.
+print(1 < "x")

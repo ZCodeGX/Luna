@@ -18,6 +18,7 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - Módulo `csv` con `parse`, `decode`, `encode` y `stringify`, incluyendo comillas, saltos de línea y delimitadores personalizados.
 - Módulo gráfico `gml` sobre un backend Tkinter: ventanas, etiquetas, botones, entradas de texto, áreas de texto, casillas y eventos.
 - Fixture de tests para la global `input` con y sin mensaje leyendo desde stdin.
+- Guía práctica `18-guia-de-bibliotecas.md` con ejemplos de uso para todas las bibliotecas disponibles.
 
 ### Corregido
 

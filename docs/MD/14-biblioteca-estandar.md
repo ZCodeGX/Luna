@@ -2,7 +2,7 @@
 
 Luna `0.7.6` incluye una biblioteca estándar disponible al crear el estado: `print` es solo una de las funciones nativas registradas. Cada carpeta de `Lib/` contiene varios archivos `.luna`: `mod.luna` actúa como fachada pública y el resto implementa la funcionalidad en el propio lenguaje.
 
-La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisible para el código de usuario habitual: los módulos `.luna` las envuelven, las combinan y añaden lógica escrita en Luna.
+La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisible para el código de usuario habitual: los módulos `.luna` las envuelven, las combinan y añaden lógica escrita en Luna. Para ejemplos de uso de cada módulo, consulta la [guía práctica de bibliotecas](18-guia-de-bibliotecas.md).
 
 ## Estructura
 
@@ -168,7 +168,7 @@ print(back.nombre, back.numeros[2])
 import csv
 
 let rows = csv.parse("nombre,valor\na,1\nb,2\n")
-print(rows[1][2])
+print(rows[1][1], rows[2][1])
 print(csv.encode(rows, ";"))
 ```
 

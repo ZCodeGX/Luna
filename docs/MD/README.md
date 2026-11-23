@@ -9,7 +9,7 @@ Aprende Luna en 20 minutos y escribe tu primer programa. Esta guía Markdown es 
 | Despegue | Instalar y ejecutar | [01 — Inicio rápido](01-inicio-rapido.md), [09 — CLI y build](09-cli-y-build.md) |
 | Órbita | Sintaxis y tipos | [02 — Sintaxis](02-sintaxis-basica.md), [03 — Tipos](03-tipos-de-datos.md), [04 — Operadores](04-operadores.md) |
 | Aterrizaje | Funciones, colecciones y errores | [05 — Control de flujo](05-control-de-flujo.md), [06 — Funciones](06-funciones.md), [07 — Módulos](07-modulos-y-visibilidad.md), [08 — Errores](08-manejo-de-errores.md), [16 — Primer proyecto](16-primer-proyecto.md) |
-| Exploración | Módulos, stdlib y FFI | [14 — Biblioteca estándar](14-biblioteca-estandar.md), [15 — FFI](15-ffi.md), [17 — Recetas](17-recetas.md) |
+| Exploración | Módulos, stdlib y FFI | [14 — Biblioteca estándar](14-biblioteca-estandar.md), [15 — FFI](15-ffi.md), [17 — Recetas](17-recetas.md), [18 — Guía de bibliotecas](18-guia-de-bibliotecas.md) |
 
 ## Índice
 
@@ -32,6 +32,7 @@ Aprende Luna en 20 minutos y escribe tu primer programa. Esta guía Markdown es 
 | [15 — FFI](15-ffi.md) | `extern`, firmas, alias de librería, módulo `ffi` y límites |
 | [16 — Primer proyecto](16-primer-proyecto.md) | Mini agenda: listas, tablas, funciones y errores |
 | [17 — Recetas](17-recetas.md) | Ejemplos cortos con problema, código y salida |
+| [18 — Guía de bibliotecas](18-guia-de-bibliotecas.md) | Uso práctico de todas las bibliotecas disponibles |
 
 La gramática está en [`luna.ebnf`](../../luna.ebnf); los ejemplos ejecutables están en [`tests/`](../../tests/). Para ayuda, consulta el [índice de Ayuda](../Ayuda/README.md).
 

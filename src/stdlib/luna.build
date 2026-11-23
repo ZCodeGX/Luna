@@ -1,5 +1,3 @@
-import os
-
 SOURCES = [
     'stdlib.c',
     'mathlib.c',
@@ -15,4 +13,4 @@ HEADERS = [
 
 INCLUDES = []
 DEPENDS = ['runtime', 'memory', 'vm', 'errors', 'modules', 'platform']
-CFLAGS = ['-DLUNA_STDLIB_DIR="' + os.path.abspath('Lib').replace('\\', '/') + '"']
+CFLAGS = ['-DLUNA_STDLIB_DIR="Lib"']

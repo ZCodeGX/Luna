@@ -1,4 +1,5 @@
 #include "modules_internal.h"
+#include "../bytecode/proto.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,7 +10,7 @@ void modules_init(LunaModules* M) {
     M->current_dir[0] = '\0';
 }
 
-void modules_free(LunaModules* M) {
+void modules_free(struct LunaState* L, LunaModules* M) {
     /* Liberar search paths */
     for (int i = 0; i < M->num_paths; i++) {
         free(M->paths[i]);
@@ -21,9 +22,11 @@ void modules_free(LunaModules* M) {
         LunaModuleEntry* e = M->cache.buckets[i];
         while (e) {
             LunaModuleEntry* next = e->next;
+            if (e->module.shutdown_fn) e->module.shutdown_fn(L);
+            if (e->module.proto) luna_proto_free(e->module.proto);
             free(e->name);
             free(e->module.source_path);
-            /* proto y exports se liberan con el GC del estado */
+            /* exports es un objeto GC y se libera con el estado */
             free(e);
             e = next;
         }

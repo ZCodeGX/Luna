@@ -51,7 +51,7 @@ typedef struct LunaModules {
 /* ---------- API interna ---------- */
 
 void  modules_init(LunaModules* M);
-void  modules_free(LunaModules* M);
+void  modules_free(struct LunaState* L, LunaModules* M);
 
 /* Cache */
 LunaModuleInternal* modules_cache_get(LunaModules* M, const char* name);

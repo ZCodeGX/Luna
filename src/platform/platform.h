@@ -143,6 +143,12 @@ const char* luna_platform_path_ext(const char* path);
  */
 char* luna_platform_getcwd(void);
 
+/*
+ * Obtiene la ruta del ejecutable actual.
+ * Devuelve un string malloc'd, o NULL si la plataforma no lo permite.
+ */
+char* luna_platform_executable_path(void);
+
 /* ============================================================
  * Tiempo
  * ============================================================ */

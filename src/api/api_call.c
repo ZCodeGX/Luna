@@ -58,26 +58,14 @@ LunaStatus luna_dostring(LunaState* L, const char* src, const char* chunkname) {
         return LUNA_ERR_ARGUMENT;
     }
 
-    /* Parsear */
-    LunaParser P;
-    LunaNode* prog = luna_parse_named(src, strlen(src), chunkname, &P);
-    if (!prog) {
-        luna_parser_render_diagnostics(&P, stderr, luna_diag_color_enabled());
-        luna_error_set(L, LUNA_ERR_SYNTAX,
-                       chunkname ? chunkname : "<string>",
-                       P.error_line, P.error_column,
-                       "%s", luna_parser_error(&P) ? luna_parser_error(&P) : "parse error");
-        luna_parser_destroy(&P);
-        return LUNA_ERR_SYNTAX;
-    }
-    luna_parser_destroy(&P);
+    luna_clear_error(L);
 
-    /* Compilar */
-    LunaProto* proto = luna_compile(prog);
-    luna_ast_free(prog);
+    char error_buf[512] = {0};
+    LunaProto* proto = luna_compile_source(L, src, strlen(src), chunkname,
+                                           error_buf, sizeof(error_buf));
     if (!proto) {
-        luna_error_set_simple(L, LUNA_ERR_RUNTIME, "compilation failed");
-        return LUNA_ERR_RUNTIME;
+        (void)error_buf;
+        return L->error.status ? L->error.status : LUNA_ERR_SYNTAX;
     }
 
     /* Ejecutar */

@@ -13,6 +13,14 @@ typedef struct LunaCompiler LunaCompiler;
  */
 LunaProto* luna_compile(LunaNode* program);
 
+/*
+ * Compila una fuente y reporta errores detallados en error_out.
+ */
+struct LunaState;
+LunaProto* luna_compile_source(struct LunaState* L, const char* source,
+                               size_t length, const char* filename,
+                               char* error_out, size_t error_size);
+
 /* Para tests: obtener el mensaje de error */
 const char* luna_compiler_error(LunaCompiler* C);
 

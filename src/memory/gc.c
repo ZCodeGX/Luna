@@ -116,7 +116,10 @@ void gc_mark_root(struct LunaState* L) {
         gc_mark_object(L, (LunaGCObject*)L->globals);
     }
     
-    /* 3. Upvalues abiertos */
+    /* 3. Valor lanzado por la excepción activa */
+    gc_mark_value(L, L->thrown_value);
+
+    /* 4. Upvalues abiertos */
     LunaUpvalue* uv = L->open_upvalues;
     while (uv) {
         if (uv->location) {
@@ -158,6 +161,9 @@ static void free_object(struct LunaState* L, LunaGCObject* obj) {
             size_t ups_sz = f->num_upvalues * sizeof(LunaUpvalue*);
             luna_gc_adjust_bytes(L, -(ptrdiff_t)(sizeof(LunaFunction) + ups_sz));
             if (f->upvalues) {
+                for (size_t i = 0; i < f->num_upvalues; i++) {
+                    luna_upvalue_release(L, f->upvalues[i]);
+                }
                 L->alloc(L->alloc_ud, f->upvalues, ups_sz, 0);
             }
             L->alloc(L->alloc_ud, f, sizeof(LunaFunction), 0);

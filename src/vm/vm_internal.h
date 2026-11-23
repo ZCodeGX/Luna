@@ -20,6 +20,7 @@
 
 #define LUNA_MAX_CALLS 200
 #define LUNA_MAX_FRAME_UPVALUES 255
+#define LUNA_MAX_HANDLERS 32
 
 typedef struct CallFrame {
     LunaValue*     base;           /* base del stack para este frame */
@@ -33,7 +34,8 @@ typedef struct CallFrame {
     int            num_open_upvalues;
     LunaUpvalue*   ups[LUNA_MAX_FRAME_UPVALUES]; /* upvalues ligados al frame */
     int            num_ups;
-    int            handler_pc;     /* -1 si no hay handler; sino pc destino */
+    size_t         handlers[LUNA_MAX_HANDLERS]; /* pila de destinos de try/catch */
+    int            handler_top;    /* número de handlers activos */
 } CallFrame;
 
 /* ============================================================
@@ -47,9 +49,6 @@ typedef struct {
     int        frame_top;          /* número de frames activos */
     int        return_level;       /* nivel de frame donde termina esta ejecución */
     uint64_t   instruction_budget;
-
-    /* Upvalues abiertos globales (lista enlazada por uv->next) */
-    LunaUpvalue* open_upvalues;
 } LunaVM;
 
 /* ============================================================
@@ -118,6 +117,7 @@ LunaUpvalue* vm_find_upvalue(LunaState* L, CallFrame* frame, LunaValue* slot);
 void vm_close_upvalues(LunaState* L, LunaValue* from);
 
 /* Errores */
+int vm_handle_error(LunaState* L);
 int vm_throw(LunaState* L, LunaValue value);
 int vm_error_type(LunaState* L, const char* op, LunaValue a, LunaValue b);
 

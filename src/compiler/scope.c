@@ -26,11 +26,17 @@ int scope_add_local(LunaScope* S, const char* name, bool is_const) {
 
 int scope_find_local(LunaScope* S, const char* name) {
     for (int i = S->num_locals - 1; i >= 0; i--) {
-        if (strcmp(S->locals[i].name, name) == 0) {
+        if (S->locals[i].name && strcmp(S->locals[i].name, name) == 0) {
             return S->locals[i].slot;
         }
     }
     return -1;
+}
+
+void scope_hide_local(LunaScope* S, int slot) {
+    if (slot < 0 || slot >= S->num_locals) return;
+    free(S->locals[slot].name);
+    S->locals[slot].name = NULL;
 }
 
 int scope_add_upvalue(LunaScope* S, bool is_local, uint8_t index) {

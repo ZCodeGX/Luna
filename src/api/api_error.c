@@ -23,6 +23,7 @@ const char* luna_last_traceback(LunaState* L) {
 }
 
 void luna_clear_error(LunaState* L) {
+    L->status = LUNA_OK;
     L->error.status = LUNA_OK;
     L->error.has_error = 0;
     L->error.message[0] = '\0';

@@ -86,6 +86,7 @@ typedef enum {
     OP_THROW,            /* A                          => throw stack[A] */
     OP_SETUP_EXC,        /* sBx                        => push handler con target pc += sBx - 32767 */
     OP_POP_EXC,          /*                            => pop handler */
+    OP_GET_EXC,          /* A                          => stack[A] = valor lanzado */
 
     /* ---------- Módulos ---------- */
     OP_IMPORT,           /* A Bx                       => stack[A] = import(constants[Bx]) */
@@ -119,6 +120,7 @@ static inline LunaOpMode luna_opcode_mode(LunaOpcode op) {
         case OP_NEW_TABLE:
         case OP_NEW_LIST:
         case OP_THROW:
+        case OP_GET_EXC:
             return OP_ARG_A;
 
         case OP_MOVE:

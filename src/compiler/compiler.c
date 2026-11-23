@@ -714,6 +714,50 @@ static void compile_expr_stmt(LunaCompiler* C, LunaNode* node) {
     compile_expr(C, node->as.expr, expr_base(C));
 }
 
+static void compile_try(LunaCompiler* C, LunaNode* node) {
+    LunaProto* proto = compiler_current_proto(C);
+    LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
+    const LunaNode* body = node->as.try_stmt.body;
+    const LunaNode* catch_body = node->as.try_stmt.catch_body;
+    const char* catch_name = node->as.try_stmt.catch_name;
+
+    if (!body || body->type != NODE_BLOCK || !catch_body ||
+        catch_body->type != NODE_BLOCK || !catch_name) {
+        compiler_error_at(C, node, "malformed try/catch statement");
+        return;
+    }
+
+    size_t setup_pos = proto->code_len;
+    luna_proto_emit_op_AsBx(proto, OP_SETUP_EXC, 0, 0);
+
+    compile_block(C, (LunaNode*)body);
+    if (C->failed) return;
+
+    luna_proto_emit_byte(proto, OP_POP_EXC);
+
+    size_t skip_pos = proto->code_len;
+    luna_proto_emit_op_sBx(proto, OP_JUMP, 0);
+    patch_jump_AsBx(proto, setup_pos);
+
+    int reg = expr_base(C);
+    int slot = scope_add_local(scope, catch_name, false);
+    if (slot < 0) {
+        compiler_error_at(C, node, "too many local variables");
+        return;
+    }
+
+    luna_proto_emit_op_A(proto, OP_GET_EXC, (uint8_t)reg);
+    if (slot != reg) {
+        luna_proto_emit_op_AB(proto, OP_MOVE, (uint8_t)slot, (uint8_t)reg);
+    }
+
+    compile_block(C, (LunaNode*)catch_body);
+    if (C->failed) return;
+
+    patch_jump_sBx(proto, skip_pos);
+    scope_hide_local(scope, slot);
+}
+
 static void compile_throw(LunaCompiler* C, LunaNode* node) {
     if (node->as.throw_value) {
         compile_expr(C, node->as.throw_value, expr_base(C));
@@ -823,6 +867,7 @@ void compile_stmt(LunaCompiler* C, LunaNode* node) {
         case NODE_IMPORT:     compile_import(C, node); break;
         case NODE_MOD:        break;
         case NODE_THROW:      compile_throw(C, node); break;
+        case NODE_TRY:        compile_try(C, node); break;
         case NODE_EXPR_STMT:  compile_expr_stmt(C, node); break;
         default:
             compiler_error_at(C, node, "unsupported statement node");
@@ -845,25 +890,31 @@ static void compile_program(LunaCompiler* C, LunaNode* node) {
 }
 
 /* ---------- API pública ---------- */
-LunaProto* luna_compile(LunaNode* program) {
+static LunaProto* compile_program_detailed(LunaNode* program, char* message,
+                                           size_t message_size, int* line_out,
+                                           int* col_out) {
     LunaCompiler C;
     memset(&C, 0, sizeof(C));
-    
+
     /* Crear proto raíz */
     compiler_push_proto(&C, "<main>");
-    
+
     /* Compilar */
     compile_program(&C, program);
-    
+
     if (C.failed) {
-        /* Limpiar protos */
+        if (message) {
+            snprintf(message, message_size, "%s", C.error_message);
+        }
+        if (line_out) *line_out = C.error_line;
+        if (col_out) *col_out = C.error_column;
         while (C.proto_depth > 0) {
             LunaProto* p = compiler_pop_proto(&C);
             luna_proto_free(p);
         }
         return NULL;
     }
-    
+
     LunaProto* root = compiler_current_proto(&C);
     if (C.has_exports) {
         int slot = scope_find_local(&C.scope_stack[0], LUNA_EXPORTS_LOCAL);
@@ -874,8 +925,12 @@ LunaProto* luna_compile(LunaNode* program) {
 
     /* Emitir RETURN implícito */
     luna_proto_emit_op_AB(root, OP_RETURN, 0, 0);
-    
+
     return compiler_pop_proto(&C);
+}
+
+LunaProto* luna_compile(LunaNode* program) {
+    return compile_program_detailed(program, NULL, 0, NULL, NULL);
 }
 
 const char* luna_compiler_error(LunaCompiler* C) {
@@ -885,7 +940,9 @@ const char* luna_compiler_error(LunaCompiler* C) {
 struct LunaProto* luna_compile_source(struct LunaState* L,
                                       const char* source, size_t length,
                                       const char* filename,
-                                      char* error_out, size_t error_size) {
+                                       char* error_out, size_t error_size) {
+    if (L) luna_clear_error(L);
+
     LunaParser P;
     LunaNode* prog = luna_parse_named(source, length, filename, &P);
     if (!prog) {
@@ -906,12 +963,26 @@ struct LunaProto* luna_compile_source(struct LunaState* L,
     }
     luna_parser_destroy(&P);
 
-    LunaProto* proto = luna_compile(prog);
+    char compile_message[256];
+    int compile_line = 0;
+    int compile_column = 0;
+    LunaProto* proto = compile_program_detailed(prog, compile_message,
+                                                 sizeof(compile_message),
+                                                 &compile_line, &compile_column);
     luna_ast_free(prog);
 
-    if (!proto && error_out) {
-        snprintf(error_out, error_size, "compilation failed in '%s'",
-                 filename ? filename : "<string>");
+    if (!proto) {
+        if (error_out) {
+            snprintf(error_out, error_size, "%s:%d:%d: %s",
+                     filename ? filename : "<string>",
+                     compile_line, compile_column,
+                     compile_message[0] ? compile_message : "compilation failed");
+        }
+        if (L) {
+            luna_error_set(L, LUNA_ERR_RUNTIME, filename,
+                           compile_line, compile_column, "%s",
+                           compile_message[0] ? compile_message : "compilation failed");
+        }
     }
     return proto;
 }

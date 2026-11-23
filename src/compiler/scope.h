@@ -32,6 +32,7 @@ typedef struct {
 void scope_init(LunaScope* S, int depth);
 int scope_add_local(LunaScope* S, const char* name, bool is_const);
 int scope_find_local(LunaScope* S, const char* name);
+void scope_hide_local(LunaScope* S, int slot);
 int scope_add_upvalue(LunaScope* S, bool is_local, uint8_t index);
 void scope_free(LunaScope* S);
 

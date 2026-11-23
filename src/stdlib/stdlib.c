@@ -1,4 +1,5 @@
 #include "stdlib_internal.h"
+#include "../platform/platform.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -248,8 +249,88 @@ static int builtin_input(LunaState* L) {
     return 1;
 }
 
+static void add_stdlib_path(LunaState* L, const char* dir) {
+    if (!dir || !dir[0]) return;
+    if (!luna_platform_is_directory(dir)) return;
+    luna_add_module_path(L, dir);
+}
+
+static void add_stdlib_path_list(LunaState* L, const char* list) {
+    if (!list || !list[0]) return;
+
+    char* copy = (char*)malloc(strlen(list) + 1);
+    if (!copy) return;
+    strcpy(copy, list);
+
+#ifdef _WIN32
+    const char* seps = ";";
+#else
+    const char* seps = ":";
+#endif
+
+    for (char* item = strtok(copy, seps); item; item = strtok(NULL, seps)) {
+        add_stdlib_path(L, item);
+        char* nested = luna_platform_path_join(item, "Lib");
+        if (nested) {
+            add_stdlib_path(L, nested);
+            free(nested);
+        }
+    }
+
+    free(copy);
+}
+
+static void discover_stdlib_paths(LunaState* L) {
+    const char* home = luna_platform_getenv("LUNA_HOME");
+    if (home && home[0]) {
+        char* lib = luna_platform_path_join(home, "Lib");
+        if (lib) {
+            add_stdlib_path(L, lib);
+            free(lib);
+        }
+        char* share = luna_platform_path_join(home, "share/luna/Lib");
+        if (share) {
+            add_stdlib_path(L, share);
+            free(share);
+        }
+    }
+
+    add_stdlib_path_list(L, luna_platform_getenv("LUNA_PATH"));
+
+    char* exe = luna_platform_executable_path();
+    if (exe) {
+        char* bin_dir = luna_platform_path_dirname(exe);
+        if (bin_dir) {
+            char* sibling = luna_platform_path_join(bin_dir, "Lib");
+            if (sibling) {
+                add_stdlib_path(L, sibling);
+                free(sibling);
+            }
+
+            char* parent = luna_platform_path_dirname(bin_dir);
+            if (parent) {
+                char* from_parent = luna_platform_path_join(parent, "Lib");
+                if (from_parent) {
+                    add_stdlib_path(L, from_parent);
+                    free(from_parent);
+                }
+                char* from_share = luna_platform_path_join(parent, "share/luna/Lib");
+                if (from_share) {
+                    add_stdlib_path(L, from_share);
+                    free(from_share);
+                }
+                free(parent);
+            }
+            free(bin_dir);
+        }
+        free(exe);
+    }
+
+    add_stdlib_path(L, LUNA_STDLIB_DIR);
+}
+
 void luna_open_stdlib(LunaState* L) {
-    luna_add_module_path(L, LUNA_STDLIB_DIR);
+    discover_stdlib_paths(L);
 
     luna_register_function(L, "len", lib_builtin_len);
     luna_register_function(L, "type", builtin_type);

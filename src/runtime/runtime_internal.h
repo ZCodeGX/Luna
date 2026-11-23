@@ -38,6 +38,9 @@ struct LunaState {
     /* ---------- Upvalues abiertos ---------- */
     struct LunaUpvalue* open_upvalues;
 
+    /* ---------- Valor lanzado por la excepción activa ---------- */
+    LunaValue thrown_value;
+
     /* ---------- Contabilidad de memoria ---------- */
     size_t   bytes_allocated;
     size_t   memory_limit;      /* 0 = ilimitado */

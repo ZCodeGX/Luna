@@ -55,6 +55,7 @@ LunaState* luna_new(LunaRuntime* rt) {
 
     L->all_objects = NULL;
     L->open_upvalues = NULL;
+    L->thrown_value = luna_nil();
 
     luna_string_pool_init(L);
 
@@ -107,7 +108,7 @@ void luna_close(LunaState* L) {
     if (!L) return;
 
     /* Liberar subsistemas */
-    modules_free(&L->modules);
+    modules_free(L, &L->modules);
     luna_vm_shutdown(L);
 
     /* Liberar todos los objetos GC */
@@ -135,6 +136,9 @@ void luna_close(LunaState* L) {
             case LUNA_TFUNCTION: {
                 LunaFunction* f = (LunaFunction*)obj;
                 if (f->upvalues) {
+                    for (size_t i = 0; i < f->num_upvalues; i++) {
+                        luna_upvalue_release(L, f->upvalues[i]);
+                    }
                     L->alloc(L->alloc_ud, f->upvalues,
                              f->num_upvalues * sizeof(LunaUpvalue*), 0);
                 }

@@ -17,6 +17,13 @@ void luna_vm_init(LunaState* L) {
 }
 
 void luna_vm_shutdown(LunaState* L) {
+    while (L->open_upvalues) {
+        LunaUpvalue* uv = L->open_upvalues;
+        L->open_upvalues = uv->next;
+        uv->next = NULL;
+        luna_upvalue_release(L, uv);
+    }
+
     if (L->vm_data) {
         free(L->vm_data);
         L->vm_data = NULL;

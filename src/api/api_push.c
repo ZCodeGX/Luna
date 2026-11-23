@@ -75,11 +75,10 @@ void luna_pushcclosure(LunaState* L, LunaCFunction fn, int nupvalues) {
         /* Los upvalues están en stack[top-nupvalues .. top-1].
          * Los "cerramos" inmediatamente: cada upvalue apunta a su propio closed. */
         for (int i = 0; i < nupvalues; i++) {
-            LunaUpvalue* uv = (LunaUpvalue*)luna_alloc(L, NULL, 0, sizeof(LunaUpvalue));
+            LunaUpvalue* uv = luna_upvalue_new(L, NULL);
             if (!uv) return;
             uv->closed = L->stack[L->stack_top - nupvalues + i];
             uv->location = &uv->closed;
-            uv->next = NULL;
             f->upvalues[i] = uv;
         }
 

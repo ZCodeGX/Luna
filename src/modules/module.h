@@ -52,6 +52,7 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name);
  * luego el directorio del archivo actual, luego los built-in.
  */
 int luna_add_module_path(struct LunaState* L, const char* path);
+int luna_add_path(struct LunaState* L, const char* path);
 
 /*
  * Obtiene la tabla de exports de un módulo ya cargado.

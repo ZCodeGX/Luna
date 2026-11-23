@@ -15,8 +15,10 @@ LunaUpvalue* vm_find_upvalue(LunaState* L, CallFrame* frame, LunaValue* slot) {
     LunaVM* vm = state_vm(L);
     (void)frame;
 
-    /* Los upvalues abiertos se mantienen en una lista global */
-    LunaUpvalue** p = &vm->open_upvalues;
+    (void)vm;
+
+    /* Los upvalues abiertos se mantienen en una lista global del estado */
+    LunaUpvalue** p = &L->open_upvalues;
     LunaUpvalue* uv;
 
     while (*p != NULL && (*p)->location > slot) {
@@ -27,12 +29,10 @@ LunaUpvalue* vm_find_upvalue(LunaState* L, CallFrame* frame, LunaValue* slot) {
         return *p;
     }
 
-    /* Crear nuevo upvalue */
-    uv = (LunaUpvalue*)luna_alloc(L, NULL, 0, sizeof(LunaUpvalue));
+    /* Crear nuevo upvalue: la lista abierta posee la primera referencia */
+    uv = luna_upvalue_new(L, slot);
     if (!uv) return NULL;
 
-    uv->location = slot;
-    uv->closed = luna_nil();
     uv->next = *p;
     *p = uv;
 
@@ -45,13 +45,13 @@ LunaUpvalue* vm_find_upvalue(LunaState* L, CallFrame* frame, LunaValue* slot) {
  * y hacer que `location` apunte a `&closed`.
  */
 void vm_close_upvalues(LunaState* L, LunaValue* from) {
-    LunaVM* vm = state_vm(L);
-
-    while (vm->open_upvalues != NULL && vm->open_upvalues->location >= from) {
-        LunaUpvalue* uv = vm->open_upvalues;
+    while (L->open_upvalues != NULL && L->open_upvalues->location >= from) {
+        LunaUpvalue* uv = L->open_upvalues;
         uv->closed = *uv->location;
         uv->location = &uv->closed;
-        vm->open_upvalues = uv->next;
+        L->open_upvalues = uv->next;
+        uv->next = NULL;
+        luna_upvalue_release(L, uv);
     }
 }
 
@@ -88,8 +88,6 @@ static int setup_luna_call(LunaState* L, LunaFunction* func, int func_index,
     /* Para simplificar, asumimos que el caller ya colocó la función y los args.
      * El frame base apunta al primer argumento (o al slot de la función). */
 
-    CallFrame* caller = vm->frame_top > 0 ? &vm->frames[vm->frame_top - 1] : NULL;
-    size_t caller_base_off = caller ? (size_t)(caller->base - L->stack) : 0;
     CallFrame* frame = &vm->frames[vm->frame_top++];
     frame->proto = proto;
     frame->func = func;
@@ -100,7 +98,7 @@ static int setup_luna_call(LunaState* L, LunaFunction* func, int func_index,
     frame->open_upvalues = NULL;
     frame->num_open_upvalues = 0;
     frame->num_ups = 0;
-    frame->handler_pc = -1;
+    frame->handler_top = 0;
 
     /* La base del frame es el slot donde está la función.
      * Los slots base[1..n] son los parámetros. */
@@ -108,12 +106,8 @@ static int setup_luna_call(LunaState* L, LunaFunction* func, int func_index,
 
     /* Asegurar que el stack tenga espacio para locales */
     size_t needed = (size_t)func_index + proto->stack_size + 2;
-    vm_stack_ensure(L, needed > L->stack_size ? needed - L->stack_size : 0);
+    vm_stack_ensure(L, needed > L->stack_top ? needed - L->stack_top : 0);
     if (L->status != LUNA_OK) return -1;
-
-    /* Reajustar bases tras posible realloc */
-    frame->base = &L->stack[func_index];
-    if (caller) caller->base = &L->stack[caller_base_off];
 
     /* Rellenar parámetros faltantes con nil */
     for (int i = nargs; i < proto->num_params; i++) {
@@ -157,7 +151,7 @@ static int setup_c_call(LunaState* L, LunaFunction* func, int func_index,
     frame->open_upvalues = NULL;
     frame->num_open_upvalues = 0;
     frame->num_ups = 0;
-    frame->handler_pc = -1;
+    frame->handler_top = 0;
 
     /* La base para una función C es el slot de la función */
     frame->base = &L->stack[func_index];
@@ -188,8 +182,8 @@ int vm_call_function(LunaState* L, int func_index, int nargs, int nresults) {
         if (setup_c_call(L, func, func_index, nargs, nresults) != 0) return -1;
 
         size_t call_top = (size_t)func_index + (size_t)nargs + 1;
-        if (call_top > L->stack_size) {
-            vm_stack_ensure(L, call_top - L->stack_size);
+        if (call_top > L->stack_top) {
+            vm_stack_ensure(L, call_top - L->stack_top);
             if (L->status != LUNA_OK) return -1;
         }
         if (L->stack_top < call_top) L->stack_top = call_top;
@@ -264,18 +258,16 @@ int vm_call_internal(LunaState* L, LunaValue func, int nargs, int nresults) {
 int vm_throw(LunaState* L, LunaValue value) {
     LunaVM* vm = state_vm(L);
 
-    /* Poner el valor en el stack */
-    vm_stack_push(L, value);
-    if (L->status != LUNA_OK) return -1;
+    L->thrown_value = value;
 
     /* Buscar frame con handler */
     while (vm->frame_top > 0) {
         CallFrame* frame = &vm->frames[vm->frame_top - 1];
 
-        if (frame->handler_pc >= 0) {
+        if (frame->handler_top > 0) {
             /* Hay handler: saltar a él */
-            frame->pc = (size_t)frame->handler_pc;
-            frame->handler_pc = -1;  /* consumir el handler */
+            frame->pc = frame->handlers[--frame->handler_top];
+            luna_error_clear(L);
             return 0;
         }
 
@@ -294,4 +286,19 @@ int vm_throw(LunaState* L, LunaValue value) {
         luna_error_set_simple(L, LUNA_ERR_USER, "unhandled exception");
     }
     return -1;
+}
+
+int vm_handle_error(LunaState* L) {
+    const char* msg = L->error.message[0] ? L->error.message : L->error_message;
+    LunaValue value;
+
+    if (msg && msg[0]) {
+        LunaString* s = luna_string_new(L, msg, strlen(msg));
+        if (!s) return -1;
+        value = luna_string_val(s);
+    } else {
+        value = luna_nil();
+    }
+
+    return vm_throw(L, value);
 }

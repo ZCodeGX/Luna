@@ -76,22 +76,7 @@ static inline void api_type_error(LunaState* L, int idx, const char* expected) {
 
 /* Asegura que el stack tenga al menos `n` slots libres por encima del top. */
 static inline void api_ensure_stack(LunaState* L, size_t n) {
-    if (L->stack_top + n > L->stack_size) {
-        size_t new_size = L->stack_size * 2;
-        while (new_size < L->stack_top + n) new_size *= 2;
-        LunaValue* new_stack = (LunaValue*)luna_alloc(L, L->stack,
-                                                       L->stack_size * sizeof(LunaValue),
-                                                       new_size * sizeof(LunaValue));
-        if (!new_stack) {
-            luna_error_set_simple(L, LUNA_ERR_MEMORY, "stack overflow");
-            return;
-        }
-        for (size_t i = L->stack_size; i < new_size; i++) {
-            new_stack[i] = luna_nil();
-        }
-        L->stack = new_stack;
-        L->stack_size = new_size;
-    }
+    vm_stack_ensure(L, n);
 }
 
 #endif /* LUNA_API_INTERNAL_H */

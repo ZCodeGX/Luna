@@ -203,8 +203,13 @@ struct LunaTable* luna_get_module(struct LunaState* L, const char* name) {
 
 int luna_add_module_path(struct LunaState* L, const char* path) {
     LunaModules* M = &L->modules;
+    if (!path || !path[0]) return -1;
     if (M->num_paths >= LUNA_MAX_MODULE_PATHS) return -1;
-    
+
+    for (int i = 0; i < M->num_paths; i++) {
+        if (strcmp(M->paths[i], path) == 0) return 0;
+    }
+
     size_t len = strlen(path);
     char* copy = (char*)malloc(len + 1);
     if (!copy) return -1;
@@ -212,4 +217,8 @@ int luna_add_module_path(struct LunaState* L, const char* path) {
     
     M->paths[M->num_paths++] = copy;
     return 0;
+}
+
+int luna_add_path(struct LunaState* L, const char* path) {
+    return luna_add_module_path(L, path);
 }

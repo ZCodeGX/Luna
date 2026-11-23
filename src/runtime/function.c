@@ -3,6 +3,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+LunaUpvalue* luna_upvalue_new(LunaState* L, LunaValue* location) {
+    LunaUpvalue* uv = (LunaUpvalue*)luna_alloc(L, NULL, 0, sizeof(LunaUpvalue));
+    if (!uv) return NULL;
+    uv->location = location;
+    uv->closed = luna_nil();
+    uv->next = NULL;
+    uv->refcount = 1;
+    return uv;
+}
+
+void luna_upvalue_retain(LunaUpvalue* uv) {
+    if (uv) uv->refcount++;
+}
+
+void luna_upvalue_release(LunaState* L, LunaUpvalue* uv) {
+    if (!uv) return;
+    if (--uv->refcount <= 0) {
+        luna_alloc(L, uv, sizeof(LunaUpvalue), 0);
+    }
+}
+
 LunaFunction* luna_function_new(LunaState* L, LunaProto* proto) {
     LunaFunction* f = (LunaFunction*)luna_alloc(L, NULL, 0, sizeof(LunaFunction));
     if (!f) return NULL;

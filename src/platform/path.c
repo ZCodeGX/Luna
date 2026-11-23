@@ -10,8 +10,13 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <windows.h>
 #else
+#include <limits.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
 #endif
 
 char luna_platform_path_separator(void) {
@@ -231,4 +236,31 @@ char* luna_platform_getcwd(void) {
     if (!getcwd(buf, sizeof(buf))) return NULL;
 #endif
     return platform_strdup(buf);
+}
+
+const char* luna_platform_getenv(const char* name) {
+    if (!name) return NULL;
+    return getenv(name);
+}
+
+char* luna_platform_executable_path(void) {
+    char buf[4096];
+
+#ifdef _WIN32
+    DWORD n = GetModuleFileNameA(NULL, buf, (DWORD)sizeof(buf));
+    if (n == 0 || n >= sizeof(buf)) return NULL;
+    buf[n] = '\0';
+    return platform_strdup(buf);
+#elif defined(__APPLE__)
+    uint32_t size = (uint32_t)sizeof(buf);
+    if (_NSGetExecutablePath(buf, &size) != 0) return NULL;
+    char resolved[PATH_MAX];
+    if (!realpath(buf, resolved)) return platform_strdup(buf);
+    return platform_strdup(resolved);
+#else
+    ssize_t n = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (n < 0) return NULL;
+    buf[n] = '\0';
+    return platform_strdup(buf);
+#endif
 }

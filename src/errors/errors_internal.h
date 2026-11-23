@@ -24,6 +24,9 @@ void luna_error_setv(struct LunaState* L, LunaStatus status,
 void luna_error_set_simple(struct LunaState* L, LunaStatus status,
                            const char* fmt, ...);
 
+/* Limpia el error actual (para recuperarse de una excepción capturada) */
+void luna_error_clear(struct LunaState* L);
+
 /* ============================================================
  * Traceback (API interna)
  * ============================================================ */

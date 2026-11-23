@@ -65,6 +65,7 @@ void luna_error_setv(struct LunaState* L, LunaStatus status,
     if (err->has_error) return;
 
     err->status = status;
+    L->status = status;
     err->line = line;
     err->column = column;
     err->has_error = 1;
@@ -96,6 +97,14 @@ void luna_error_set_simple(struct LunaState* L, LunaStatus status,
     va_start(ap, fmt);
     luna_error_setv(L, status, NULL, 0, 0, fmt, ap);
     va_end(ap);
+}
+
+void luna_error_clear(struct LunaState* L) {
+    memset(&L->error, 0, sizeof(L->error));
+    L->status = LUNA_OK;
+    L->error_message[0] = '\0';
+    L->error_file[0] = '\0';
+    L->error_line = 0;
 }
 
 /* ============================================================

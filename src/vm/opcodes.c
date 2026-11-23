@@ -34,6 +34,11 @@ extern int luna_report_instruction_limit(LunaState* L);
     pc = frame->pc; \
     base = frame->base; \
 } while (0)
+#define VM_ERROR() do { \
+    if (vm_handle_error(L) != 0) return -1; \
+    VM_RELOAD_FRAME(); \
+    goto vm_continue; \
+} while (0)
 #define VM_NEXT() do { \
     L->instructions_executed++; \
     if (--budget == 0) { \
@@ -120,6 +125,7 @@ int vm_execute_loop(LunaState* L) {
         [OP_THROW] = &&label_OP_THROW,
         [OP_SETUP_EXC] = &&label_OP_SETUP_EXC,
         [OP_POP_EXC] = &&label_OP_POP_EXC,
+        [OP_GET_EXC] = &&label_OP_GET_EXC,
         [OP_IMPORT] = &&label_OP_IMPORT
     };
 #endif
@@ -162,7 +168,7 @@ VM_SWITCH_BEGIN
                 case LUNA_CONST_FLOAT: v = luna_float(c->as.floating); break;
                 case LUNA_CONST_STRING: {
                     LunaString* s = luna_string_new(L, c->as.string.data, c->as.string.len);
-                    if (!s) return -1;
+                    if (!s) VM_ERROR();
                     v = luna_string_val(s);
                     break;
                 }
@@ -191,7 +197,7 @@ VM_SWITCH_BEGIN
             uint8_t B = decode_B(code, pc);
             if (B >= frame->num_ups || !frame->ups[B]) {
                 luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue");
-                return -1;
+                VM_ERROR();
             }
             base[A + 1] = *frame->ups[B]->location;
             VM_ADVANCE();
@@ -202,7 +208,7 @@ VM_SWITCH_BEGIN
             uint8_t B = decode_B(code, pc);
             if (B >= frame->num_ups || !frame->ups[B]) {
                 luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue");
-                return -1;
+                VM_ERROR();
             }
             *frame->ups[B]->location = base[A + 1];
             VM_ADVANCE();
@@ -214,7 +220,7 @@ VM_SWITCH_BEGIN
             uint16_t bx = decode_Bx(code, pc);
             LunaConst* c = &frame->proto->constants[bx];
             LunaString* key = luna_string_newz(L, c->as.string.data);
-            if (!key) return -1;
+            if (!key) VM_ERROR();
             LunaValue v;
             if (!luna_table_get(L->globals, luna_string_val(key), &v)) {
                 v = luna_nil();
@@ -228,7 +234,7 @@ VM_SWITCH_BEGIN
             uint16_t bx = decode_Bx(code, pc);
             LunaConst* c = &frame->proto->constants[bx];
             LunaString* key = luna_string_newz(L, c->as.string.data);
-            if (!key) return -1;
+            if (!key) VM_ERROR();
             luna_table_set(L, L->globals, luna_string_val(key), base[A + 1]);
             VM_ADVANCE();
             VM_END_INSTR();
@@ -238,7 +244,7 @@ VM_SWITCH_BEGIN
             uint16_t bx = decode_Bx(code, pc);
             LunaConst* c = &frame->proto->constants[bx];
             LunaTable* exports = luna_import_module(L, c->as.string.data);
-            if (!exports) return -1;
+            if (!exports) VM_ERROR();
             base[A + 1] = luna_table_val(exports);
             VM_ADVANCE();
             VM_END_INSTR();
@@ -249,12 +255,12 @@ VM_SWITCH_BEGIN
             uint8_t C = decode_C(code, pc);
             LunaConst* c = &frame->proto->constants[C];
             LunaString* key = luna_string_newz(L, c->as.string.data);
-            if (!key) return -1;
+            if (!key) VM_ERROR();
             LunaValue obj = base[B + 1];
             if (obj.type != LUNA_TTABLE) {
                 luna_error_set(L, LUNA_ERR_TYPE, NULL, 0, 0,
                                "attempt to index a %s value", luna_type_name(obj.type));
-                return -1;
+                VM_ERROR();
             }
             LunaValue v;
             if (!luna_table_get(luna_val_table(obj), luna_string_val(key), &v)) {
@@ -270,12 +276,12 @@ VM_SWITCH_BEGIN
             uint8_t C = decode_C(code, pc);
             LunaConst* c = &frame->proto->constants[C];
             LunaString* key = luna_string_newz(L, c->as.string.data);
-            if (!key) return -1;
+            if (!key) VM_ERROR();
             LunaValue obj = base[A + 1];
             if (obj.type != LUNA_TTABLE) {
                 luna_error_set(L, LUNA_ERR_TYPE, NULL, 0, 0,
                                "attempt to index a %s value", luna_type_name(obj.type));
-                return -1;
+                VM_ERROR();
             }
             luna_table_set(L, luna_val_table(obj), luna_string_val(key), base[B + 1]);
             VM_ADVANCE();
@@ -291,14 +297,14 @@ VM_SWITCH_BEGIN
                 LunaList* list = luna_val_list(obj);
                 if (key.type != LUNA_TINTEGER) {
                     luna_error_set_simple(L, LUNA_ERR_TYPE, "list index must be integer");
-                    return -1;
+                    VM_ERROR();
                 }
                 int64_t idx = key.as.integer;
                 if (idx < 0 || (size_t)idx >= list->length) {
                     luna_error_set(L, LUNA_ERR_INDEX, NULL, 0, 0,
                                    "list index %lld out of range (len %zu)",
                                    (long long)idx, list->length);
-                    return -1;
+                    VM_ERROR();
                 }
                 base[A + 1] = list->items[idx];
             } else if (obj.type == LUNA_TTABLE) {
@@ -310,7 +316,7 @@ VM_SWITCH_BEGIN
             } else {
                 luna_error_set(L, LUNA_ERR_TYPE, NULL, 0, 0,
                                "attempt to index a %s value", luna_type_name(obj.type));
-                return -1;
+                VM_ERROR();
             }
             VM_ADVANCE();
             VM_END_INSTR();
@@ -326,13 +332,13 @@ VM_SWITCH_BEGIN
                 LunaList* list = luna_val_list(obj);
                 if (key.type != LUNA_TINTEGER) {
                     luna_error_set_simple(L, LUNA_ERR_TYPE, "list index must be integer");
-                    return -1;
+                    VM_ERROR();
                 }
                 int64_t idx = key.as.integer;
                 if (idx < 0 || (size_t)idx >= list->length) {
                     luna_error_set(L, LUNA_ERR_INDEX, NULL, 0, 0,
                                    "list index %lld out of range", (long long)idx);
-                    return -1;
+                    VM_ERROR();
                 }
                 list->items[idx] = val;
             } else if (obj.type == LUNA_TTABLE) {
@@ -340,7 +346,7 @@ VM_SWITCH_BEGIN
             } else {
                 luna_error_set(L, LUNA_ERR_TYPE, NULL, 0, 0,
                                "attempt to index a %s value", luna_type_name(obj.type));
-                return -1;
+                VM_ERROR();
             }
             VM_ADVANCE();
             VM_END_INSTR();
@@ -349,7 +355,7 @@ VM_SWITCH_BEGIN
         /* ---------- Tablas y listas ---------- */
         VM_CASE(OP_NEW_TABLE) {
             LunaTable* t = luna_table_new(L);
-            if (!t) return -1;
+            if (!t) VM_ERROR();
             base[A + 1] = luna_table_val(t);
             VM_ADVANCE();
             VM_END_INSTR();
@@ -357,7 +363,7 @@ VM_SWITCH_BEGIN
 
         VM_CASE(OP_NEW_LIST) {
             LunaList* list = luna_list_new(L);
-            if (!list) return -1;
+            if (!list) VM_ERROR();
             base[A + 1] = luna_list_val(list);
             VM_ADVANCE();
             VM_END_INSTR();
@@ -369,7 +375,7 @@ VM_SWITCH_BEGIN
             LunaValue val = base[B + 1];
             if (list_val.type != LUNA_TLIST) {
                 luna_error_set_simple(L, LUNA_ERR_TYPE, "list_append on non-list");
-                return -1;
+                VM_ERROR();
             }
             luna_list_push_value(L, luna_val_list(list_val), val);
             VM_ADVANCE();
@@ -384,7 +390,7 @@ VM_SWITCH_BEGIN
             LunaValue val = base[C + 1];
             if (tbl.type != LUNA_TTABLE) {
                 luna_error_set_simple(L, LUNA_ERR_TYPE, "table_set on non-table");
-                return -1;
+                VM_ERROR();
             }
             luna_table_set(L, luna_val_table(tbl), key, val);
             VM_ADVANCE();
@@ -410,22 +416,22 @@ VM_SWITCH_BEGIN
                     case OP_DIV:
                         if (bi == 0) {
                             luna_error_set_simple(L, LUNA_ERR_DIVZERO, "division by zero");
-                            return -1;
+                            VM_ERROR();
                         }
                         result = luna_float((double)ai / (double)bi);
                         break;
                     case OP_MOD:
                         if (bi == 0) {
                             luna_error_set_simple(L, LUNA_ERR_DIVZERO, "modulo by zero");
-                            return -1;
+                            VM_ERROR();
                         }
                         result = luna_int(ai % bi);
                         break;
                     case OP_POW: result = luna_float(pow((double)ai, (double)bi)); break;
-                    default: return -1;
+                    default: VM_ERROR();
                 }
             } else if (vm_arith(L, av, bv, &result, op) != 0) {
-                return -1;
+                VM_ERROR();
             }
 
             base[A + 1] = result;
@@ -436,7 +442,7 @@ VM_SWITCH_BEGIN
         VM_CASE(OP_NEG) {
             uint8_t B = decode_B(code, pc);
             LunaValue result;
-            if (vm_neg(L, base[B + 1], &result) != 0) return -1;
+            if (vm_neg(L, base[B + 1], &result) != 0) VM_ERROR();
             base[A + 1] = result;
             VM_ADVANCE();
             VM_END_INSTR();
@@ -461,10 +467,10 @@ VM_SWITCH_BEGIN
                     case OP_LE:  result = ai <= bi; break;
                     case OP_GT:  result = ai >  bi; break;
                     case OP_GE:  result = ai >= bi; break;
-                    default: return -1;
+                    default: VM_ERROR();
                 }
             } else if (vm_compare(L, av, bv, op, &result) != 0) {
-                return -1;
+                VM_ERROR();
             }
 
             base[A + 1] = luna_bool(result);
@@ -507,12 +513,12 @@ VM_SWITCH_BEGIN
                 LunaValue v = base[i + 1];
                 if (v.type != LUNA_TSTRING) {
                     luna_error_set_simple(L, LUNA_ERR_TYPE, "concat requires strings");
-                    return -1;
+                    VM_ERROR();
                 }
                 total += luna_val_string(v)->len;
             }
             char* buf = (char*)luna_alloc(L, NULL, 0, total + 1);
-            if (!buf) return -1;
+            if (!buf) VM_ERROR();
             size_t pos = 0;
             for (uint8_t i = B; i <= C; i++) {
                 LunaString* s = luna_val_string(base[i + 1]);
@@ -522,7 +528,7 @@ VM_SWITCH_BEGIN
             buf[total] = '\0';
             LunaString* result = luna_string_new(L, buf, total);
             luna_alloc(L, buf, total + 1, 0);
-            if (!result) return -1;
+            if (!result) VM_ERROR();
             base[A + 1] = luna_string_val(result);
             VM_ADVANCE();
             VM_END_INSTR();
@@ -540,7 +546,7 @@ VM_SWITCH_BEGIN
                     luna_error_set(L, LUNA_ERR_TYPE, NULL, 0, 0,
                                    "attempt to get length of a %s value",
                                    luna_type_name(v.type));
-                    return -1;
+                    VM_ERROR();
             }
             base[A + 1] = luna_int(len);
             VM_ADVANCE();
@@ -587,7 +593,7 @@ VM_SWITCH_BEGIN
 
             int result = vm_call_function(L, (int)(frame->base - L->stack) + func_idx,
                                           B, C == 0 ? -1 : C);
-            if (result != 0) return -1;
+            if (result != 0) VM_ERROR();
             VM_SYNC_BASE();
 
             if (vm2->frame_top > old_top) {
@@ -649,7 +655,7 @@ VM_SWITCH_BEGIN
             LunaProto* child = frame->proto->protos[bx];
 
             LunaFunction* fn = luna_function_new(L, child);
-            if (!fn) return -1;
+            if (!fn) VM_ERROR();
 
             /* Capturar upvalues */
             for (size_t i = 0; i < child->num_upvalues; i++) {
@@ -662,8 +668,9 @@ VM_SWITCH_BEGIN
                 }
                 if (!uv) {
                     luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid upvalue capture");
-                    return -1;
+                    VM_ERROR();
                 }
+                luna_upvalue_retain(uv);
                 fn->upvalues[i] = uv;
             }
 
@@ -677,31 +684,43 @@ VM_SWITCH_BEGIN
         VM_CASE(OP_FOR_STEP)
             /* TODO: implementar for loops */
             luna_error_set_simple(L, LUNA_ERR_RUNTIME, "for loops not yet implemented");
-            return -1;
+            VM_ERROR();
 
         /* ---------- Excepciones ---------- */
         VM_CASE(OP_THROW) {
             LunaValue v = base[A + 1];
             if (vm_throw(L, v) != 0) return -1;
             VM_SYNC_PC();
+            VM_SYNC_BASE();
             VM_END_INSTR();
         }
 
         VM_CASE(OP_SETUP_EXC) {
             int16_t sbx = decode_sBx(code, pc);
             size_t next = advance_pc(code, pc);
-            frame->handler_pc = (int)((int64_t)next + sbx);
+            if (frame->handler_top >= LUNA_MAX_HANDLERS) {
+                luna_error_set_simple(L, LUNA_ERR_RUNTIME, "too many nested try blocks");
+                VM_ERROR();
+            }
+            frame->handlers[frame->handler_top++] = (size_t)((int64_t)next + sbx);
             VM_SET_PC(next);
             VM_END_INSTR();
         }
 
         VM_CASE(OP_POP_EXC) {
-            frame->handler_pc = -1;
+            if (frame->handler_top > 0) frame->handler_top--;
+            VM_ADVANCE();
+            VM_END_INSTR();
+        }
+
+        VM_CASE(OP_GET_EXC) {
+            base[A + 1] = L->thrown_value;
             VM_ADVANCE();
             VM_END_INSTR();
         }
 
 VM_SWITCH_END
+        vm_continue:;
 
 #if !defined(LUNA_THREADED_DISPATCH)
 vm_done:

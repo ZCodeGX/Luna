@@ -50,6 +50,7 @@ const char* luna_opcode_name(LunaOpcode op) {
         [OP_THROW]         = "THROW",
         [OP_SETUP_EXC]     = "SETUP_EXC",
         [OP_POP_EXC]       = "POP_EXC",
+        [OP_GET_EXC]       = "GET_EXC",
         [OP_IMPORT]        = "IMPORT",
     };
     if (op < 0 || op >= OP_COUNT) return "?";

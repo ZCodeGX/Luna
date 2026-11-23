@@ -17,6 +17,9 @@ La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisibl
 | `time` | `clock.luna`, `fmt.luna`, `mod.luna` |
 | `path` | `ops.luna`, `info.luna`, `mod.luna` |
 | `http` | `client.luna`, `server.luna`, `mod.luna` (fachada del módulo nativo `http_native`) |
+| `json` | `mod.luna` (fachada del módulo nativo `json_native`) |
+| `csv` | `mod.luna` (fachada del módulo nativo `csv_native`) |
+| `gml` | `mod.luna` (fachada del módulo nativo `gml_native`) |
 | `ffi` | `mod.luna` (fachada del módulo nativo `ffi_native`) |
 
 ## Funciones globales
@@ -28,7 +31,7 @@ La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisibl
 | `str(valor)` | Representación textual. |
 | `int(valor)` | Convierte números, booleanos o strings a entero. |
 | `float(valor)` | Convierte números, booleanos o strings a float. |
-| `input(mensaje)` | Escribe el mensaje y lee una línea de entrada estándar; devuelve un string. |
+| `input(mensaje)` | Escribe el mensaje opcional y lee una línea de entrada estándar; devuelve un string. |
 
 ```luna
 print(len("hola"))
@@ -61,6 +64,9 @@ integer
 | `time` | `elapsed(start)`, `format_duration(seconds)`, `millis(nanoseconds)`. |
 | `path` | `build`, `stem`, `has_ext`, `is_absolute`. |
 | `http` | `encode`, `decode`, `build_url`, `request`, `get`, `post`, `put`, `delete`, `is_ok`, `listen`, `serve`, `serve_once`, `close`, `reply`, `text`, `html`. |
+| `json` | `encode`, `stringify`, `decode`, `parse`, `pretty`, `is_object`, `is_array`. |
+| `csv` | `parse`, `decode`, `encode`, `stringify`. |
+| `gml` | `app`, `window`, `button`, `label`, `entry`, `text`, `checkbox`, `set_text`, `get_text`, `poll`, `show`, `quit`, `run`. |
 
 ## Ejemplo: cálculo y cadenas
 
@@ -141,6 +147,62 @@ http.close(server)
 ```
 
 `req` contiene `method`, `path`, `body` y `headers`. `serve_once(server, handler, timeout)` devuelve `false` cuando expira el tiempo de espera; `serve(server, handler, max_requests, timeout)` repite hasta alcanzar `max_requests` o hasta que se cierre el servidor. `reply`, `text` y `html` construyen la tabla de respuesta que consume `http_native.respond`.
+
+## Módulos `json` y `csv`
+
+`json` convierte entre valores Luna y texto JSON. Los objetos se representan con tablas y los arrays con listas; `pretty` genera una versión legible con sangría.
+
+```luna
+import json
+
+let data = {nombre = "Luna", activo = true, numeros = [1, 2, 3]}
+let text = json.pretty(data)
+print(text)
+let back = json.decode(text)
+print(back.nombre, back.numeros[2])
+```
+
+`csv` parsea y serializa filas de texto delimitado. `parse` devuelve una lista de filas y `encode` acepta listas o tablas.
+
+```luna
+import csv
+
+let rows = csv.parse("nombre,valor\na,1\nb,2\n")
+print(rows[1][2])
+print(csv.encode(rows, ";"))
+```
+
+## Módulo `gml`
+
+`gml` es una interfaz gráfica estilo Tk para Luna. Requiere `python3` con `tkinter` y un servidor de pantalla; en Linux necesita `DISPLAY`. Cada función recibe la aplicación devuelta por `gml.app()`, excepto `run`, que despacha eventos al handler escrito en Luna.
+
+```luna
+import gml
+
+let app = gml.app()
+let win = gml.window(app, "Hola", 420, 200)
+gml.label(app, win, "Nombre:", 20, 20, 80, 28)
+let field = gml.entry(app, win, "", 110, 20, 180, 28)
+
+fn handler(event):
+    if event.type == "click":
+        print("texto:", gml.get_text(app, field))
+        gml.quit(app)
+
+gml.button(app, win, "Aceptar", 20, 70, 120, 32)
+gml.run(app, handler, 16)
+```
+
+Los eventos son tablas con `type`, `id`, `window`, `text` o `message`. Los tipos son `ready`, `click`, `enter`, `toggle`, `close`, `value`, `quit` y `error`. `gml.run` termina cuando recibe `close` o `quit`.
+
+## Entrada desde terminal
+
+La global `input(mensaje)` ya está integrada en el lenguaje. El mensaje es opcional; `input()` lee una línea completa desde stdin, elimina el salto de línea y devuelve un string.
+
+```luna
+let nombre = input("Nombre: ")
+print("Hola", nombre)
+```
 
 ## Módulo `ffi`
 

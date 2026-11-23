@@ -1,0 +1,4 @@
+let nombre = input("Nombre: ")
+let year = input()
+print(nombre)
+print(year)

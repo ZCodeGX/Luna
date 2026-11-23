@@ -1,0 +1,22 @@
+import assert
+import csv
+
+let text = "name,note\n\"a,b\",\"say \"\"hi\"\"\"\n\"line1\nline2\",plain\n"
+let rows = csv.parse(text)
+
+assert.eq(len(rows), 3, "tres filas")
+assert.eq(rows[1][0], "a,b", "coma dentro de comillas")
+assert.eq(rows[1][1], "say \"hi\"", "comilla doble escapada")
+assert.eq(rows[2][0], "line1\nline2", "salto de linea dentro de comillas")
+assert.eq(rows[2][1], "plain", "campo sin comillas")
+assert.eq(csv.encode(rows), text, "roundtrip exacto")
+assert.eq(csv.stringify(rows), text, "alias stringify")
+assert.eq(csv.parse(csv.encode(rows))[2][0], "line1\nline2", "roundtrip parse encode")
+assert.eq(csv.encode([["a,b"]]), "\"a,b\"\n", "escape de coma")
+assert.eq(csv.encode([["x\"y"]]), "\"x\"\"y\"\n", "escape de comilla")
+assert.eq(csv.encode([["line1\nline2"]]), "\"line1\nline2\"\n", "escape de salto")
+assert.eq(csv.encode([["cr\rlf"]]), "\"cr\rlf\"\n", "escape de CR")
+assert.eq(csv.encode([["plain"]]), "plain\n", "campo simple sin comillas")
+assert.eq(csv.parse(csv.encode([["a\"b", "c,d"]]))[0][1], "c,d", "roundtrip multicampo")
+
+assert.report()

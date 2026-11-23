@@ -6,6 +6,9 @@ SOURCES = [
     'systemlib.c',
     'ffilib.c',
     'httplib.c',
+    'jsonlib.c',
+    'csvlib.c',
+    'gmllib.c',
 ]
 
 HEADERS = [

@@ -25,5 +25,9 @@ void luna_open_collection_lib(LunaState* L);
 void luna_open_system_lib(LunaState* L);
 void luna_open_ffi_lib(LunaState* L);
 void luna_open_http_lib(LunaState* L);
+void luna_open_json_lib(LunaState* L);
+void luna_open_csv_lib(LunaState* L);
+void luna_open_gml_lib(LunaState* L);
+int luna_json_parse_text(LunaState* L, const char* text, size_t len);
 
 #endif

@@ -1,0 +1,20 @@
+import assert
+import csv
+
+let rows = csv.parse("a|b\nc|d\n", "|")
+
+assert.eq(len(rows), 2, "dos filas con pipe")
+assert.eq(rows[0][1], "b", "parse con pipe")
+assert.eq(csv.encode(rows, "|"), "a|b\nc|d\n", "encode con pipe")
+assert.eq(csv.encode([["x|y", "z"]], "|"), "\"x|y\"|z\n", "escape del delimitador")
+assert.eq(csv.parse("a,b", "|")[0][0], "a,b", "coma literal con pipe")
+assert.eq(csv.parse("a;b", ";")[0][1], "b", "punto y coma")
+assert.eq(csv.parse("a\tb", "\t")[0][1], "b", "tabulador")
+assert.eq(csv.parse("\"a|b\"|c", "|")[0][0], "a|b", "comillas con delimitador personalizado")
+assert.eq(csv.encode([[1, 2.5, true, nil]]), "1,2.5,true,\n", "tipos primitivos")
+assert.eq(csv.encode([{ name = "a,b" }]), "\"a,b\"\n", "fila tabla")
+assert.eq(csv.encode([["a", "b"], { note = "c,d" }]), "a,b\n\"c,d\"\n", "filas mixtas")
+assert.eq(csv.encode([]), "", "sin filas")
+assert.eq(csv.encode([[]]), "\n", "fila vacia")
+
+assert.report()

@@ -431,6 +431,9 @@ Hola desde saludo
               <tr><td><code>time</code></td><td>Fecha, hora y temporizadores.</td></tr>
               <tr><td><code>path</code></td><td>Composición y consulta de rutas.</td></tr>
               <tr><td><code>http</code></td><td>Cliente y servidor HTTP/1.1. Ver <a href="#http">HTTP</a>.</td></tr>
+              <tr><td><code>json</code></td><td>JSON anidado, compacto y con sangría. Ver <a href="#json-csv-gml">JSON, CSV y GML</a>.</td></tr>
+              <tr><td><code>csv</code></td><td>Parseo y escritura de filas delimitadas. Ver <a href="#json-csv-gml">JSON, CSV y GML</a>.</td></tr>
+              <tr><td><code>gml</code></td><td>Interfaz gráfica estilo Tk. Ver <a href="#json-csv-gml">JSON, CSV y GML</a>.</td></tr>
               <tr><td><code>ffi</code></td><td>Declaración dinámica de símbolos nativos. Ver <a href="#ffi">FFI</a>.</td></tr>
             </tbody>
           </table>
@@ -566,6 +569,36 @@ http.serve(server, handler, 4, 1)
 http.close(server)</code></pre>
         </div>
         <p>Referencia completa: <a href="../MD/14-biblioteca-estandar.md#módulo-http">14 — Biblioteca estándar</a>.</p>
+      </section>
+
+      <section id="json-csv-gml">
+        <h2>JSON, CSV y GML</h2>
+        <p class="lead"><code>json</code> serializa tablas y listas anidadas, <code>csv</code> trabaja con filas delimitadas y <code>gml</code> crea ventanas con botones y campos de texto mediante un backend Tkinter.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import json
+import csv
+
+let data = {nombre = "Luna", numeros = [1, 2, 3]}
+print(json.pretty(data))
+let rows = csv.parse("a,1\nb,2\n")
+print(csv.encode(rows, ";"))</code></pre>
+        </div>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import gml
+
+let app = gml.app()
+let win = gml.window(app, "Hola", 420, 200)
+let field = gml.entry(app, win, "", 20, 20, 180, 28)
+
+fn handler(event):
+    if event.type == "click":
+        print(gml.get_text(app, field))
+        gml.quit(app)
+
+gml.button(app, win, "Aceptar", 20, 70, 120, 32)
+gml.run(app, handler, 16)</code></pre>
+        </div>
+        <p><code>gml</code> requiere <code>python3</code> con <code>tkinter</code> y un servidor de pantalla. La global <code>input(mensaje)</code> lee texto desde la terminal; el mensaje es opcional.</p>
       </section>
 
       <section id="ffi">

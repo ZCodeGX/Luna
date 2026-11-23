@@ -1,0 +1,25 @@
+import assert
+import json
+import string
+
+let v = json.decode("{\"a\":\"line\\nbreak\",\"q\":\"say \\\"hi\\\"\",\"slash\":\"a\\/b\",\"back\":\"c\\\\d\"}")
+
+assert.eq(v.a, "line\nbreak", "escape newline")
+assert.eq(v.q, "say \"hi\"", "escape comillas")
+assert.eq(v.slash, "a/b", "escape slash")
+assert.eq(v.back, "c\\d", "escape backslash")
+
+let u = json.decode("{\"a\":\"\\u0041\\u00e9\",\"emoji\":\"\\uD83D\\uDE00\"}")
+assert.eq(u.a, "Aé", "unicode basico")
+assert.eq(len(u.emoji), 4, "surrogate pair utf8")
+
+let encoded = json.encode(v)
+assert.eq(string.contains(encoded, "\\n"), true, "encode escape newline")
+assert.eq(string.contains(encoded, "\\\""), true, "encode escape comillas")
+assert.eq(string.contains(encoded, "\\\\"), true, "encode escape backslash")
+
+let tab = json.decode("\"a\\tb\\rc\\bd\\fe\"")
+assert.eq(len(tab), 9, "escapes de control")
+assert.eq(json.encode("\n\t"), "\"\\n\\t\"", "encode control")
+
+assert.report()

@@ -1,0 +1,47 @@
+import assert
+import json
+
+let message = ""
+
+try:
+    json.decode("{")
+catch e:
+    message = e
+assert.eq(message, "invalid JSON", "objeto incompleto")
+
+try:
+    json.decode("[1,]")
+catch e:
+    message = e
+assert.eq(message, "invalid JSON", "coma final")
+
+try:
+    json.decode("{\"a\" 1}")
+catch e:
+    message = e
+assert.eq(message, "invalid JSON", "falta dos puntos")
+
+try:
+    json.decode("\"bad \\q\"")
+catch e:
+    message = e
+assert.eq(message, "invalid JSON", "escape invalido")
+
+try:
+    json.decode("1 2")
+catch e:
+    message = e
+assert.eq(message, "invalid JSON", "datos sobrantes")
+
+try:
+    json.pretty({}, "x")
+catch e:
+    message = e
+assert.eq(message, "json indent must be an integer", "indent invalido")
+
+let ok = json.decode(" {\"a\": [true, false, null]} ")
+assert.eq(ok.a[0], true, "recuperacion tras error")
+assert.eq(ok.a[1], false, "false")
+assert.eq(ok.a[2], nil, "null")
+
+assert.report()

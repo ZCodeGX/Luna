@@ -1,0 +1,27 @@
+import gml_native
+
+pub let app = gml_native.app
+pub let window = gml_native.window
+pub let button = gml_native.button
+pub let label = gml_native.label
+pub let entry = gml_native.entry
+pub let text = gml_native.text
+pub let checkbox = gml_native.checkbox
+pub let set_text = gml_native.set_text
+pub let get_text = gml_native.get_text
+pub let poll = gml_native.poll
+pub let show = gml_native.show
+pub let quit = gml_native.quit
+
+pub fn run(app, handler, timeout):
+    let wait = timeout
+    if wait == nil:
+        wait = 16
+    while 1 > 0:
+        let event = gml_native.poll(app, wait)
+        if event != nil:
+            if handler != nil:
+                handler(event)
+            if event.type == "close" or event.type == "quit":
+                return event.type
+    return "quit"

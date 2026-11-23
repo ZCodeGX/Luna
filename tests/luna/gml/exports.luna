@@ -1,0 +1,17 @@
+import assert
+import gml
+
+assert.eq(type(gml.app), "function", "app")
+assert.eq(type(gml.window), "function", "window")
+assert.eq(type(gml.button), "function", "button")
+assert.eq(type(gml.label), "function", "label")
+assert.eq(type(gml.entry), "function", "entry")
+assert.eq(type(gml.text), "function", "text")
+assert.eq(type(gml.checkbox), "function", "checkbox")
+assert.eq(type(gml.set_text), "function", "set_text")
+assert.eq(type(gml.get_text), "function", "get_text")
+assert.eq(type(gml.poll), "function", "poll")
+assert.eq(type(gml.show), "function", "show")
+assert.eq(type(gml.quit), "function", "quit")
+assert.eq(type(gml.run), "function", "run")
+assert.report()

@@ -1,0 +1,17 @@
+import assert
+import json
+import string
+
+let one = { a = [1] }
+
+assert.eq(json.pretty(one), "{\n  \"a\": [\n    1\n  ]\n}", "pretty por defecto")
+assert.eq(json.pretty(one, 4), "{\n    \"a\": [\n        1\n    ]\n}", "pretty indent 4")
+assert.eq(json.pretty(one, 0), "{\n\"a\": [\n1\n]\n}", "pretty indent 0")
+assert.eq(json.pretty([1, 2]), "[\n  1,\n  2\n]", "pretty lista")
+assert.eq(json.pretty({}), "{}", "pretty objeto vacio")
+assert.eq(string.contains(json.pretty(one, 2), "\"a\": ["), true, "pretty contiene clave")
+
+let back = json.decode(json.pretty(one))
+assert.eq(back.a[0], 1, "pretty sigue siendo valido")
+
+assert.report()

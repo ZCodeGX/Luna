@@ -1,0 +1,13 @@
+import json_native
+
+pub let encode = json_native.encode
+pub let stringify = json_native.stringify
+pub let decode = json_native.decode
+pub let parse = json_native.parse
+pub let pretty = json_native.pretty
+
+pub fn is_object(value):
+    return type(value) == "table"
+
+pub fn is_array(value):
+    return type(value) == "list"

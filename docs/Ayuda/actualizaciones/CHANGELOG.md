@@ -6,7 +6,7 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 
 ### Añadido
 
-- Suite modular `tests/luna/` con 76 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI, HTTP y estrés de VM.
+- Suite modular `tests/luna/` con 84 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI, HTTP y estrés de VM.
 - Caso de estrés con 2000 aserciones ejecutadas desde Luna y cobertura explícita de comentarios `#`.
 - Regresiones para `else if`, upvalues de segundo nivel y `throw` desde funciones llamadas.
 - Interfaz animada de `install.sh` con banner, colores, progreso, resumen de versiones, rutas y modo `--info` para Linux/macOS.
@@ -14,6 +14,10 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - Módulo `http` con cliente HTTP/1.1, servidor básico, helpers de URL y respuestas `reply`, `text` y `html`.
 - Primitivas nativas `http_native.request`, `listen`, `accept`, `respond`, `close` y `close_connection`.
 - Pruebas HTTP de helpers, errores, contrato de servidor y petición real contra un servidor local.
+- Módulo `json` con `encode`, `decode`, `pretty`, `stringify` y `parse`, con soporte para valores anidados y escapes Unicode.
+- Módulo `csv` con `parse`, `decode`, `encode` y `stringify`, incluyendo comillas, saltos de línea y delimitadores personalizados.
+- Módulo gráfico `gml` sobre un backend Tkinter: ventanas, etiquetas, botones, entradas de texto, áreas de texto, casillas y eventos.
+- Fixture de tests para la global `input` con y sin mensaje leyendo desde stdin.
 
 ### Corregido
 

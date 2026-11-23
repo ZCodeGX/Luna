@@ -1,0 +1,21 @@
+import assert
+import csv
+
+let rows = csv.parse("a,b,c\n1,2,3\n")
+
+assert.eq(type(rows), "list", "parse devuelve lista")
+assert.eq(type(rows[0]), "list", "cada fila es lista")
+assert.eq(len(rows), 2, "dos filas")
+assert.eq(len(rows[0]), 3, "tres columnas")
+assert.eq(rows[0][0], "a", "primera celda")
+assert.eq(rows[0][2], "c", "ultima celda de la primera fila")
+assert.eq(rows[1][0], "1", "primera celda de la segunda fila")
+assert.eq(rows[1][2], "3", "ultima celda")
+assert.eq(len(csv.parse("")), 0, "texto vacio")
+assert.eq(len(csv.parse("a,b")), 1, "fila final sin newline")
+assert.eq(csv.parse("a,b")[0][1], "b", "campo final sin newline")
+assert.eq(csv.parse("a\r\nb\r\n")[1][0], "b", "CRLF")
+assert.eq(csv.parse("\n")[0][0], "", "fila vacia")
+assert.eq(csv.decode("x,y")[0][0], "x", "alias decode")
+
+assert.report()

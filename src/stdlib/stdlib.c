@@ -345,4 +345,7 @@ void luna_open_stdlib(LunaState* L) {
     luna_open_system_lib(L);
     luna_open_ffi_lib(L);
     luna_open_http_lib(L);
+    luna_open_json_lib(L);
+    luna_open_csv_lib(L);
+    luna_open_gml_lib(L);
 }

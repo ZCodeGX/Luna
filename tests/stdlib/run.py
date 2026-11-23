@@ -10,7 +10,8 @@ import threading
 ROOT = Path(__file__).resolve().parents[2]
 BIN = ROOT / "build" / "luna"
 TESTS = Path(__file__).resolve().parent
-FIXTURES = ["core", "math_string", "collections", "system", "http"]
+FIXTURES = ["core", "math_string", "collections", "system", "http", "input"]
+INPUTS = {"input": "Luna\n1923\n"}
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -42,6 +43,7 @@ def main():
                     env=env,
                     capture_output=True,
                     text=True,
+                    input=INPUTS.get(name),
                 )
 
                 if result.returncode != 0:

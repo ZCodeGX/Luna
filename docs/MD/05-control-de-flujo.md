@@ -1,5 +1,7 @@
 # 05 — Control de flujo
 
+Las cabeceras de bloque terminan siempre en `:`. El cuerpo se indenta con espacios.
+
 ## if / else if / else
 
 Los condicionales usan la verdad del programa: solo `nil` y `false` son falsy.
@@ -15,6 +17,12 @@ else:
     print("pequeño")
 ```
 
+Salida:
+
+```text
+mediano
+```
+
 Los `else if` se recogen en una lista plana en el AST, no como condicionales anidados.
 
 ## while
@@ -27,37 +35,44 @@ while n > 0:
     n = n - 1
 ```
 
-La condición se evalúa antes de cada iteración.
+Salida:
 
-## for
-
-La gramática prevé:
-
-```luna
-for clave, valor in coleccion:
-    print(clave, valor)
+```text
+3
+2
+1
 ```
 
-> [!WARNING]
-> `for` está implementado en el lexer, el parser y el AST, pero el compilador emite `for loops not yet implemented`.
+La condición se evalúa antes de cada iteración. No hay un `break` compilado: si necesitas salir, controla la condición del `while`.
 
-## break y continue
+## Construcciones no compiladas
+
+| Construcción | Parser | Compilador |
+| --- | --- | --- |
+| `for ... in` | Sí | Emite `for loops not yet implemented` |
+| `break`, `continue` | Sí | No genera código |
+| Lambdas anónimas `fn(...)` | Sí | Nodo `NODE_LAMBDA` sin compilar |
+| `+` entre strings | Sí | Error de tipo en runtime |
+
+Un `for` o un `break` en código aparentemente válido produce un error en tiempo de compilación o ejecución. La alternativa es `while`, como en el ejemplo anterior. Consulta el [estado de implementación](11-estado-de-implementacion.md) y las [recetas](17-recetas.md).
+
+## try / catch
+
+Los bloques con manejo de errores también exigen `:` en `try` y en `catch`:
 
 ```luna
-while true:
-    break
+try:
+    print(1 / 0)
+catch error:
+    print("capturado:", error)
 ```
 
-> [!WARNING]
-> `break` y `continue` se parsean como sentencias, pero el compilador aún no genera código para ellas.
+Salida:
 
-## Bloques
-
-Todo bloque requiere una nueva línea y una indentación mayor. Se admite `:` opcional antes del salto de línea:
-
-```luna
-if true::
-    print("uno")
+```text
+capturado: division by zero
 ```
+
+La explicación completa está en [manejo de errores](08-manejo-de-errores.md).
 
 Continúa con [funciones](06-funciones.md).

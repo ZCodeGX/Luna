@@ -11,8 +11,8 @@
 ```c
 #define LUNA_VERSION_MAJOR 0
 #define LUNA_VERSION_MINOR 7
-#define LUNA_VERSION_PATCH 0
-#define LUNA_VERSION_STRING "0.7.5"
+#define LUNA_VERSION_PATCH 6
+#define LUNA_VERSION_STRING "0.7.6"
 #define LUNA_ABI_VERSION   1
 ```
 
@@ -148,6 +148,19 @@ int  luna_add_path(LunaState *L, const char *path); /* alias corto */
 ```
 
 Una función nativa devuelve cuántos resultados dejó en la pila; un negativo indica error con el mensaje en el tope. Nunca se deben propagar excepciones C++ a través de la API C.
+
+## FFI y biblioteca estándar
+
+`luna_new(NULL)` registra automáticamente la biblioteca estándar, incluida la función nativa `__ffi_declare` y el módulo `ffi_native`. No hay que llamar a nada desde C para habilitarla: desde un script funcionan `extern` e `import ffi` con las mismas reglas que cualquier otra función nativa. Los límites y la sintaxis están en [FFI](15-ffi.md).
+
+Si `luna_dostring` o `luna_dofile` devuelven un estado distinto de `LUNA_OK`, el mensaje se consulta con `luna_last_error`:
+
+```c
+LunaStatus st = luna_dostring(L, "print(1 + 2)", "=ejemplo");
+if (st != LUNA_OK) {
+    fprintf(stderr, "%s\n", luna_last_error(L));
+}
+```
 
 ## Wrapper C++
 

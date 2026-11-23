@@ -11,7 +11,7 @@ Luna se distribuye bajo **GNU General Public License v3.0** (GPL-3.0). El texto 
 
 ## Requisito práctico
 
-Cualquier modificación o distribución debe mantener el código abierto y compartirse bajo la misma licencia. Esto se indica también en el [README principal](../../../README.md).
+Cualquier modificación o distribución debe mantener el código abierto y compartirse bajo la misma licencia. Esto se indica también en el [README principal](../../../README.md) y en la [información general](informacion-general.md) de Luna `0.7.6`.
 
 ## Encabezado recomendado para archivos nuevos
 

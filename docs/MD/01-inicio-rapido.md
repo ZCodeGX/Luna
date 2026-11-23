@@ -1,53 +1,96 @@
 # 01 — Inicio rápido
 
-## Requisitos
+Luna `0.7.6` se compila desde el repositorio con Python 3 y un compilador C11. Esta guía es la ruta más corta para escribir y ejecutar tu primer programa.
 
-- Python 3 para el sistema de build `luna.py`.
-- Compilador C11 (`cc`, `gcc` o `clang`).
-
-## Compilar
+## Requisitos y compilación
 
 ```bash
+python3 --version
+cc --version
 ./luna.py build
 ```
 
-El binario resultante se crea en `build/luna`. La compilación es incremental y tiene en cuenta cambios en fuentes y encabezados. Otras opciones:
+Desde la raíz del repositorio, `./luna.py build` genera `build/luna`. Para verificar la instalación:
 
 ```bash
-./luna.py build -v
-./luna.py clean
-./luna.py info
-./luna.py graph > deps.dot
+./build/luna -V
+./luna.py test
 ```
 
-## Ejecutar
+También puedes instalar el binario con [`install.sh`](../../install.sh) en Linux/macOS o [`install.ps1`](../../install.ps1) en Windows.
 
-```bash
-./build/luna -c 'let x = 1'
-./build/luna programa.luna
-cat programa.luna | ./build/luna -
-./build/luna
-```
+## Cuatro formas de ejecutar
 
-La última forma abre el REPL, con prompt `>>>`.
+| Forma | Comando | Uso típico |
+| --- | --- | --- |
+| Cadena | `./build/luna -c 'let x = 1'` | Pruebas de una línea |
+| Archivo | `./build/luna programa.luna` | Programas completos |
+| Entrada estándar | `printf 'print("hola")\n' | ./build/luna -` | Tuberías desde otros programas |
+| REPL | `./build/luna` | Explorar sin crear archivos |
 
-## Primer programa
+El REPL muestra el prompt `>>>`. En los modos `-c` y `-`, la global `argv` contiene el indicador en el índice 1. Consulta la [referencia de CLI](09-cli-y-build.md) para todas las opciones.
+
+## Tu primer programa
+
+Crea `hola.luna` con este contenido:
 
 ```luna
-fn main():
-    let nombre = "Luna"
-    print("Hola", nombre)
-
-main()
+let nombre = "Luna"
+print("Hola,", nombre)
 ```
 
-## Convenciones del proyecto
+Ejecútalo:
 
-- Los archivos de programa usan la extensión `.luna`.
-- Los módulos se resuelven como `<ruta>/mod.luna` o `<ruta>.luna`.
-- Los ejemplos ejecutables del repositorio están en `tests/`.
-- El bytecode compilado usa la extensión `.luac` (magia `LUNA`, versión `0.1`).
+```bash
+./build/luna hola.luna
+```
+
+Salida:
+
+```text
+Hola, Luna
+```
+
+`print` separa sus argumentos con espacios y añade un salto de línea. Los strings van siempre entre comillas dobles.
+
+## Un programa con función
+
+Crea `cuadrado.luna`:
+
+```luna
+fn cuadrado(x):
+    return x * x
+
+print(cuadrado(5))
+```
+
+Salida:
+
+```text
+25
+```
+
+La cabecera `fn` termina en `:` y el cuerpo se indenta con espacios. Lo mismo exigen `if`, `else`, `while`, `try` y `catch`. Los tabuladores en la indentación son un error.
+
+## Si algo falla
+
+Si falta el `:`, el diagnóstico es parecido a:
+
+```text
+SyntaxError: expected ':' after function signature
+
+    help: insert ':' at the end of the line
+```
+
+Más ejemplos en [diagnósticos](13-diagnosticos.md) y en [solución de problemas](../Ayuda/extra/solucion-de-problemas.md).
 
 ## Siguiente paso
 
-Continúa con [sintaxis básica](02-sintaxis-basica.md).
+Sigue la ruta guiada:
+
+1. [Sintaxis básica](02-sintaxis-basica.md) y [tipos de datos](03-tipos-de-datos.md).
+2. [Control de flujo](05-control-de-flujo.md) y [funciones](06-funciones.md).
+3. [Primer proyecto](16-primer-proyecto.md) para juntar listas, tablas, funciones y errores.
+4. [FFI](15-ffi.md) y [biblioteca estándar](14-biblioteca-estandar.md) para ampliar el alcance.
+
+Volver al [índice de documentación](README.md).

@@ -41,6 +41,7 @@ static const Kw kKeywords[] = {
     {"try",      3, LUNA_TOK_TRY},
     {"catch",    5, LUNA_TOK_CATCH},
     {"throw",    5, LUNA_TOK_THROW},
+    {"extern",   6, LUNA_TOK_EXTERN},
 };
 
 static void lex_ident(LunaLexer* L, LunaToken* out) {
@@ -288,6 +289,7 @@ const char* luna_token_name(LunaTokenType t) {
         case LUNA_TOK_TRY:            return "TRY";
         case LUNA_TOK_CATCH:          return "CATCH";
         case LUNA_TOK_THROW:          return "THROW";
+        case LUNA_TOK_EXTERN:         return "EXTERN";
         case LUNA_TOK_PLUS:           return "PLUS";
         case LUNA_TOK_MINUS:          return "MINUS";
         case LUNA_TOK_STAR:           return "STAR";

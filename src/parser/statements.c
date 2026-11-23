@@ -1,5 +1,6 @@
 #include "parser_internal.h"
 #include <stdlib.h>
+#include <string.h>
 
 LunaNode* parse_block_after(LunaParser* P, const char* context) {
     int line = P->has_previous ? P->previous.line : P->current.line;
@@ -149,6 +150,83 @@ static LunaNode* parse_return(LunaParser* P) {
     return n;
 }
 
+static LunaNode* parse_extern(LunaParser* P) {
+    int line = P->current.line;
+    int col = P->current.column;
+    advance(P);
+
+    if (!check(P, LUNA_TOK_IDENT)) {
+        syntax_error(P, token_span(P, &P->current),
+                     "names must start with a letter or '_'",
+                     "expected identifier after 'extern'");
+        return NULL;
+    }
+    char* name = copy_token_text(&P->current);
+    advance(P);
+
+    if (!expect(P, LUNA_TOK_LPAREN, "'('")) {
+        free(name);
+        return NULL;
+    }
+
+    LunaNode* library = parse_expr(P, 0);
+    if (!expect(P, LUNA_TOK_COMMA, "','")) {
+        if (library) luna_ast_free(library);
+        free(name);
+        return NULL;
+    }
+
+    LunaNode* signature = parse_expr(P, 0);
+    if (!expect(P, LUNA_TOK_RPAREN, "')'")) {
+        if (library) luna_ast_free(library);
+        if (signature) luna_ast_free(signature);
+        free(name);
+        return NULL;
+    }
+
+    if (!library || library->type != NODE_STRING ||
+        !signature || signature->type != NODE_STRING) {
+        syntax_error(P, token_span(P, &P->current),
+                     "use string literals for library and signature",
+                     "'extern' expects two string literals");
+        if (library) luna_ast_free(library);
+        if (signature) luna_ast_free(signature);
+        free(name);
+        return NULL;
+    }
+
+    char* callee_name = (char*)malloc(sizeof("__ffi_declare"));
+    if (!callee_name) {
+        if (library) luna_ast_free(library);
+        if (signature) luna_ast_free(signature);
+        free(name);
+        return NULL;
+    }
+    memcpy(callee_name, "__ffi_declare", sizeof("__ffi_declare"));
+
+    char* symbol_name = (char*)malloc(strlen(name) + 1);
+    if (!symbol_name) {
+        if (library) luna_ast_free(library);
+        if (signature) luna_ast_free(signature);
+        free(callee_name);
+        free(name);
+        return NULL;
+    }
+    memcpy(symbol_name, name, strlen(name) + 1);
+
+    LunaNode* callee = luna_node_ident(callee_name, line, col);
+    LunaNodeList* args = luna_node_list_one(luna_node_string(symbol_name, strlen(symbol_name), line, col));
+    LunaNodeList* tail = luna_node_list_append(args, library);
+    luna_node_list_append(tail, signature);
+    LunaNode* init = luna_node_call(callee, args, line, col);
+
+    LunaNode* n = luna_node_new(NODE_LET, line, col);
+    n->as.var.name = name;
+    n->as.var.init = init;
+    n->as.var.is_pub = 0;
+    return n;
+}
+
 static LunaNode* parse_import(LunaParser* P) {
     int line = P->current.line, col = P->current.column;
     advance(P);
@@ -255,6 +333,7 @@ static LunaNode* parse_simple_statement(LunaParser* P) {
         return n;
     }
     if (check(P, LUNA_TOK_RETURN))  return parse_return(P);
+    if (check(P, LUNA_TOK_EXTERN)) return parse_extern(P);
     if (check(P, LUNA_TOK_IMPORT))  return parse_import(P);
     if (check(P, LUNA_TOK_BREAK)) {
         int line = P->current.line, col = P->current.column;

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Documentación oficial del lenguaje de programación Luna">
-  <title>Documentación de Luna</title>
+  <meta name="description" content="Aprende Luna en 20 minutos: ruta guiada, tutoriales, referencia completa y ejemplos ejecutables de la versión v0.7.6.">
+  <title>Documentación de Luna · v0.7.6</title>
   <link rel="icon" href="luna-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -15,11 +15,13 @@
       <img src="luna-logo.svg" alt="Luna" width="40" height="40">
       <span>Luna <small>docs</small></span>
     </a>
-    <span class="version">v0.7.5</span>
+    <span class="version">v0.7.6</span>
     <div class="topbar-actions">
-      <label class="search">
-        <input type="search" id="search" placeholder="Buscar sección…" aria-label="Buscar sección" autocomplete="off">
-      </label>
+      <div class="search">
+        <input type="search" id="search" placeholder="Buscar…" aria-label="Buscar en la documentación" aria-controls="search-results" aria-expanded="false" autocomplete="off">
+        <span class="kbd" aria-hidden="true">Ctrl K</span>
+        <ul class="search-results" id="search-results" aria-label="Resultados de búsqueda" aria-live="polite" hidden></ul>
+      </div>
       <button class="icon-button" id="theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">◐</button>
       <a class="icon-button" href="../MD/README.md" aria-label="Ver documentación Markdown" title="Ver documentación Markdown">M↓</a>
     </div>
@@ -28,86 +30,215 @@
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <nav aria-label="Navegación de la documentación">
-        <p class="nav-title">Guía</p>
+        <p class="nav-title">Ruta lunar</p>
         <a href="#inicio">Inicio</a>
-        <a href="#inicio-rapido">Inicio rápido</a>
-        <a href="#sintaxis">Sintaxis básica</a>
+        <a href="#ruta">Ruta lunar</a>
+        <a href="#primer-programa">Primer programa</a>
+        <p class="nav-title">Guía</p>
+        <a href="#sintaxis">Sintaxis</a>
         <a href="#tipos">Tipos de datos</a>
         <a href="#operadores">Operadores</a>
         <a href="#control-flujo">Control de flujo</a>
         <a href="#funciones">Funciones</a>
+        <a href="#colecciones">Colecciones</a>
         <a href="#modulos">Módulos</a>
         <a href="#stdlib">Biblioteca estándar</a>
-        <a href="#errores">Errores</a>
+        <a href="#errores">Errores y diagnósticos</a>
+        <p class="nav-title">Proyecto</p>
+        <a href="#proyecto">Mini agenda</a>
         <p class="nav-title">Referencia</p>
+        <a href="#ffi">FFI</a>
         <a href="#cli">CLI</a>
         <a href="#api-c">API C</a>
         <a href="#estado">Estado y límites</a>
         <p class="nav-title">Recursos</p>
+        <a href="#recursos">Centro de recursos</a>
         <a href="../MD/README.md">Documentos Markdown</a>
         <a href="../Ayuda/README.md">Ayuda y archivos extra</a>
       </nav>
     </aside>
 
-    <main class="content">
+    <main class="content" id="contenido">
+      <nav class="jump-bar" aria-label="Saltos rápidos">
+        <span class="jump-label">Índice</span>
+        <a href="#ruta">01 Ruta</a>
+        <a href="#primer-programa">02 Tutorial</a>
+        <a href="#sintaxis">03 Guía</a>
+        <a href="#proyecto">04 Proyecto</a>
+        <a href="#ffi">05 FFI</a>
+        <a href="#cli">06 CLI</a>
+        <a href="#recursos">07 Recursos</a>
+      </nav>
+
       <section id="inicio" class="hero">
-        <h1>Documentación de <span class="accent">Luna</span></h1>
-        <p>Luna es un lenguaje de programación pequeño, embebible y con CLI estilo Python. Esta página resume la guía completa disponible en formato Markdown.</p>
+        <p class="tag">Observatorio lunar · v0.7.6 · ABI 1</p>
+        <h1>Aprende Luna en <span class="accent">20 minutos</span> y escribe tu primer programa.</h1>
+        <p class="lead">Luna es un lenguaje pequeño, embebible y con CLI estilo Python. Esta web es autocontenida: sigue la ruta, copia los ejemplos y ejecútalos sin consultar fuentes externas.</p>
         <p class="notice">Requiere un compilador C11 y Python 3. La sintaxis y la API C pueden cambiar entre versiones; no se recomienda uso en producción.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#inicio-rapido">Empezar</a>
-          <a class="button" href="../MD/README.md">Ver documentos MD</a>
+          <a class="button primary" href="#ruta">Seguir la ruta lunar</a>
+          <a class="button" href="#primer-programa">Ir al primer programa</a>
+        </div>
+        <div class="card-grid quick-index" aria-label="Índice rápido">
+          <a class="card" href="#primer-programa"><span class="tag">Tutorial</span><strong>Tu primer programa</strong><small>Tres pasos y una salida esperada.</small></a>
+          <a class="card" href="#sintaxis"><span class="tag">Bases</span><strong>Sintaxis y tipos</strong><small>Bloques con <code>:</code>, literales y escapes.</small></a>
+          <a class="card" href="#funciones"><span class="tag">Guía</span><strong>Funciones y colecciones</strong><small>Recursión, closures, listas y tablas.</small></a>
+          <a class="card" href="#proyecto"><span class="tag">Proyecto</span><strong>Mini agenda</strong><small>Un archivo completo y ejecutable.</small></a>
+          <a class="card" href="#ffi"><span class="tag">Referencia</span><strong>FFI con <code>extern</code></strong><small>Llama a C desde Luna.</small></a>
+          <a class="card" href="#cli"><span class="tag">Herramientas</span><strong>CLI y build</strong><small>Todas las opciones y subcomandos.</small></a>
         </div>
       </section>
 
-      <section id="inicio-rapido">
-        <h2>Inicio rápido</h2>
-        <p>Compila el intérprete y ejecuta tu primer programa:</p>
-        <pre><button class="copy" type="button">Copiar</button><code class="language-bash">./luna.py build
-./build/luna -c 'let x = 1'
-./build/luna programa.luna</code></pre>
-        <p>Sin argumentos, <code>./build/luna</code> abre el REPL. Con <code>-</code> lee el programa desde <code>stdin</code>.</p>
+      <section id="ruta">
+        <h2>Ruta lunar</h2>
+        <p class="lead">Cuatro hitos y cerca de 20 minutos. Marca cada hito al terminarlo: el progreso se guarda en este navegador.</p>
+        <div class="progress-rail" role="progressbar" aria-label="Progreso de la ruta lunar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" id="progress-rail">
+          <div class="progress-rail-fill" id="progress-fill"></div>
+        </div>
+        <p class="progress-label">
+          <span id="route-progress" aria-live="polite">0 de 4 hitos completados</span>
+          <button class="text-button" type="button" id="route-reset">Reiniciar ruta</button>
+        </p>
+        <div class="roadmap">
+          <article class="milestone">
+            <input class="checkpoint" type="checkbox" id="hito-despegue" data-checkpoint="despegue">
+            <label for="hito-despegue"><span class="sr-only">Marcar hito Despegue como completado</span></label>
+            <span class="milestone-num">01</span>
+            <h3>Despegue</h3>
+            <p class="tag">3 min · Instalar y ejecutar</p>
+            <p>Compila el intérprete y ejecuta tu primer archivo desde la terminal.</p>
+            <a href="#primer-programa">Abrir hito →</a>
+          </article>
+          <article class="milestone">
+            <input class="checkpoint" type="checkbox" id="hito-orbita" data-checkpoint="orbita">
+            <label for="hito-orbita"><span class="sr-only">Marcar hito Órbita como completado</span></label>
+            <span class="milestone-num">02</span>
+            <h3>Órbita</h3>
+            <p class="tag">6 min · Sintaxis y tipos</p>
+            <p>Domina la indentación, los bloques con <code>:</code>, los literales y los operadores.</p>
+            <a href="#sintaxis">Abrir hito →</a>
+          </article>
+          <article class="milestone">
+            <input class="checkpoint" type="checkbox" id="hito-aterrizaje" data-checkpoint="aterrizaje">
+            <label for="hito-aterrizaje"><span class="sr-only">Marcar hito Aterrizaje como completado</span></label>
+            <span class="milestone-num">03</span>
+            <h3>Aterrizaje</h3>
+            <p class="tag">7 min · Funciones y errores</p>
+            <p>Escribe funciones, maneja colecciones y captura errores con <code>try</code>/<code>catch</code>.</p>
+            <a href="#funciones">Abrir hito →</a>
+          </article>
+          <article class="milestone">
+            <input class="checkpoint" type="checkbox" id="hito-exploracion" data-checkpoint="exploracion">
+            <label for="hito-exploracion"><span class="sr-only">Marcar hito Exploración como completado</span></label>
+            <span class="milestone-num">04</span>
+            <h3>Exploración</h3>
+            <p class="tag">4 min · Módulos, stdlib y FFI</p>
+            <p>Organiza archivos, usa la biblioteca estándar y llama a funciones C.</p>
+            <a href="#modulos">Abrir hito →</a>
+          </article>
+        </div>
+      </section>
+
+      <section id="primer-programa">
+        <h2>Tu primer programa</h2>
+        <p class="lead">Tres pasos. Copia, pega y ejecuta; no hay nada más que instalar que el compilador del repositorio.</p>
+        <div class="step">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <h3>Crea <code>hola.luna</code></h3>
+            <p>Guarda este contenido en un archivo llamado <code>hola.luna</code>.</p>
+            <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let nombre = "Luna"
+print(nombre)</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <h3>Compila y ejecuta</h3>
+            <p>Desde la raíz del repositorio:</p>
+            <pre><button class="copy" type="button">Copiar</button><code class="language-bash">./luna.py build
+./build/luna hola.luna</code></pre>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <h3>Comprueba la salida</h3>
+            <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">Luna</code></pre></div>
+          </div>
+        </div>
+        <div class="callout info">
+          <strong>Atajo:</strong> con <code>./build/luna -c 'let x = 1'</code> ejecutas código sin archivo, con <code>-</code> lees desde <code>stdin</code> y sin argumentos abres el REPL. Ver <a href="#cli">CLI</a>.
+        </div>
       </section>
 
       <section id="sintaxis">
-        <h2>Sintaxis básica</h2>
-        <p>Los bloques se delimitan por indentación con espacios. Los tabuladores en la indentación son un error. El carácter <code>#</code> inicia un comentario de línea y los dos puntos antes de un bloque son opcionales.</p>
-        <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let nombre = "Luna"
+        <h2>Sintaxis</h2>
+        <p class="lead">La indentación define los bloques. Usa espacios (4 por nivel): los tabuladores en la indentación son un error.</p>
+        <ul>
+          <li>Las cabeceras de bloque terminan en <code>:</code> y van seguidas de una línea indentada. Aplica a <code>fn</code>, <code>if</code>, <code>else if</code>, <code>else</code>, <code>while</code>, <code>try</code> y <code>catch</code>.</li>
+          <li>El carácter <code>#</code> inicia un comentario de línea fuera de las cadenas.</li>
+          <li><code>let</code> declara variables reasignables; <code>const</code> declara variables que no pueden reasignarse.</li>
+          <li><code>mod nombre</code> es una declaración de módulo, no una cabecera de bloque: no lleva <code>:</code>.</li>
+        </ul>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let nombre = "Luna"
 const pi = 3.14159
-# esto es un comentario
 
-fn saludar(quien)
-    print("Hola", quien)</code></pre>
+fn saludar(quien):
+    print("Hola", quien)
+
+saludar(nombre)</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">Hola Luna</code></pre></div>
+        </div>
         <h3>Palabras reservadas</h3>
-        <p class="keywords"><code>and</code> <code>break</code> <code>catch</code> <code>const</code> <code>continue</code> <code>else</code> <code>false</code> <code>fn</code> <code>for</code> <code>if</code> <code>import</code> <code>in</code> <code>let</code> <code>mod</code> <code>nil</code> <code>not</code> <code>or</code> <code>pub</code> <code>return</code> <code>throw</code> <code>true</code> <code>try</code> <code>while</code></p>
+        <p class="keywords"><code>and</code> <code>break</code> <code>catch</code> <code>const</code> <code>continue</code> <code>else</code> <code>extern</code> <code>false</code> <code>fn</code> <code>for</code> <code>if</code> <code>import</code> <code>in</code> <code>let</code> <code>mod</code> <code>nil</code> <code>not</code> <code>or</code> <code>pub</code> <code>return</code> <code>throw</code> <code>true</code> <code>try</code> <code>while</code></p>
+        <div class="callout warn">
+          <strong>Ojo:</strong> <code>for</code>, <code>break</code> y <code>continue</code> están en la lista de palabras reservadas, pero el compilador actual no emite código para ellos. Consulta <a href="#control-flujo">control de flujo</a>.
+        </div>
       </section>
 
       <section id="tipos">
         <h2>Tipos de datos</h2>
+        <p class="lead">Nueve tipos en tiempo de ejecución. Las listas y las tablas están disponibles de extremo a extremo.</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Tipo</th><th>Ejemplo</th><th>Notas</th></tr></thead>
             <tbody>
-              <tr><td><code>nil</code></td><td><code>nil</code></td><td>Valor vacío</td></tr>
-              <tr><td><code>boolean</code></td><td><code>true</code>, <code>false</code></td><td>Solo <code>nil</code> y <code>false</code> son falsy</td></tr>
-              <tr><td><code>integer</code></td><td><code>42</code>, <code>0x2A</code>, <code>0b101010</code></td><td>Decimal, hexadecimal y binario</td></tr>
-              <tr><td><code>float</code></td><td><code>3.14</code>, <code>1e-3</code></td><td>Notación decimal y exponencial</td></tr>
-              <tr><td><code>string</code></td><td><code>"hola"</code></td><td>Solo comillas dobles</td></tr>
-              <tr><td><code>list</code></td><td><code>[1, 2, 3]</code></td><td>Reconocido por el parser</td></tr>
-              <tr><td><code>table</code></td><td><code>{ x = 1 }</code></td><td>Claves identificador</td></tr>
-              <tr><td><code>function</code></td><td><code>fn f() ...</code></td><td>Definidas con <code>fn</code> o nativas C</td></tr>
-              <tr><td><code>userdata</code></td><td>—</td><td>Datos opacos desde C</td></tr>
+              <tr><td><code>nil</code></td><td><code>nil</code></td><td>Valor vacío; es falso en una condición.</td></tr>
+              <tr><td><code>boolean</code></td><td><code>true</code>, <code>false</code></td><td>Solo <code>nil</code> y <code>false</code> son falsy.</td></tr>
+              <tr><td><code>integer</code></td><td><code>42</code>, <code>0x2A</code>, <code>0b101010</code></td><td>Decimal, hexadecimal y binario.</td></tr>
+              <tr><td><code>float</code></td><td><code>3.14</code>, <code>1e-3</code>, <code>2.5E+4</code></td><td>Notación decimal y exponencial.</td></tr>
+              <tr><td><code>string</code></td><td><code>"hola"</code></td><td>Solo comillas dobles; admite escapes.</td></tr>
+              <tr><td><code>list</code></td><td><code>[1, 2, 3]</code></td><td>Secuencia indexable; se puede modificar.</td></tr>
+              <tr><td><code>table</code></td><td><code>{ x = 1 }</code></td><td>Claves de identificador; acceso <code>t.clave</code> y <code>t["clave"]</code>.</td></tr>
+              <tr><td><code>function</code></td><td><code>fn f():</code></td><td>Definidas con <code>fn</code> o registradas desde C.</td></tr>
+              <tr><td><code>userdata</code></td><td><code>ffi.declare(...)</code></td><td>Datos opacos creados desde la API C o FFI.</td></tr>
             </tbody>
           </table>
         </div>
-        <p>Las cadenas admiten los escapes <code>\n</code>, <code>\t</code>, <code>\r</code>, <code>\0</code>, <code>\\</code> y <code>\"</code>.</p>
+        <h3>Literales y escapes</h3>
+        <p>Las cadenas admiten <code>\n</code>, <code>\t</code>, <code>\r</code>, <code>\0</code>, <code>\\</code> y <code>\"</code>. Consulta el tipo en tiempo de ejecución con <code>type(valor)</code>.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let a = 42
+let b = 0x2A
+let c = 0b101010
+let d = 3.14
+let e = 1e-3
+let f = 2.5E+4
+let numeros = [1, 2, 3]
+let persona = { nombre = "Ada", edad = 36 }
+print(type(a), type(d), type(numeros))</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">integer float list</code></pre></div>
+        </div>
       </section>
 
       <section id="operadores">
         <h2>Operadores</h2>
+        <p class="lead">De menor a mayor precedencia. La asociatividad indica cómo se agrupan operadores del mismo nivel.</p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Prioridad</th><th>Operadores</th><th>Asociatividad</th></tr></thead>
+            <thead><tr><th>Nivel</th><th>Operadores</th><th>Asociatividad</th></tr></thead>
             <tbody>
               <tr><td>1</td><td><code>or</code></td><td>izquierda</td></tr>
               <tr><td>2</td><td><code>and</code></td><td>izquierda</td></tr>
@@ -119,95 +250,435 @@ fn saludar(quien)
             </tbody>
           </table>
         </div>
-        <p>La división <code>/</code> y la potencia <code>**</code> producen <code>float</code>. Dividir entre cero es un error. El operador <code>+</code> no concatena cadenas.</p>
+        <p>La división <code>/</code> y la potencia <code>**</code> producen <code>float</code>; dividir entre cero es un error capturable. Las asignaciones compuestas <code>+=</code>, <code>-=</code>, <code>*=</code> y <code>/=</code> funcionan con variables, índices y campos.</p>
+        <div class="callout warn">
+          <strong>Importante:</strong> <code>+</code> no concatena cadenas. Para mostrar varias piezas usa <code>print(a, b)</code>; para unir una lista de texto usa <code>string.join</code>. Ver <a href="#stdlib">biblioteca estándar</a>.
+        </div>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let a = 7
+let b = 2
+print(a + b)
+print(a / b)
+print(a ** b)
+print(a % b)
+print(not (a == b))</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">9
+3.5
+49
+1
+true</code></pre></div>
+        </div>
       </section>
 
       <section id="control-flujo">
         <h2>Control de flujo</h2>
-        <pre><button class="copy" type="button">Copiar</button><code class="language-luna">if x &gt; 10
+        <p class="lead">Las cabeceras <code>if</code>, <code>else if</code>, <code>else</code> y <code>while</code> terminan en <code>:</code>.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let x = 12
+
+if x &gt; 10:
     print("grande")
-else if x &gt; 5
+else if x &gt; 5:
     print("mediano")
-else
+else:
     print("pequeño")
 
-while x &gt; 0
-    x = x - 1</code></pre>
-        <p><code>if</code>/<code>else if</code>/<code>else</code> y <code>while</code> están implementados. <code>for</code>, <code>break</code> y <code>continue</code> son aceptados por el parser pero aún no se compilan.</p>
+while x &gt; 0:
+    x -= 3
+print(x)</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">grande
+0</code></pre></div>
+        </div>
+        <h3>Lo que aún no se compila</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Construcción</th><th>Parser</th><th>Compilador / VM</th><th>Alternativa</th></tr></thead>
+            <tbody>
+              <tr><td><code>for ... in</code></td><td>Sí</td><td>No: <code>for loops not yet implemented</code></td><td><code>while</code> con un índice.</td></tr>
+              <tr><td><code>break</code></td><td>Sí</td><td>No genera código</td><td>Reestructura la condición del <code>while</code>.</td></tr>
+              <tr><td><code>continue</code></td><td>Sí</td><td>No genera código</td><td>Agrupa el trabajo bajo una condición.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <details class="solution">
+          <summary>Solución: cuenta atrás sin <code>for</code></summary>
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">let i = 5
+while i &gt; 0:
+    print(i)
+    i -= 1</code></pre>
+        </details>
       </section>
 
       <section id="funciones">
         <h2>Funciones</h2>
-        <p>Se definen con <code>fn</code>, se llama con paréntesis y se usa <code>return</code> para devolver un valor. Los parámetros omitidos se inicializan con <code>nil</code>.</p>
-        <pre><button class="copy" type="button">Copiar</button><code class="language-luna">fn suma(a, b)
+        <p class="lead">Se definen con <code>fn nombre(parámetros):</code>, se llaman con paréntesis y devuelven valores con <code>return</code>. Los parámetros omitidos se inicializan con <code>nil</code>.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">fn suma(a, b):
     return a + b
 
 print(suma(2, 3))</code></pre>
-        <p><code>print</code> es la única función nativa registrada; imprime sus argumentos separados por espacios y termina con salto de línea.</p>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">5</code></pre></div>
+        </div>
+        <h3>Recursión</h3>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">fn deep(n):
+    if n == 0:
+        return 0
+    return 1 + deep(n - 1)
+
+print(deep(150))</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">150</code></pre></div>
+        </div>
+        <h3>Closures</h3>
+        <p>Una función definida dentro de otra captura las variables de su entorno. Aquí <code>get</code> y <code>set</code> comparten la misma variable <code>x</code>.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">fn make():
+    let x = 10
+    fn get():
+        return x
+    fn set(v):
+        x = v
+    return [get, set]
+
+let p = make()
+print(p[0]())
+p[1](99)
+print(p[0]())</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">10
+99</code></pre></div>
+        </div>
+        <p><code>print</code> es una nativa, pero no la única: <code>len</code>, <code>type</code>, <code>str</code>, <code>int</code>, <code>float</code> e <code>input</code> y los módulos de la biblioteca estándar también registran sus propias nativas.</p>
+      </section>
+
+      <section id="colecciones">
+        <h2>Colecciones</h2>
+        <p class="lead">Listas y tablas literales con indexación, acceso a campos y asignación compuesta.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import list
+import table
+
+let nums = [10, 20, 30]
+print(nums[0])
+nums[0] = 99
+nums[1] += 5
+print(nums[0], nums[1])
+
+let config = { host = "localhost", port = 8080 }
+print(config.host, config.port)
+config.port += 100
+config["port"] += 1
+print(config.port)
+
+list.push(nums, 40)
+print(list.first(nums), list.last(nums))
+print(table.has(config, "host"))
+print(table.get(config, "port"))</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">10
+99 25
+localhost 8080
+8181
+99 40
+true
+8181</code></pre></div>
+        </div>
+        <p>El módulo <code>list</code> expone <code>new</code>, <code>push</code>, <code>pop</code>, <code>get</code>, <code>set</code>, <code>len</code>, <code>first</code>, <code>last</code>, <code>map</code>, <code>filter</code> y <code>reduce</code>, entre otros. El módulo <code>table</code> expone <code>new</code>, <code>get</code>, <code>set</code>, <code>has</code>, <code>keys</code>, <code>values</code> y <code>merge</code>.</p>
       </section>
 
       <section id="modulos">
         <h2>Módulos y visibilidad</h2>
-        <p>El lenguaje reconoce <code>import ruta.modulo</code>, <code>mod nombre</code> y el modificador <code>pub</code> para exportar funciones, variables y módulos. La resolución busca <code>&lt;ruta&gt;/mod.luna</code> y después <code>&lt;ruta&gt;.luna</code>, y detecta imports circulares.</p>
-        <p class="notice">Estas construcciones están en la gramática y en el cargador de módulos, pero el compilador actual aún no las emite.</p>
+        <p class="lead">Un archivo <code>saludo.luna</code> declara el módulo con <code>mod saludo</code>, y <code>pub</code> marca lo que se exporta. Otro archivo lo consume con <code>import saludo</code>.</p>
+        <div class="example">
+          <p class="file-label">saludo.luna</p>
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">mod saludo
+
+pub let VERSION = 1
+
+pub fn hola():
+    return "Hola desde saludo"</code></pre>
+          <p class="file-label">main.luna</p>
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import saludo
+
+fn main():
+    print("Probando imports")
+    print(saludo.hola())
+    print(saludo.VERSION)
+
+main()</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">Probando imports
+Hola desde saludo
+1</code></pre></div>
+        </div>
+        <p><code>import ruta.modulo</code> resuelve primero <code>&lt;ruta&gt;/mod.luna</code> y después <code>&lt;ruta&gt;.luna</code>. El cargador detecta imports circulares. <code>mod nombre</code> no abre un bloque, por eso no lleva <code>:</code>; las funciones y variables declaradas dentro sí usan <code>:</code> en sus cabeceras.</p>
+        <div class="callout info">
+          <strong>Estado:</strong> <code>import</code>, <code>mod</code>, <code>pub</code> y el acceso <code>obj.campo</code> están compilados y disponibles en 0.7.6.
+        </div>
       </section>
 
       <section id="stdlib">
         <h2>Biblioteca estándar</h2>
-        <p>Luna incluye las funciones globales <code>len</code>, <code>type</code>, <code>str</code>, <code>int</code>, <code>float</code> e <code>input</code>, además de los módulos <code>math</code>, <code>string</code>, <code>table</code>, <code>list</code>, <code>io</code>, <code>os</code>, <code>time</code> y <code>path</code>. Cada carpeta de <code>Lib/</code> reparte su implementación en varios archivos <code>.luna</code>; la capa nativa en C queda oculta tras módulos <code>_native</code>.</p>
-        <pre><code>import math
+        <p class="lead">Funciones globales y módulos repartidos en <code>Lib/</code>, con una capa nativa en C oculta tras módulos <code>_native</code>.</p>
+        <p class="keywords"><code>len</code> <code>type</code> <code>str</code> <code>int</code> <code>float</code> <code>input</code></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Módulo</th><th>Contenido</th></tr></thead>
+            <tbody>
+              <tr><td><code>math</code></td><td>Operaciones matemáticas, <code>sqrt</code>, <code>sum</code>, constantes.</td></tr>
+              <tr><td><code>string</code></td><td><code>upper</code>, <code>lower</code>, <code>split</code>, <code>join</code>, <code>strip</code>.</td></tr>
+              <tr><td><code>list</code></td><td>Creación, push/pop, búsqueda, map/filter/reduce.</td></tr>
+              <tr><td><code>table</code></td><td>Claves, valores, fusión y acceso con valor por defecto.</td></tr>
+              <tr><td><code>io</code></td><td>Lectura y escritura de archivos de texto y bytes.</td></tr>
+              <tr><td><code>os</code></td><td>Entorno, argumentos y operaciones del sistema.</td></tr>
+              <tr><td><code>time</code></td><td>Fecha, hora y temporizadores.</td></tr>
+              <tr><td><code>path</code></td><td>Composición y consulta de rutas.</td></tr>
+              <tr><td><code>ffi</code></td><td>Declaración dinámica de símbolos nativos. Ver <a href="#ffi">FFI</a>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import math
 import string
+import list
 
-print(math.sqrt(16))
-print(string.upper("luna"))</code></pre>
+fn double(x):
+    return x * 2
+
+let values = list.map([1, 2, 3], double)
+print(math.sum(values))
+print(string.join(",", values))</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">12
+2,4,6</code></pre></div>
+        </div>
+        <p>Referencia detallada: <a href="../MD/14-biblioteca-estandar.md">14 — Biblioteca estándar</a>.</p>
       </section>
 
       <section id="errores">
-        <h2>Manejo de errores</h2>
-        <p>Las sentencias <code>try</code> / <code>catch nombre</code> y <code>throw expresion</code> están disponibles desde código fuente. Los errores de runtime, como la división por cero, se convierten en excepciones capturables.</p>
+        <h2>Errores y diagnósticos</h2>
+        <p class="lead"><code>try:</code> y <code>catch e:</code> capturan errores de ejecución, incluidos los errores convertidos en excepciones como la división por cero. <code>throw expresion</code> lanza un valor.</p>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">try:
+    throw "boom"
+catch e:
+    print("caught:", e)
+
+try:
+    print(1 / 0)
+catch e:
+    print("caught:", e)
+
+print("after")</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">caught: boom
+caught: division by zero
+after</code></pre></div>
+        </div>
+        <h3>Un diagnóstico real</h3>
+        <p>Este programa intenta reasignar una constante:</p>
+        <pre><button class="copy" type="button">Copiar</button><code class="language-luna">const x = 1
+x = 2</code></pre>
+        <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">  File "ejemplo.luna", line 2
+    x = 2
+    ^
+SyntaxError: cannot reassign 'const' variable</code></pre></div>
+        <p>La CLI también ofrece una forma compacta: <code>luna: cannot reassign 'const' variable</code>. Los diagnósticos usan nombres de tipo estilo Python (<code>SyntaxError</code>, <code>IndentationError</code>, <code>TypeError</code>…), sin códigos numéricos, y pueden mostrar varios errores en un mismo pase con <code>--max-errors=N</code>.</p>
+        <p>Más detalles en <a href="../MD/13-diagnosticos.md">13 — Diagnósticos</a> y <a href="../MD/08-manejo-de-errores.md">08 — Manejo de errores</a>.</p>
+      </section>
+
+      <section id="proyecto">
+        <h2>Proyecto guiado: Mini agenda</h2>
+        <p class="lead">Un solo archivo, <code>agenda.luna</code>, que puedes copiar tal cual. Usa una lista de tablas, funciones, <code>while</code>, <code>if</code>, <code>try</code>/<code>catch</code> y una entrada opcional protegida.</p>
+        <pre><button class="copy" type="button">Copiar</button><code class="language-luna">import list
+
+fn anadir(agenda, nombre, telefono):
+    list.push(agenda, { nombre = nombre, telefono = telefono })
+    print("Anadido:", nombre)
+
+fn mostrar(agenda):
+    if len(agenda) == 0:
+        print("Agenda vacia")
+        return nil
+    let i = 0
+    while i &lt; len(agenda):
+        let entry = agenda[i]
+        print(i, entry.nombre, entry.telefono)
+        i += 1
+
+fn buscar(agenda, nombre):
+    let i = 0
+    while i &lt; len(agenda):
+        if agenda[i].nombre == nombre:
+            print("Encontrado:", agenda[i].telefono)
+            return nil
+        i += 1
+    print("No encontrado:", nombre)
+
+let agenda = []
+anadir(agenda, "Ada", "555-0100")
+anadir(agenda, "Linus", "555-0200")
+mostrar(agenda)
+buscar(agenda, "Ada")
+
+let interactivo = false
+if interactivo:
+    try:
+        let nombre = input("Nombre: ")
+        buscar(agenda, nombre)
+    catch e:
+        print("Entrada no disponible:", e)
+
+print("Fin de la agenda")</code></pre>
+        <p class="file-label">Salida esperada</p>
+        <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">Anadido: Ada
+Anadido: Linus
+0 Ada 555-0100
+1 Linus 555-0200
+Encontrado: 555-0100
+Fin de la agenda</code></pre></div>
+        <div class="callout info">
+          <strong>Observa:</strong> no hace falta concatenar cadenas. <code>print</code> admite varios argumentos y los separa con espacios. La entrada interactiva se activa cambiando <code>interactivo</code> a <code>true</code>; si falla, el <code>catch</code> mantiene el programa en marcha.
+        </div>
+        <details class="solution">
+          <summary>Reto: añadir una función <code>eliminar</code></summary>
+          <p>Recorre la lista con <code>while</code>, compara <code>agenda[i].nombre</code> y usa <code>list.pop(agenda, i)</code> cuando encuentres el nombre. Devuelve <code>nil</code> al terminar.</p>
+        </details>
+        <p>También disponible como <a href="../MD/16-primer-proyecto.md">16 — Primer proyecto</a> y <a href="../MD/17-recetas.md">17 — Recetas</a>.</p>
+      </section>
+
+      <section id="ffi">
+        <h2>FFI: llamar a C desde Luna</h2>
+        <p class="lead">La declaración <code>extern nombre("librería", "firma")</code> enlaza una función C. Equivale a <code>let nombre = __ffi_declare("librería", "nombre", "firma")</code>.</p>
+        <h3>Firma y tipos</h3>
+        <p>La firma es <code>"retorno(arg1,arg2,...)"</code>. Tipos aceptados: <code>void</code>, <code>int</code> o <code>i64</code>, <code>float</code>, <code>f64</code> o <code>double</code>, <code>str</code>, <code>string</code> o <code>cstr</code>, y <code>ptr</code> o <code>pointer</code>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Alias</th><th>Librería</th><th>Ejemplo</th></tr></thead>
+            <tbody>
+              <tr><td><code>""</code>, <code>"c"</code>, <code>"libc"</code></td><td>ABI de C</td><td><code>extern strlen("c", "int(str)")</code></td></tr>
+              <tr><td><code>"self"</code></td><td>El propio proceso</td><td>símbolos ya cargados</td></tr>
+              <tr><td><code>"m"</code>, <code>"libm"</code></td><td>Biblioteca matemática</td><td><code>extern pow("m", "float(float,float)")</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="example">
+          <pre><button class="copy" type="button">Copiar</button><code class="language-luna">extern strlen("c", "int(str)")
+extern abs("c", "int(int)")
+extern pow("m", "float(float,float)")
+
+import ffi
+
+let abs2 = ffi.declare("abs", "c", "int(int)")
+let pow2 = ffi.declare_symbol("pow", "pow", "m", "float(float,float)")
+
+print(strlen("luna"))
+print(abs(-7))
+print(abs2(-9))
+print(pow(2.0, 3.0))
+print(pow2(2.0, 4.0))</code></pre>
+          <div class="output"><pre><button class="copy" type="button">Copiar</button><code class="language-output">4
+7
+9
+8
+16</code></pre></div>
+        </div>
+        <p>El módulo <code>ffi</code> permite además <code>load</code> y <code>extension</code> para trabajar con bibliotecas dinámicas.</p>
+        <div class="callout warn">
+          <strong>Límites:</strong> hasta 8 parámetros declarados y 4 argumentos por llamada; los argumentos deben ser homogéneos (no mezcles float con enteros, punteros o cadenas). Solo se admite ABI C: una biblioteca C++ debe exportar con <code>extern "C"</code>. Una firma incompleta como <code>extern foo("c")</code> produce un <code>SyntaxError</code>.
+        </div>
+        <p>Referencia completa: <a href="../MD/15-ffi.md">15 — FFI</a> y <a href="../MD/11-estado-de-implementacion.md">11 — Estado de implementación</a>.</p>
       </section>
 
       <section id="cli">
-        <h2>CLI</h2>
+        <h2>CLI y sistema de build</h2>
+        <p class="lead">El intérprete es <code>./build/luna</code>; el sistema de build es <code>./luna.py</code>.</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Opción</th><th>Descripción</th></tr></thead>
             <tbody>
-              <tr><td><code>-c CODIGO</code></td><td>Ejecuta el código como programa</td></tr>
-              <tr><td><code>-</code></td><td>Lee el programa desde <code>stdin</code></td></tr>
-              <tr><td><code>-h</code>, <code>--help</code></td><td>Muestra la ayuda</td></tr>
-              <tr><td><code>-V</code>, <code>--version</code></td><td>Muestra la versión</td></tr>
-              <tr><td>sin argumentos</td><td>Inicia el REPL con prompt <code>&gt;&gt;&gt;</code></td></tr>
-              <tr><td><code>archivo.luna [args…]</code></td><td>Ejecuta el archivo y expone <code>argv</code></td></tr>
+              <tr><td><code>-c CODIGO</code></td><td>Ejecuta el código pasado como argumento.</td></tr>
+              <tr><td><code>-</code></td><td>Lee el programa desde <code>stdin</code>.</td></tr>
+              <tr><td><code>-h</code>, <code>--help</code></td><td>Muestra la ayuda.</td></tr>
+              <tr><td><code>-V</code>, <code>--version</code></td><td>Muestra la versión.</td></tr>
+              <tr><td><code>--no-color</code></td><td>Desactiva ANSI en los diagnósticos.</td></tr>
+              <tr><td><code>--color</code></td><td>Fuerza ANSI aunque la salida no sea una TTY.</td></tr>
+              <tr><td><code>--max-errors=N</code></td><td>Limita los errores mostrados; <code>0</code> equivale a sin límite.</td></tr>
+              <tr><td>sin argumentos</td><td>Inicia el REPL con prompt <code>&gt;&gt;&gt;</code>.</td></tr>
+              <tr><td><code>archivo.luna [args…]</code></td><td>Ejecuta el archivo y expone los argumentos en <code>argv</code>.</td></tr>
             </tbody>
           </table>
         </div>
-        <p>El sistema de build es <code>./luna.py</code> con los comandos <code>build</code>, <code>clean</code>, <code>info</code> y <code>graph</code>.</p>
+        <h3>Comandos de <code>./luna.py</code></h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Comando</th><th>Descripción</th></tr></thead>
+            <tbody>
+              <tr><td><code>build</code></td><td>Descubre módulos, compila y enlaza <code>build/luna</code>. Acepta <code>-v</code> y <code>--main</code>.</td></tr>
+              <tr><td><code>clean</code></td><td>Limpia los artefactos de compilación.</td></tr>
+              <tr><td><code>test</code></td><td>Ejecuta las suites stdlib, parser_diag, regression y unit.</td></tr>
+              <tr><td><code>info</code></td><td>Muestra información del proyecto.</td></tr>
+              <tr><td><code>graph</code></td><td>Vuelca el grafo de dependencias en formato DOT.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><button class="copy" type="button">Copiar</button><code class="language-bash">./luna.py build
+./luna.py test
+./luna.py info
+./build/luna --no-color --max-errors=0 programa.luna</code></pre>
+        <p>Más detalles en <a href="../MD/09-cli-y-build.md">09 — CLI y build</a> y en <a href="../MD/01-inicio-rapido.md">01 — Inicio rápido</a>.</p>
       </section>
 
       <section id="api-c">
         <h2>API C</h2>
-        <p>Los encabezados públicos están en <code>include/luna/</code>: <code>luna.h</code>, <code>luna.hpp</code> y <code>luna_types.h</code>. La API ofrece gestión de runtime y estado (<code>luna_runtime_new</code>, <code>luna_new</code>), ejecución (<code>luna_dofile</code>, <code>luna_dostring</code>, <code>luna_call</code>, <code>luna_pcall</code>), pila, comprobación de tipos, tablas y listas, referencias, registro de funciones y módulos.</p>
+        <p class="lead">Los encabezados públicos están en <code>include/luna/</code>: <code>luna.h</code>, <code>luna.hpp</code> y <code>luna_types.h</code>. La API cubre creación de estado, ejecución, pila, comprobación de tipos, tablas y listas, referencias y registro de nativas.</p>
         <pre><button class="copy" type="button">Copiar</button><code class="language-c">#include &lt;luna/luna.h&gt;
 
-LunaState *L = luna_new(NULL);
-luna_dostring(L, "print(1 + 2)", "=ejemplo");
-luna_close(L);</code></pre>
-        <p>Una función nativa devuelve el número de resultados apilados; un valor negativo señala error con el mensaje en el tope de la pila.</p>
+int main(void) {
+    LunaState *L = luna_new(NULL);
+    luna_dostring(L, "print(1 + 2)", "=ejemplo");
+    luna_close(L);
+    return 0;
+}</code></pre>
+        <p>Una función nativa registrada devuelve el número de resultados apilados; un valor negativo señala error y deja el mensaje en el tope de la pila. Consulta <a href="../MD/10-api-c.md">10 — API C</a>.</p>
       </section>
 
       <section id="estado">
         <h2>Estado y límites</h2>
-        <p>Luna es <strong>0.7.5</strong> (ABI 1) y se distribuye bajo <strong>GPL-3.0</strong>. Parte de la gramática aún no está implementada de extremo a extremo: <code>for</code>, <code>break</code>, <code>continue</code> y lambdas anónimas.</p>
-        <p>Consulta la <a href="../MD/11-estado-de-implementacion.md">tabla de estado completa</a> y las <a href="../Ayuda/extra/solucion-de-problemas.md">notas de solución de problemas</a>.</p>
+        <p class="lead">Luna <strong>0.7.6</strong> usa <strong>ABI 1</strong> y se distribuye bajo <strong>GPL-3.0</strong>.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Construcción</th><th>Estado real</th></tr></thead>
+            <tbody>
+              <tr><td><code>for ... in</code></td><td>Reconocido por el parser; el compilador informa de que no está implementado.</td></tr>
+              <tr><td><code>break</code>, <code>continue</code></td><td>Reconocidos, sin generación de código.</td></tr>
+              <tr><td>Lambdas anónimas <code>fn(...)</code></td><td>Nodo de AST reconocido, sin compilar.</td></tr>
+              <tr><td>Concatenación de cadenas con <code>+</code></td><td>Error de tipo en tiempo de ejecución; usa <code>print</code> o <code>string.join</code>.</td></tr>
+              <tr><td>FFI <code>extern</code></td><td>Disponible en el árbol de trabajo de 0.7.6. Ver <a href="#ffi">FFI</a>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Otros límites: indentación solo con espacios, profundidad máxima de 256 niveles, cadenas solo con comillas dobles y floats impresos con <code>%g</code>. La sintaxis y la API C pueden cambiar; no se recomienda uso en producción.</p>
+        <p><a href="../MD/11-estado-de-implementacion.md">Estado de implementación</a> · <a href="../MD/13-diagnosticos.md">Diagnósticos</a> · <a href="../MD/12-rendimiento-0-3.md">Rendimiento</a> · <a href="../Ayuda/extra/solucion-de-problemas.md">Solución de problemas</a></p>
+      </section>
+
+      <section id="recursos">
+        <h2>Centro de recursos</h2>
+        <p class="lead">Todo lo demás, a un clic: documentación larga, ayuda, novedades y referencias legales.</p>
+        <div class="card-grid">
+          <a class="card" href="../MD/README.md"><span class="tag">Documentación</span><strong>Índice Markdown</strong><small>Las 17 guías completas en formato Markdown.</small></a>
+          <a class="card" href="../Ayuda/README.md"><span class="tag">Ayuda</span><strong>Ayuda y archivos extra</strong><small>Estructura del proyecto e información general.</small></a>
+          <a class="card" href="../Ayuda/actualizaciones/CHANGELOG.md"><span class="tag">Novedades</span><strong>CHANGELOG</strong><small>Historial de cambios del proyecto.</small></a>
+          <a class="card" href="../Ayuda/extra/glosario.md"><span class="tag">Referencia</span><strong>Glosario</strong><small>Términos del lenguaje y del runtime.</small></a>
+          <a class="card" href="../Ayuda/extra/preguntas-frecuentes.md"><span class="tag">Referencia</span><strong>Preguntas frecuentes</strong><small>Respuestas a las dudas habituales.</small></a>
+          <a class="card" href="../Ayuda/extra/solucion-de-problemas.md"><span class="tag">Soporte</span><strong>Solución de problemas</strong><small>Errores de build, diagnóstico y ejecución.</small></a>
+          <a class="card" href="../Ayuda/informacion/licencia.md"><span class="tag">Legal</span><strong>Licencia</strong><small>Condiciones de distribución GPL-3.0.</small></a>
+          <a class="card" href="../MD/17-recetas.md"><span class="tag">Práctica</span><strong>Recetas</strong><small>Patrones listos para copiar y adaptar.</small></a>
+        </div>
       </section>
 
       <footer class="footer">
-        <p>Luna · documentación comunitaria · <a href="../MD/README.md">Índice MD</a> · <a href="../Ayuda/README.md">Ayuda</a></p>
+        <p>Luna · documentación comunitaria · v0.7.6 · <a href="../MD/README.md">Índice MD</a> · <a href="../Ayuda/README.md">Ayuda</a> · <a href="../Ayuda/informacion/licencia.md">Licencia</a></p>
       </footer>
     </main>
   </div>
 
+  <div class="sr-only" id="live-region" role="status" aria-live="polite"></div>
   <button class="to-top" id="to-top" aria-label="Volver arriba" title="Volver arriba">↑</button>
   <script src="script.js"></script>
 </body>

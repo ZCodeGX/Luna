@@ -1,0 +1,6 @@
+import ffi_native
+
+pub let declare = ffi_native.declare
+pub let declare_symbol = ffi_native.declare_symbol
+pub let load = ffi_native.load
+pub let extension = ffi_native.extension

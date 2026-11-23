@@ -2,6 +2,34 @@
 
 Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube en actualizaciones muy amplias, `MINOR` en mejoras nuevas y `PATCH` en cada corrección.
 
+## 0.7.6
+
+### Añadido
+
+- Soporte FFI inicial con palabra clave `extern` y módulo nativo `ffi`.
+- Funciones `ffi.declare`, `ffi.declare_symbol`, `ffi.load` y `ffi.extension`.
+- Regresión FFI y diagnóstico de sintaxis `extern` en las suites de pruebas.
+- Guías nuevas: inicio rápido, FFI, primer proyecto y recetas en `docs/MD/`, con ejemplos verificados contra los tests.
+- Ruta de aprendizaje guiada en la documentación web y en el índice Markdown.
+
+### Cambiado
+
+- La documentación Markdown y web describe `import`, `mod`, `pub`, listas, tablas, indexación y asignaciones compuestas como características disponibles.
+- `print` deja de presentarse como la única función nativa: se documenta la biblioteca estándar completa.
+
+### Corregido
+
+- `LUNA_VERSION_PATCH` y `LUNA_VERSION_STRING` sincronizados con `0.7.6` en `include/luna/luna.h` y en la API C documentada.
+- Los ejemplos de los documentos usan `:` en las cabeceras de bloque (`fn`, `if`, `else`, `while`, `try`, `catch`).
+- Enlace roto a `docs/MD/01-inicio-rapido.md` solucionado.
+
+### Versiones relacionadas
+
+| Componente | Versión |
+| --- | --- |
+| API C | 0.7.6 (ABI 1) |
+| Bytecode `.luac` | 0.1 (magia `LUNA`, sin cambios) |
+
 ## 0.7.5
 
 ### Añadido

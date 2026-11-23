@@ -2,26 +2,64 @@
 
 ## throw
 
-```luna
-throw "algo salió mal"
-```
-
-`throw` acepta una expresión. El compilador genera el opcode `OP_THROW`; si el valor lanzado es una cadena, se usa como mensaje del error. Una excepción no capturada termina la ejecución y se informa como error no manejado.
+`throw` acepta una expresión. Si el valor lanzado es una cadena, se usa como mensaje del error. Una excepción no capturada termina la ejecución y se informa como error no manejado.
 
 ## try / catch
 
-Sintaxis soportada:
+La sintaxis es:
 
 ```luna
 try:
-    operacion_riesgosa()
-catch error:
-    print("falló:", error)
+    throw "boom"
+catch e:
+    print("capturado:", e)
+
+print("después")
 ```
 
-El compilador emite `OP_SETUP_EXC`, `OP_POP_EXC` y `OP_GET_EXC`. Cada frame mantiene una pila de manejadores (hasta 32 niveles anidados); `OP_THROW` propaga el valor a través de los frames y `catch` lo recibe en la variable indicada.
+Salida:
 
-Los errores de runtime se convierten en excepciones lanzables: por ejemplo, `1 / 0` dentro de un `try` se captura como `"division by zero"`. El valor lanzado se conserva en `L->thrown_value` y es una raíz para el GC.
+```text
+capturado: boom
+después
+```
+
+Tanto `try` como `catch` terminan en `:`; el nombre después de `catch` recibe el valor lanzado. El compilador emite `OP_SETUP_EXC`, `OP_POP_EXC` y `OP_GET_EXC`. Cada frame mantiene una pila de manejadores (hasta 32 niveles anidados); `OP_THROW` propaga el valor a través de los frames.
+
+Los errores de runtime se convierten en excepciones capturables, incluida la división entre cero:
+
+```luna
+try:
+    print(1 / 0)
+catch e:
+    print("capturado:", e)
+
+print("después")
+```
+
+Salida:
+
+```text
+capturado: division by zero
+después
+```
+
+Este es el comportamiento verificado en `tests/regression/exceptions.luna`. Un error lanzado dentro de una función se propaga al `try` de la función llamadora, como se ve en el [primer proyecto](16-primer-proyecto.md).
+
+## Errores de FFI
+
+Las llamadas FFI fallan con mensajes como `ffi: invalid signature '...'`, `ffi: cannot load '...'` o `ffi: mixed float/integer arguments are not supported`. Se pueden capturar con `try`/`catch` igual que cualquier otro error de runtime:
+
+```luna
+import ffi
+
+try:
+    ffi.declare("no_existe", "c", "int(int)")
+catch e:
+    print("capturado:", e)
+```
+
+El mensaje concreto depende de la plataforma y de la biblioteca; consulta [FFI](15-ffi.md).
 
 ## Estados de error
 
@@ -45,6 +83,6 @@ Los estados públicos están definidos en `LunaStatus` (`include/luna/luna_types
 | `LUNA_ERR_ASSERT` | Aserción fallida |
 | `LUNA_ERR_USER` | Error definido por el usuario |
 
-Desde la API C se consultan con `luna_status`, `luna_last_error`, `luna_last_error_line`, `luna_last_error_file` y `luna_last_traceback`. La CLI imprime los errores como `luna: <mensaje>` en stderr y termina con código 1.
+Desde la API C se consultan con `luna_status`, `luna_last_error`, `luna_last_error_line`, `luna_last_error_file` y `luna_last_traceback`. La CLI imprime los errores como `luna: <mensaje>` en stderr y termina con código 1. Para el formato de diagnósticos, consulta [diagnósticos](13-diagnosticos.md).
 
 Continúa con [CLI y build](09-cli-y-build.md).

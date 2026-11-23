@@ -23,5 +23,6 @@ void luna_open_math_lib(LunaState* L);
 void luna_open_string_lib(LunaState* L);
 void luna_open_collection_lib(LunaState* L);
 void luna_open_system_lib(LunaState* L);
+void luna_open_ffi_lib(LunaState* L);
 
 #endif

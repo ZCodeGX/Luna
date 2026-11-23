@@ -10,7 +10,8 @@ Luna/
 │   ├── MD/          documentación Markdown del lenguaje
 │   └── Ayuda/       actualizaciones, información y archivos extra
 ├── include/luna/    encabezados públicos (luna.h, luna.hpp, luna_types.h)
-├── src/             módulos del intérprete
+├── Lib/             biblioteca estándar escrita en Luna (incluye ffi/)
+├── src/             módulos del intérprete (incluye stdlib/ffilib.c)
 ├── tests/           programas .luna y pruebas unitarias en C
 ├── luna.ebnf        gramática formal
 ├── luna.py          sistema de build
@@ -36,11 +37,12 @@ Cada módulo contiene un archivo `luna.build` con `SOURCES`, `HEADERS`, `INCLUDE
 | `vm/` | runtime, bytecode, errors, memory | Pila, aritmética, comparación, llamadas, opcodes |
 | `modules/` | runtime | Registro, resolución, carga, caché, visibilidad |
 | `api/` | runtime, errors, modules, vm, memory, compiler, parser, platform | Implementación de la API C pública |
+| `stdlib/` | runtime, memory, vm, errors, modules, platform | Biblioteca estándar, incluida la FFI (`ffilib.c`) |
 
 ## Notas
 
 - Existen archivos `lume.build` heredados en seis módulos; `luna.py` solo descubre `luna.build` y los ignora.
-- Las pruebas unitarias en `tests/unit/` son dumps C manuales; `luna.py` no tiene comando `test`.
+- `./luna.py test` ejecuta las suites `stdlib`, `parser_diag`, `regression` y `unit`; también se pueden lanzar por separado desde `tests/*/run.py`.
 - Los artefactos de compilación se escriben en `build/src/<mod>/` y el binario en `build/luna`.
 
 Para ver el grafo de dependencias real:

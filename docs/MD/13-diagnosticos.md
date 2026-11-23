@@ -1,6 +1,6 @@
 # 13 — Diagnósticos
 
-Luna `0.7.5` usa diagnósticos con nombres de tipo estilo Python, texto en inglés y **sin códigos numéricos**. El parser continúa tras un error, se sincroniza en fronteras de sentencia y puede reportar varios problemas en un mismo pase.
+Luna `0.7.6` usa diagnósticos con nombres de tipo estilo Python, texto en inglés y **sin códigos numéricos**. El parser continúa tras un error, se sincroniza en fronteras de sentencia y puede reportar varios problemas en un mismo pase.
 
 ## Formato
 
@@ -13,7 +13,9 @@ SyntaxError: expected ':' after function signature
     help: insert ':' at the end of the line
 ```
 
-El encabezado identifica el archivo y la línea; el carets va bajo el token problemático (o al final del token anterior cuando falta `:`). El tipo (`SyntaxError`, `IndentationError`, …) es el identificador del error. No hay `[E000x]`.
+El encabezado identifica el archivo y la línea; el caret va bajo el token problemático (o al final del token anterior cuando falta `:`). El tipo (`SyntaxError`, `IndentationError`, …) es el identificador del error. No hay `[E000x]`.
+
+El ejemplo anterior procede de `tests/parser_diag/fixtures/missing_colon_fn.luna`: una cabecera `fn` sin `:`. Todas las cabeceras de bloque (`fn`, `if`, `else`, `while`, `try`, `catch`) lo exigen. `mod` y `import` son sentencias de una línea y no lo necesitan.
 
 ## Tipos de error
 
@@ -46,10 +48,25 @@ Los tipos específicos se mantienen porque son más informativos que un código 
 | `SyntaxError` | `invalid syntax` | `expected an expression` |
 | `SyntaxError` | `'break' outside loop` | `'break' can only be used inside 'while' or 'for'` |
 | `SyntaxError` | `'try' block requires a 'catch' clause` | `add 'catch e:' at the same indentation level` |
+| `SyntaxError` | `expected ',' but found RPAREN` (en `extern foo("c")`) | `extern` necesita librería y firma: `extern foo("c", "int(int)")` |
 | `IndentationError` | `expected an indented block after 'fn' declaration on line N` | `indent the block with 4 spaces` |
 | `IndentationError` | `unexpected indent` | `this line is more indented than the previous one` |
 | `IndentationError` | `tabs are not allowed for indentation` | `use spaces only (4 spaces per level)` |
 | `IndentationError` | `unindent does not match any outer indentation level` | `check your indentation; use 4 spaces per level` |
+
+### Diagnóstico de FFI
+
+Una declaración `extern` sin firma produce este diagnóstico exacto en el fixture `tests/parser_diag/fixtures/extern_syntax.luna`:
+
+```text
+  File "tests/parser_diag/fixtures/extern_syntax.luna", line 1
+    extern foo("c")
+                  ^
+SyntaxError: expected ',' but found RPAREN
+    note: found RPAREN
+```
+
+La forma válida es `extern foo("c", "int(int)")`. La firma siempre va como segundo argumento. Consulta [FFI](15-ffi.md).
 
 ## CLI
 

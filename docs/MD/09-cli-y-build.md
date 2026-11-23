@@ -1,5 +1,7 @@
 # 09 — CLI y build
 
+La CLI de Luna `0.7.6` se usa desde `build/luna`; el sistema de build es `luna.py`. Si todavía no has compilado, empieza por el [inicio rápido](01-inicio-rapido.md).
+
 ## Intérprete
 
 Ayuda exacta del binario (`cli/main.c`):
@@ -24,6 +26,26 @@ Sin argumentos inicia el intérprete interactivo.
 | `./build/luna` | REPL con prompt `>>>` |
 
 El REPL lee una línea por vez (máximo 8192 bytes) y limpia el error después de cada una. En los modos `-c` y `-`, la lista `argv` incluye el propio indicador en el índice 1.
+
+Ejemplos con salida:
+
+```bash
+./build/luna -c 'print(1 + 2)'
+```
+
+```text
+3
+```
+
+```bash
+printf 'print("hola")\n' | ./build/luna -
+```
+
+```text
+hola
+```
+
+Las opciones `--no-color`, `--color` y `--max-errors=N` controlan el renderizado de diagnósticos; consulta [diagnósticos](13-diagnosticos.md).
 
 ## Sistema de build
 

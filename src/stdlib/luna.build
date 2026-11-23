@@ -4,6 +4,7 @@ SOURCES = [
     'stringlib.c',
     'collectionlib.c',
     'systemlib.c',
+    'ffilib.c',
 ]
 
 HEADERS = [

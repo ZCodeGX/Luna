@@ -1,0 +1,6 @@
+  File "tests/parser_diag/fixtures/extern_syntax.luna", line 1
+    extern foo("c")
+                  ^
+SyntaxError: expected ',' but found RPAREN
+    note: found RPAREN
+

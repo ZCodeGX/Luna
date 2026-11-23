@@ -15,24 +15,45 @@ De menor a mayor prioridad:
 | 7 | `**`, unario `-` | derecha |
 
 ```luna
-let y = 2 ** 3 ** 2   # 2 ** (3 ** 2)
-let z = -x ** 2
+print(2 ** 3 ** 2)
+print(-7)
+```
+
+Salida:
+
+```text
+512
+-7
 ```
 
 > [!NOTE]
-> El ejemplo del EBNF para `not` sugiere `not x == y`. La implementación parsea el operando con la precedencia 3, por lo que `not 1 == 2` se evalúa como `(not 1) == 2`.
+> El operando de `not` se analiza con su propia precedencia: `not 1 == 2` se evalúa como `(not 1) == 2`.
 
 ## Aritmética
 
 - `int op int`: `+`, `-`, `*` y `%` devuelven `integer`; `/` y `**` devuelven `float`.
 - Si alguno de los operandos es `float`, el resultado es `float`.
-- Dividir o tomar módulo entre cero produce un error.
-- `+` **no** concatena cadenas; usar dos strings con `+` da error de tipo.
+- Dividir o tomar módulo entre cero produce un error capturable.
+- `+` **no** concatena cadenas; usar dos strings con `+` da error de tipo. Para unir strings, usa `string.concat` o `string.join`.
 
 ```luna
-print(7 / 2)    # 3.5
-print(7 % 2)    # 1
-print(2 ** 10)  # 1024.0
+print(7 + 2)
+print(7 - 2)
+print(7 * 2)
+print(7 / 2)
+print(7 % 2)
+print(2 ** 10)
+```
+
+Salida:
+
+```text
+9
+5
+14
+3.5
+1
+1024
 ```
 
 ## Comparación
@@ -43,25 +64,63 @@ print(2 ** 10)  # 1024.0
 - `<`, `<=`, `>` y `>=` aceptan números o cadenas; otros tipos dan error.
 - Los objetos gestionados por el GC se comparan por identidad.
 
+```luna
+print(1 == 1.0)
+print("a" < "b")
+print(2 <= 2)
+```
+
+Salida:
+
+```text
+true
+true
+true
+```
+
 ## Lógica
 
 `not` devuelve un booleano. `and` y `or` devuelven uno de sus operandos según su valor de verdad, con evaluación de corte corto:
 
 ```luna
-print(nil or "por defecto")  # por defecto
-print(1 and "sí")           # sí
+print(nil or "por defecto")
+print(1 and "sí")
+print(not false)
+```
+
+Salida:
+
+```text
+por defecto
+sí
+true
 ```
 
 ## Asignación
 
-Operadores de asignación: `=`, `+=`, `-=`, `*=`, `/=`.
+Operadores de asignación: `=`, `+=`, `-=`, `*=`, `/=`. Los destinos admitidos son identificadores, índices de lista o tabla y campos de tabla:
 
 ```luna
+let x = 1
 x = x + 1
 x += 1
+print(x)
+
+let datos = [1, 2]
+datos[0] += 5
+print(datos[0])
+
+let cfg = { activo = false }
+cfg.activo = true
+print(cfg.activo)
 ```
 
-> [!NOTE]
-> El parser acepta destinos de asignación como `lista[i]` y `objeto.campo`, pero el compilador actual solo admite identificadores.
+Salida:
+
+```text
+3
+6
+true
+```
 
 Continúa con [control de flujo](05-control-de-flujo.md).

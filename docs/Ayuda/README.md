@@ -1,6 +1,6 @@
 # Ayuda y archivos extra
 
-Material de apoyo para quienes usan o mantienen Luna.
+Material de apoyo para quienes usan o mantienen Luna `0.7.6`.
 
 | Subcarpeta | Contenido |
 | --- | --- |
@@ -18,5 +18,12 @@ Material de apoyo para quienes usan o mantienen Luna.
 - [Glosario](extra/glosario.md)
 - [Preguntas frecuentes](extra/preguntas-frecuentes.md)
 - [Solución de problemas](extra/solucion-de-problemas.md)
+
+## Guías nuevas
+
+- [Inicio rápido](../MD/01-inicio-rapido.md) — de cero a tu primer programa.
+- [FFI](../MD/15-ffi.md) — declaraciones `extern` y módulo `ffi`.
+- [Primer proyecto](../MD/16-primer-proyecto.md) — Mini agenda ejecutable.
+- [Recetas](../MD/17-recetas.md) — ejemplos cortos con salida.
 
 Para la referencia del lenguaje, consulta el [índice de documentación Markdown](../MD/README.md) o la [versión web](../Web/index.html).

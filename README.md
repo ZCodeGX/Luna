@@ -4,7 +4,9 @@
 
 **Luna** es un lenguaje de programación pequeño, embebible y con CLI estilo Python.
 
-**Versión actual: `0.7.5`** (`MAJOR.MINOR.PATCH`: cambios grandes, mejoras y parches).
+**Versión actual: `0.7.6`** (`MAJOR.MINOR.PATCH`: cambios grandes, mejoras y parches).
+
+Documentación: [guía web](docs/Web/index.html) · [inicio rápido en Markdown](docs/MD/01-inicio-rapido.md) · [índice completo](docs/MD/README.md).
 
 ## Instalación
 
@@ -42,9 +44,34 @@ El script instala Python 3, Git y MinGW-w64 con winget o Chocolatey, y deja `lun
 ## Inicio rápido
 
 ```bash
-luna -c 'let x = 1'
-luna programa.luna
+./luna.py build
+./build/luna -c 'print("Hola, Luna")'
 ```
+
+Salida:
+
+```text
+Hola, Luna
+```
+
+Crea `hola.luna`:
+
+```luna
+let nombre = "Luna"
+print("Hola,", nombre)
+```
+
+```bash
+./build/luna hola.luna
+```
+
+Salida:
+
+```text
+Hola, Luna
+```
+
+Si instalaste el binario, sustituye `./build/luna` por `luna`. Recorre la [ruta guiada](docs/MD/README.md) para seguir aprendiendo.
 
 > [!TIP]
 > `luna` sin argumentos abre el REPL y `-` lee el programa desde stdin. Para compilar sin instalar: `./luna.py build` y `./build/luna`.

@@ -41,6 +41,7 @@ typedef enum {
     LUNA_TOK_TRY,
     LUNA_TOK_CATCH,
     LUNA_TOK_THROW,
+    LUNA_TOK_EXTERN,
 
     /* operadores */
     LUNA_TOK_PLUS,

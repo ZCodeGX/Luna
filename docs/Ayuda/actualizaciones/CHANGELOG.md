@@ -9,6 +9,8 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - Suite modular `tests/luna/` con 73 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI y estrés de VM.
 - Caso de estrés con 2000 aserciones ejecutadas desde Luna y cobertura explícita de comentarios `#`.
 - Regresiones para `else if`, upvalues de segundo nivel y `throw` desde funciones llamadas.
+- Interfaz animada de `install.sh` con banner, colores, progreso, resumen de versiones, rutas y modo `--info` para Linux/macOS.
+- Script `uninstall.sh` independiente para Linux/macOS con desinstalación completa, `--dry-run` y `--keep-source`.
 
 ### Corregido
 

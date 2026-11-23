@@ -17,7 +17,7 @@ Desde la raíz del repositorio, `./luna.py build` genera `build/luna`. Para veri
 ./luna.py test
 ```
 
-También puedes instalar el binario con [`install.sh`](../../install.sh) en Linux/macOS o [`install.ps1`](../../install.ps1) en Windows.
+También puedes instalar el binario con [`install.sh`](../../install.sh) en Linux/macOS o [`install.ps1`](../../install.ps1) en Windows. En Linux/macOS, `./install.sh --info` muestra versión instalada, versión destino y rutas antes de instalar. Para actualizar, vuelve a ejecutar `./install.sh`; para desinstalar, usa [`uninstall.sh`](../../uninstall.sh) (con `--dry-run` para previsualizar y `--keep-source` para conservar el repositorio).
 
 ## Cuatro formas de ejecutar
 

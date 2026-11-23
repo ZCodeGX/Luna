@@ -22,7 +22,32 @@ Si ya clonaste el repositorio:
 ./install.sh
 ```
 
-El script instala Python 3, git y un compilador C11 si faltan, compila Luna y deja `luna` en `~/.local/bin`.
+El instalador muestra versiones, rutas y progreso animado; detecta instalaciones previas para actualizar; instala Python 3, git y un compilador C11 si faltan; compila Luna y deja `luna` en `~/.local/bin`.
+
+Opciones útiles:
+
+```bash
+./install.sh --info
+./install.sh --prefix ~/.local --source-dir ./luna-src
+./install.sh --no-path
+./install.sh --help
+```
+
+Para desinstalar completamente Luna en Linux/macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ZCodeGX/Luna/main/uninstall.sh | bash
+```
+
+O, desde el repositorio:
+
+```bash
+./uninstall.sh --dry-run
+./uninstall.sh --keep-source
+./uninstall.sh --help
+```
+
+El desinstalador elimina el binario, las cabeceras, las entradas del `PATH` y el repositorio de fuentes usado por el instalador.
 
 ### Windows (PowerShell)
 
@@ -39,7 +64,7 @@ Si ya clonaste el repositorio:
 El script instala Python 3, Git y MinGW-w64 con winget o Chocolatey, y deja `luna.exe` en `%LOCALAPPDATA%\Luna\bin`.
 
 > [!NOTE]
-> Los comandos remotos requieren que `install.sh` e `install.ps1` estén publicados en la rama `main`.
+> Los comandos remotos requieren que `install.sh`, `uninstall.sh` e `install.ps1` estén publicados en la rama `main`. `install.sh` y `uninstall.sh` son solo para Linux/macOS; Windows usa `install.ps1`.
 
 ## Inicio rápido
 

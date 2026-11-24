@@ -56,6 +56,7 @@ void  modules_free(struct LunaState* L, LunaModules* M);
 /* Cache */
 LunaModuleInternal* modules_cache_get(LunaModules* M, const char* name);
 int         modules_cache_put(LunaModules* M, const char* name, LunaModuleInternal* mod);
+void        modules_cache_remove(struct LunaState* L, const char* name);
 
 /* Loading stack (detección de ciclos) */
 int  modules_loading_push(LunaModules* M, const char* name);

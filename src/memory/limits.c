@@ -12,8 +12,10 @@
  */
 int luna_check_memory_limit(struct LunaState* L, size_t requested) {
     /* GC automático si corresponde */
-    if (L->gc_threshold > 0 && L->bytes_allocated > L->gc_threshold) {
+    if (!L->in_gc && L->gc_threshold > 0 && L->bytes_allocated > L->gc_threshold) {
+        L->in_gc = 1;
         luna_gc_collect(L);
+        L->in_gc = 0;
     }
     
     if (L->memory_limit == 0) return 0;  /* ilimitado */

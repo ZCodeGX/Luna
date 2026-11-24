@@ -1,4 +1,6 @@
 #include "modules_internal.h"
+#include "../runtime/runtime_internal.h"
+#include "../bytecode/proto.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -67,4 +69,24 @@ int modules_cache_put(LunaModules* M, const char* name, LunaModuleInternal* mod)
     M->cache.count++;
     
     return 0;
+}
+
+void modules_cache_remove(LunaState* L, const char* name) {
+    uint32_t h = hash_name(name) % LUNA_MODULE_CACHE_SIZE;
+    LunaModuleEntry** link = &L->modules.cache.buckets[h];
+    while (*link) {
+        LunaModuleEntry* e = *link;
+        if (strcmp(e->name, name) == 0) {
+            *link = e->next;
+            L->modules.cache.count--;
+
+            if (e->module.shutdown_fn) e->module.shutdown_fn(L);
+            luna_proto_release(e->module.proto);
+            free(e->name);
+            free(e->module.source_path);
+            free(e);
+            return;
+        }
+        link = &e->next;
+    }
 }

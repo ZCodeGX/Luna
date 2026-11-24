@@ -12,13 +12,18 @@ LunaProto* luna_proto_new(const char* name) {
     if (p->name) {
         memcpy(p->name, src, len + 1);
     }
-    
+    p->refcount = 1;
+
     return p;
 }
 
-void luna_proto_free(LunaProto* p) {
+void luna_proto_retain(LunaProto* p) {
+    if (p) p->refcount++;
+}
+
+static void proto_destroy(LunaProto* p) {
     if (!p) return;
-    
+
     free(p->name);
     free(p->code);
     free(p->lines);
@@ -33,11 +38,26 @@ void luna_proto_free(LunaProto* p) {
     free(p->upvalues);
     
     for (size_t i = 0; i < p->num_protos; i++) {
-        luna_proto_free(p->protos[i]);
+        proto_destroy(p->protos[i]);
     }
     free(p->protos);
-    
+
     free(p);
+}
+
+void luna_proto_release(LunaProto* p) {
+    if (!p) return;
+    if (p->refcount > 0 && --p->refcount == 0) {
+        proto_destroy(p);
+    }
+}
+
+void luna_proto_free(LunaProto* p) {
+    luna_proto_release(p);
+}
+
+void luna_proto_set_current_line(LunaProto* p, int line) {
+    if (p) p->current_line = line;
 }
 
 void luna_proto_emit_byte(LunaProto* p, uint8_t b) {
@@ -56,15 +76,22 @@ void luna_proto_emit_word(LunaProto* p, uint16_t w) {
     luna_proto_emit_byte(p, (w >> 8) & 0xFF);
 }
 
+void luna_proto_emit_op_NONE(LunaProto* p, LunaOpcode op) {
+    luna_proto_emit_byte(p, (uint8_t)op);
+    luna_proto_set_last_line(p, p->current_line);
+}
+
 void luna_proto_emit_op_A(LunaProto* p, LunaOpcode op, uint8_t a) {
     luna_proto_emit_byte(p, (uint8_t)op);
     luna_proto_emit_byte(p, a);
+    luna_proto_set_last_line(p, p->current_line);
 }
 
 void luna_proto_emit_op_AB(LunaProto* p, LunaOpcode op, uint8_t a, uint8_t b) {
     luna_proto_emit_byte(p, (uint8_t)op);
     luna_proto_emit_byte(p, a);
     luna_proto_emit_byte(p, b);
+    luna_proto_set_last_line(p, p->current_line);
 }
 
 void luna_proto_emit_op_ABC(LunaProto* p, LunaOpcode op, uint8_t a, uint8_t b, uint8_t c) {
@@ -72,12 +99,14 @@ void luna_proto_emit_op_ABC(LunaProto* p, LunaOpcode op, uint8_t a, uint8_t b, u
     luna_proto_emit_byte(p, a);
     luna_proto_emit_byte(p, b);
     luna_proto_emit_byte(p, c);
+    luna_proto_set_last_line(p, p->current_line);
 }
 
 void luna_proto_emit_op_ABx(LunaProto* p, LunaOpcode op, uint8_t a, uint16_t bx) {
     luna_proto_emit_byte(p, (uint8_t)op);
     luna_proto_emit_byte(p, a);
     luna_proto_emit_word(p, bx);
+    luna_proto_set_last_line(p, p->current_line);
 }
 
 void luna_proto_emit_op_AsBx(LunaProto* p, LunaOpcode op, uint8_t a, int16_t sbx) {
@@ -89,6 +118,7 @@ void luna_proto_emit_op_sBx(LunaProto* p, LunaOpcode op, int16_t sbx) {
     uint16_t bx = (uint16_t)(sbx + 32767);
     luna_proto_emit_byte(p, (uint8_t)op);
     luna_proto_emit_word(p, bx);
+    luna_proto_set_last_line(p, p->current_line);
 }
 
 void luna_proto_set_last_line(LunaProto* p, int line) {

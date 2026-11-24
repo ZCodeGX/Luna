@@ -4,6 +4,7 @@
 #include "list.h"
 #include "function.h"
 #include "userdata.h"
+#include "../memory/memory_internal.h"
 #include "../vm/vm.h"
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,12 @@
 /* ---------- Allocator con contabilidad ---------- */
 
 void* luna_alloc(LunaState* L, void* ptr, size_t old_size, size_t new_size) {
+    if (new_size > 0 && L->memory_limit > 0 &&
+        (L->bytes_allocated >= L->memory_limit ||
+         new_size > L->memory_limit - L->bytes_allocated)) {
+        return NULL;
+    }
+
     void* result = L->alloc(L->alloc_ud, ptr, old_size, new_size);
     
     /* Solo ajustar contabilidad si la operación tuvo éxito,

@@ -45,6 +45,7 @@ struct LunaState {
     size_t   bytes_allocated;
     size_t   memory_limit;      /* 0 = ilimitado */
     size_t   gc_threshold;      /* umbral para GC automático */
+    int      in_gc;             /* evita reentradas desde finalizadores */
 
     /* ---------- Contabilidad de instrucciones ---------- */
     uint64_t instructions_executed;

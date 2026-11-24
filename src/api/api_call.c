@@ -15,34 +15,86 @@ LunaStatus luna_call(LunaState* L, int nargs, int nresults) {
 }
 
 LunaStatus luna_pcall(LunaState* L, int nargs, int nresults, int errfunc) {
-    (void)errfunc;  /* TODO: implementar función de error */
+    if (nargs < 0 || nresults < -1) {
+        luna_error_set_simple(L, LUNA_ERR_ARGUMENT, "invalid argument count");
+        return L->error.status;
+    }
 
     if (L->stack_top < (size_t)(nargs + 1)) {
         luna_error_set_simple(L, LUNA_ERR_ARGUMENT, "not enough values on stack");
         return L->error.status;
     }
 
-    int func_idx = (int)L->stack_top - nargs - 1;
-
-    /* Guardar estado del stack antes de la llamada */
-    size_t saved_top = L->stack_top;
-    int saved_status = L->error.status;
-
-    /* Llamar a la función */
-    int r = vm_call_function(L, func_idx, nargs, nresults < 0 ? -1 : nresults);
-
-    if (r != 0 || L->error.status != LUNA_OK) {
-        /* Error: restaurar stack al estado anterior, dejando el mensaje de error */
-        /* En una implementación completa, haríamos un unwind del stack.
-         * Por ahora, dejamos el error en L->error. */
-        (void)saved_top;
-        (void)saved_status;
-        return L->error.status;
+    LunaVM* vm = state_vm(L);
+    if (!vm) {
+        luna_vm_init(L);
+        vm = state_vm(L);
+        if (!vm) {
+            luna_error_set_simple(L, LUNA_ERR_MEMORY, "cannot allocate VM");
+            return L->error.status;
+        }
     }
 
-    /* Ajustar resultados si nresults es específico */
-    if (nresults >= 0) {
-        /* vm_call_function ya ajustó el stack; verificar */
+    int func_idx = (int)L->stack_top - nargs - 1;
+    int saved_frame_top = vm->frame_top;
+    int saved_return_level = vm->return_level;
+
+    int handler_idx = 0;
+    if (errfunc != 0) {
+        handler_idx = errfunc > 0 ? errfunc - 1 : (int)L->stack_top + errfunc;
+        if (handler_idx < 0 || handler_idx >= (int)L->stack_top ||
+            L->stack[handler_idx].type != LUNA_TFUNCTION) {
+            handler_idx = 0;
+        }
+    }
+
+    LunaValue handler = handler_idx ? L->stack[handler_idx] : luna_nil();
+
+    vm->return_level = vm->frame_top;
+    int r = vm_call_function(L, func_idx, nargs, nresults < 0 ? -1 : nresults);
+    if (r == 0 && vm->frame_top > vm->return_level) {
+        r = vm_run(L);
+    }
+    vm->return_level = saved_return_level;
+
+    if (r != 0 || L->error.status != LUNA_OK) {
+        LunaStatus status = L->error.status ? L->error.status : LUNA_ERR_RUNTIME;
+        const char* msg = L->error.message[0] ? L->error.message : L->error_message;
+        LunaValue errval = luna_nil();
+
+        if (msg && msg[0]) {
+            LunaString* s = luna_string_new(L, msg, strlen(msg));
+            if (s) errval = luna_string_val(s);
+        }
+
+        luna_error_clear(L);
+        vm->frame_top = saved_frame_top;
+        L->stack_top = (size_t)(func_idx > 0 ? func_idx : 0);
+
+        if (handler_idx) {
+            size_t handler_base = L->stack_top;
+            vm_stack_push(L, handler);
+            vm_stack_push(L, errval);
+            int hidx = (int)handler_base;
+            vm->return_level = vm->frame_top;
+            int hr = vm_call_function(L, hidx, 1, 1);
+            if (hr == 0 && vm->frame_top > vm->return_level) {
+                hr = vm_run(L);
+            }
+            vm->return_level = saved_return_level;
+            if (hr == 0 && L->stack_top > handler_base) {
+                errval = L->stack[handler_base];
+            }
+            luna_error_clear(L);
+            L->stack_top = handler_base;
+        }
+
+        vm_stack_push(L, errval);
+        return status;
+    }
+
+    if (L->stack_top < (size_t)func_idx) {
+        L->stack_top = (size_t)func_idx;
     }
 
     return LUNA_OK;

@@ -1,4 +1,5 @@
 #include "api_internal.h"
+#include "../bytecode/proto.h"
 
 /* ============================================================
  * Runtime
@@ -80,7 +81,7 @@ LunaState* luna_new(LunaRuntime* rt) {
 
     /* Contabilidad */
     L->bytes_allocated = 0;
-    L->gc_threshold = 0;
+    L->gc_threshold = L->memory_limit ? (L->memory_limit / 2) : (4u * 1024u * 1024u);
     L->instructions_executed = 0;
     L->total_collections = 0;
     L->total_freed = 0;
@@ -135,6 +136,7 @@ void luna_close(LunaState* L) {
             }
             case LUNA_TFUNCTION: {
                 LunaFunction* f = (LunaFunction*)obj;
+                luna_proto_release(f->proto);
                 if (f->upvalues) {
                     for (size_t i = 0; i < f->num_upvalues; i++) {
                         luna_upvalue_release(L, f->upvalues[i]);

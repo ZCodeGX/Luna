@@ -29,6 +29,7 @@ typedef struct {
     bool owns_diags;
     bool panic_mode;
     int loop_depth;
+    bool after_block_expr;
 } LunaParser;
 
 LunaNode* luna_parse(const char* source, size_t length, LunaParser* P_out);

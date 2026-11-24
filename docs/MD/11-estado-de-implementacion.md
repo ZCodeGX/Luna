@@ -35,7 +35,6 @@ Luna se encuentra en versión `0.7.6` (ABI 1, GPL-3.0). La gramática `luna.ebnf
 | --- | --- | --- |
 | `for` ... `in` | Sí | Emite `for loops not yet implemented` |
 | `break`, `continue` | Sí | Sin generación de código |
-| Lambdas `fn(...)` | Sí | Nodo `NODE_LAMBDA` sin compilar |
 | Concatenación de strings con `+` | Sí | Error de tipo en runtime |
 
 Usa `while`, funciones con nombre y `string.concat` en su lugar. La sintaxis de bloque válida se resume en [sintaxis básica](02-sintaxis-basica.md).

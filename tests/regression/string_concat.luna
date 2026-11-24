@@ -1,0 +1,2 @@
+import string
+print(string.concat("a", 123, nil, true))

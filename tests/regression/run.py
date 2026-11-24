@@ -6,7 +6,17 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 BIN = ROOT / "build" / "luna"
 TESTS = Path(__file__).resolve().parent
-FIXTURES = ["recursion", "exceptions", "upvalues", "ffi"]
+FIXTURES = [
+    "recursion",
+    "exceptions",
+    "upvalues",
+    "ffi",
+    "short_circuit",
+    "numeric_hash",
+    "overflow",
+    "string_concat",
+    "lambda_closure",
+]
 
 
 def run(name, cwd):

@@ -6,6 +6,7 @@
 #include "../runtime/list.h"
 #include "../runtime/function.h"
 #include "../runtime/userdata.h"
+#include "../bytecode/proto.h"
 #include <string.h>
 
 /* ---------- Contabilidad ---------- */
@@ -127,6 +128,25 @@ void gc_mark_root(struct LunaState* L) {
         }
         uv = uv->next;
     }
+
+    /* 5. Referencias de la API C */
+    if (L->ref_table) {
+        for (uint32_t i = 0; i < L->ref_table->size; i++) {
+            gc_mark_value(L, L->ref_table->nodes[i].key);
+            gc_mark_value(L, L->ref_table->nodes[i].value);
+        }
+    }
+
+    /* 6. Exports de los módulos cargados */
+    for (size_t i = 0; i < LUNA_MODULE_CACHE_SIZE; i++) {
+        LunaModuleEntry* e = L->modules.cache.buckets[i];
+        while (e) {
+            if (e->module.exports) {
+                gc_mark_object(L, (LunaGCObject*)e->module.exports);
+            }
+            e = e->next;
+        }
+    }
 }
 
 /* ---------- Liberación de objetos ---------- */
@@ -158,6 +178,7 @@ static void free_object(struct LunaState* L, LunaGCObject* obj) {
         }
         case LUNA_TFUNCTION: {
             LunaFunction* f = (LunaFunction*)obj;
+            luna_proto_release(f->proto);
             size_t ups_sz = f->num_upvalues * sizeof(LunaUpvalue*);
             luna_gc_adjust_bytes(L, -(ptrdiff_t)(sizeof(LunaFunction) + ups_sz));
             if (f->upvalues) {

@@ -93,23 +93,20 @@ static void validate_jumps(Validator* V, const LunaProto* p) {
         if (op == OP_JUMP || op == OP_JUMP_IF_TRUE || op == OP_JUMP_IF_FALSE ||
             op == OP_SETUP_EXC || op == OP_FOR_INIT || op == OP_FOR_STEP) {
             uint16_t bx;
-            int a_pos;
             if (mode == OP_ARG_sBx) {
                 bx = (uint16_t)p->code[i + 1] | ((uint16_t)p->code[i + 2] << 8);
-                a_pos = 0;
             } else {
                 bx = (uint16_t)p->code[i + 2] | ((uint16_t)p->code[i + 3] << 8);
-                a_pos = 1;
             }
             int32_t offset = (int32_t)bx - 32767;
-            int32_t target = (int32_t)inst_idx + offset;
+            int32_t next_byte = (int32_t)(i + (size_t)instruction_size(op));
+            int32_t target = next_byte + offset;
 
-            if (target < 0 || target > (int32_t)p->num_instructions) {
+            if (target < 0 || target > (int32_t)p->code_len) {
                 vfail(V, "jump target %d out of range [0, %zu] at instruction %zu",
-                      target, p->num_instructions, inst_idx);
+                      target, p->code_len, inst_idx);
                 return;
             }
-            (void)a_pos;
         }
 
         i += instruction_size(op);
@@ -143,6 +140,12 @@ static void validate_proto(Validator* V, const LunaProto* p) {
     if (p->num_params > 64) {
         vfail(V, "too many parameters (%d) in proto '%s'",
               p->num_params, p->name ? p->name : "<anon>");
+        return;
+    }
+
+    if (p->stack_size == 0 || p->num_params >= p->stack_size) {
+        vfail(V, "invalid stack size %u for %d parameters in proto '%s'",
+              p->stack_size, p->num_params, p->name ? p->name : "<anon>");
         return;
     }
 

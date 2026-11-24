@@ -288,6 +288,46 @@ int vm_throw(LunaState* L, LunaValue value) {
     return -1;
 }
 
+static int proto_line_at(const LunaProto* proto, size_t pc) {
+    if (!proto || !proto->code || !proto->lines) return 0;
+
+    size_t byte = 0;
+    size_t inst = 0;
+    while (byte < pc && byte < proto->code_len) {
+        uint8_t op = proto->code[byte];
+        if (op >= OP_COUNT) return 0;
+        LunaOpMode mode = luna_opcode_mode((LunaOpcode)op);
+        int size;
+        switch (mode) {
+            case OP_ARG_NONE: size = 1; break;
+            case OP_ARG_A: size = 2; break;
+            case OP_ARG_AB:
+            case OP_ARG_sBx: size = 3; break;
+            case OP_ARG_ABC:
+            case OP_ARG_ABx:
+            case OP_ARG_AsBx: size = 4; break;
+            default: return 0;
+        }
+        byte += (size_t)size;
+        inst++;
+    }
+
+    return inst < proto->num_instructions ? proto->lines[inst] : 0;
+}
+
+static void capture_traceback(LunaState* L) {
+    LunaVM* vm = state_vm(L);
+    luna_traceback_clear(L);
+    for (int i = vm->frame_top - 1; i >= 0; i--) {
+        CallFrame* frame = &vm->frames[i];
+        const char* name = frame->proto ? frame->proto->name : "<native>";
+        const char* file = frame->proto ? frame->proto->name : NULL;
+        luna_traceback_push(L, name, file,
+                            proto_line_at(frame->proto, frame->pc),
+                            (int)frame->pc);
+    }
+}
+
 int vm_handle_error(LunaState* L) {
     const char* msg = L->error.message[0] ? L->error.message : L->error_message;
     LunaValue value;
@@ -300,5 +340,7 @@ int vm_handle_error(LunaState* L) {
         value = luna_nil();
     }
 
-    return vm_throw(L, value);
+    int result = vm_throw(L, value);
+    if (result != 0) capture_traceback(L);
+    return result;
 }

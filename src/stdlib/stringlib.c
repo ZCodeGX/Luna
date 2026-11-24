@@ -22,14 +22,26 @@ static int push_bytes(LunaState* L, const char* data, size_t len) {
 static char* value_text(LunaValue v, size_t* len_out) {
     char buf[64];
     switch (v.type) {
-        case LUNA_TNIL: return lib_strdup("nil");
-        case LUNA_TBOOLEAN: return lib_strdup(luna_val_bool(v) ? "true" : "false");
-        case LUNA_TINTEGER:
-            snprintf(buf, sizeof(buf), "%lld", (long long)luna_val_int(v));
+        case LUNA_TNIL:
+            if (len_out) *len_out = 3;
+            return lib_strdup("nil");
+        case LUNA_TBOOLEAN: {
+            const char* text = luna_val_bool(v) ? "true" : "false";
+            if (len_out) *len_out = strlen(text);
+            return lib_strdup(text);
+        }
+        case LUNA_TINTEGER: {
+            int n = snprintf(buf, sizeof(buf), "%lld", (long long)luna_val_int(v));
+            if (n < 0) n = 0;
+            if (len_out) *len_out = (size_t)n;
             return lib_strdup(buf);
-        case LUNA_TFLOAT:
-            snprintf(buf, sizeof(buf), "%.14g", luna_val_float(v));
+        }
+        case LUNA_TFLOAT: {
+            int n = snprintf(buf, sizeof(buf), "%.14g", luna_val_float(v));
+            if (n < 0) n = 0;
+            if (len_out) *len_out = (size_t)n;
             return lib_strdup(buf);
+        }
         case LUNA_TSTRING: {
             LunaString* s = luna_val_string(v);
             char* copy = (char*)malloc(s->len + 1);

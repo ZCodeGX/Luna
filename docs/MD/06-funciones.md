@@ -82,7 +82,19 @@ Salida:
 99
 ```
 
-`get` y `set` comparten la variable capturada `x`. Las lambdas anónimas `fn(...)`, en cambio, todavía no se compilan.
+`get` y `set` comparten la variable capturada `x`. Las lambdas anónimas `fn(...)` también capturan su entorno:
+
+```luna
+fn counter():
+    let n = 0
+    return fn():
+        n = n + 1
+        return n
+
+let c = counter()
+print(c())  # 1
+print(c())  # 2
+```
 
 ## Funciones nativas y stdlib
 

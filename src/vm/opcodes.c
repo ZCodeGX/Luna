@@ -1,4 +1,5 @@
 #include "vm_internal.h"
+#include "../memory/memory_internal.h"
 #include "../modules/module.h"
 #include <math.h>
 #include <stdlib.h>
@@ -6,7 +7,7 @@
 
 extern int luna_report_instruction_limit(LunaState* L);
 
-#if defined(__GNUC__) || defined(__clang__)
+#if !defined(LUNA_FORCE_SWITCH_DISPATCH) && (defined(__GNUC__) || defined(__clang__))
 #define LUNA_THREADED_DISPATCH 1
 #define VM_CASE(op) label_##op:
 #define VM_SWITCH_BEGIN
@@ -16,11 +17,11 @@ extern int luna_report_instruction_limit(LunaState* L);
 #define VM_FRAME_CHANGED() do { VM_RELOAD_FRAME(); VM_NEXT(); } while (0)
 #else
 #define VM_CASE(op) case op:
-#define VM_SWITCH_BEGIN vm_switch: switch (op) {
+#define VM_SWITCH_BEGIN switch (op) {
 #define VM_SWITCH_END }
 #define VM_DISPATCH_NEXT() ((void)0)
 #define VM_END_INSTR() break
-#define VM_FRAME_CHANGED() do { VM_RELOAD_FRAME(); goto vm_done; } while (0)
+#define VM_FRAME_CHANGED() do { VM_RELOAD_FRAME(); goto vm_continue; } while (0)
 #endif
 
 #define VM_ADVANCE() do { pc = advance_pc(code, pc); frame->pc = pc; } while (0)
@@ -43,6 +44,12 @@ extern int luna_report_instruction_limit(LunaState* L);
     L->instructions_executed++; \
     if (--budget == 0) { \
         budget = LUNA_INSTRUCTION_BUDGET; \
+        if (L->gc_threshold > 0 && L->bytes_allocated > L->gc_threshold) { \
+            if (luna_check_memory_limit(L, 0) != 0) { \
+                luna_error_set_simple(L, LUNA_ERR_MEMORY, "memory limit exceeded"); \
+                return -1; \
+            } \
+        } \
         if (L->instruction_limit != 0) { \
             uint64_t remaining = L->instructions_executed <= L->instruction_limit \
                 ? L->instruction_limit - L->instructions_executed + 1 : 0; \
@@ -406,31 +413,7 @@ VM_SWITCH_BEGIN
             LunaValue bv = base[C + 1];
             LunaValue result;
 
-            if (av.type == LUNA_TINTEGER && bv.type == LUNA_TINTEGER) {
-                int64_t ai = av.as.integer;
-                int64_t bi = bv.as.integer;
-                switch (op) {
-                    case OP_ADD: result = luna_int(ai + bi); break;
-                    case OP_SUB: result = luna_int(ai - bi); break;
-                    case OP_MUL: result = luna_int(ai * bi); break;
-                    case OP_DIV:
-                        if (bi == 0) {
-                            luna_error_set_simple(L, LUNA_ERR_DIVZERO, "division by zero");
-                            VM_ERROR();
-                        }
-                        result = luna_float((double)ai / (double)bi);
-                        break;
-                    case OP_MOD:
-                        if (bi == 0) {
-                            luna_error_set_simple(L, LUNA_ERR_DIVZERO, "modulo by zero");
-                            VM_ERROR();
-                        }
-                        result = luna_int(ai % bi);
-                        break;
-                    case OP_POW: result = luna_float(pow((double)ai, (double)bi)); break;
-                    default: VM_ERROR();
-                }
-            } else if (vm_arith(L, av, bv, &result, op) != 0) {
+            if (vm_arith(L, av, bv, &result, op) != 0) {
                 VM_ERROR();
             }
 
@@ -504,23 +487,31 @@ VM_SWITCH_BEGIN
 
         /* ---------- Concatenación y longitud ---------- */
         VM_CASE(OP_CONCAT) {
-            /* Simplificado: concatenar strings de B a C */
             uint8_t B = decode_B(code, pc);
             uint8_t C = decode_C(code, pc);
-            /* Calcular longitud total */
+            if (C < B) {
+                luna_error_set_simple(L, LUNA_ERR_RUNTIME, "invalid concat range");
+                VM_ERROR();
+            }
+
             size_t total = 0;
-            for (uint8_t i = B; i <= C; i++) {
+            for (uint16_t i = B; i <= C; i++) {
                 LunaValue v = base[i + 1];
                 if (v.type != LUNA_TSTRING) {
                     luna_error_set_simple(L, LUNA_ERR_TYPE, "concat requires strings");
                     VM_ERROR();
                 }
-                total += luna_val_string(v)->len;
+                size_t len = luna_val_string(v)->len;
+                if (total > SIZE_MAX - 1 - len) {
+                    luna_error_set_simple(L, LUNA_ERR_MEMORY, "concat result too large");
+                    VM_ERROR();
+                }
+                total += len;
             }
             char* buf = (char*)luna_alloc(L, NULL, 0, total + 1);
             if (!buf) VM_ERROR();
             size_t pos = 0;
-            for (uint8_t i = B; i <= C; i++) {
+            for (uint16_t i = B; i <= C; i++) {
                 LunaString* s = luna_val_string(base[i + 1]);
                 memcpy(buf + pos, s->data, s->len);
                 pos += s->len;
@@ -719,11 +710,6 @@ VM_SWITCH_BEGIN
 
 VM_SWITCH_END
         vm_continue:;
-
-#if !defined(LUNA_THREADED_DISPATCH)
-vm_done:
-        ;
-#endif
     }
 
 vm_limit:

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <limits.h>
 
 /* Forward declarations */
 static void compile_program(LunaCompiler* C, LunaNode* node);
@@ -16,6 +17,7 @@ static void compile_while(LunaCompiler* C, LunaNode* node);
 static void compile_for(LunaCompiler* C, LunaNode* node);
 static void compile_return(LunaCompiler* C, LunaNode* node);
 static void compile_expr_stmt(LunaCompiler* C, LunaNode* node);
+static void compile_lambda_expr(LunaCompiler* C, LunaNode* node, int reg);
 static void compile_assign(LunaCompiler* C, LunaNode* node);
 static void compile_import(LunaCompiler* C, LunaNode* node);
 static void compile_field(LunaCompiler* C, LunaNode* node, int reg);
@@ -67,7 +69,13 @@ LunaProto* compiler_pop_proto(LunaCompiler* C) {
     LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
     LunaProto* proto = C->proto_stack[C->proto_depth - 1];
 
-    proto->stack_size = (uint8_t)(scope->num_locals + LUNA_TEMP_SLOTS);
+    unsigned needed = (unsigned)scope->num_locals + LUNA_TEMP_SLOTS;
+    if (needed > UINT8_MAX) {
+        compiler_error(C, 0, 0, "too many local variables");
+        needed = UINT8_MAX;
+    }
+    proto->num_locals = (uint8_t)scope->num_locals;
+    proto->stack_size = (uint8_t)needed;
     for (int i = 0; i < scope->num_upvalues; i++) {
         luna_proto_add_upvalue(proto, scope->upvalues[i].is_local,
                                scope->upvalues[i].index);
@@ -242,12 +250,22 @@ static int fold_binary_op(LunaTokenType op, LunaFoldValue a,
                 out->kind = 1;
                 out->floating = r;
             } else {
-                uint64_t ua = (uint64_t)a.integer;
-                uint64_t ub = (uint64_t)b.integer;
-                uint64_t r = op == LUNA_TOK_PLUS ? ua + ub :
-                             op == LUNA_TOK_MINUS ? ua - ub : ua * ub;
+                int64_t x = a.integer;
+                int64_t y = b.integer;
+                if ((op == LUNA_TOK_PLUS &&
+                     ((y > 0 && x > INT64_MAX - y) || (y < 0 && x < INT64_MIN - y))) ||
+                    (op == LUNA_TOK_MINUS &&
+                     ((y < 0 && x > INT64_MAX + y) || (y > 0 && x < INT64_MIN + y))) ||
+                    (op == LUNA_TOK_STAR &&
+                     ((x > 0 && y > 0 && x > INT64_MAX / y) ||
+                      (x > 0 && y < 0 && y < INT64_MIN / x) ||
+                      (x < 0 && y > 0 && x < INT64_MIN / y) ||
+                      (x < 0 && y < 0 && x < INT64_MAX / y)))) {
+                    return 0;
+                }
                 out->kind = 0;
-                out->integer = (int64_t)r;
+                out->integer = op == LUNA_TOK_PLUS ? x + y :
+                               op == LUNA_TOK_MINUS ? x - y : x * y;
             }
             return 1;
         }
@@ -258,7 +276,8 @@ static int fold_binary_op(LunaTokenType op, LunaFoldValue a,
             return 1;
         }
         case LUNA_TOK_PERCENT: {
-            if (is_float || b.integer == 0) return 0;
+            if (is_float || b.integer == 0 ||
+                (a.integer == INT64_MIN && b.integer == -1)) return 0;
             out->kind = 0;
             out->integer = a.integer % b.integer;
             return 1;
@@ -326,12 +345,25 @@ static void emit_folded(LunaCompiler* C, LunaFoldValue value, int reg) {
     }
 }
 
+static void patch_jump_AsBx(LunaProto* proto, size_t pos);
+
 static void compile_binary(LunaCompiler* C, LunaNode* node, int reg) {
     LunaProto* proto = compiler_current_proto(C);
     LunaFoldValue folded;
 
     if (fold_expr(node, &folded)) {
         emit_folded(C, folded, reg);
+        return;
+    }
+
+    if (node->as.binary.op == LUNA_TOK_AND || node->as.binary.op == LUNA_TOK_OR) {
+        LunaOpcode jump_op = node->as.binary.op == LUNA_TOK_AND
+                             ? OP_JUMP_IF_FALSE : OP_JUMP_IF_TRUE;
+        compile_expr(C, node->as.binary.left, reg);
+        size_t jump_pos = proto->code_len;
+        luna_proto_emit_op_AsBx(proto, jump_op, (uint8_t)reg, 0);
+        compile_expr(C, node->as.binary.right, reg);
+        patch_jump_AsBx(proto, jump_pos);
         return;
     }
 
@@ -444,6 +476,8 @@ static void compile_table(LunaCompiler* C, LunaNode* node, int reg) {
 void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
     if (C->failed || !node) return;
 
+    luna_proto_set_current_line(compiler_current_proto(C), node->line);
+
     switch (node->type) {
         case NODE_NIL:
         case NODE_BOOL:
@@ -475,6 +509,9 @@ void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
             break;
         case NODE_TABLE:
             compile_table(C, node, reg);
+            break;
+        case NODE_LAMBDA:
+            compile_lambda_expr(C, node, reg);
             break;
         default:
             compiler_error_at(C, node, "unsupported expression node");
@@ -733,7 +770,7 @@ static void compile_try(LunaCompiler* C, LunaNode* node) {
     compile_block(C, (LunaNode*)body);
     if (C->failed) return;
 
-    luna_proto_emit_byte(proto, OP_POP_EXC);
+    luna_proto_emit_op_NONE(proto, OP_POP_EXC);
 
     size_t skip_pos = proto->code_len;
     luna_proto_emit_op_sBx(proto, OP_JUMP, 0);
@@ -849,8 +886,35 @@ static void compile_fn_decl(LunaCompiler* C, LunaNode* node) {
     LunaProto* completed_fn = compiler_pop_proto(C);
     uint16_t proto_idx = luna_proto_add_proto(parent_proto, completed_fn);
 
+    luna_proto_set_current_line(parent_proto, node->line);
     luna_proto_emit_op_ABx(parent_proto, OP_CLOSURE, (uint8_t)slot, proto_idx);
     if (node->as.fn.is_pub) emit_export(C, node->as.fn.name, slot);
+}
+
+static void compile_lambda_expr(LunaCompiler* C, LunaNode* node, int reg) {
+    LunaProto* parent_proto = compiler_current_proto(C);
+
+    compiler_push_proto(C, "<lambda>");
+    LunaProto* fn_proto = compiler_current_proto(C);
+    LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
+
+    int param_idx = 0;
+    for (LunaNodeList* l = node->as.lambda.params; l; l = l->next) {
+        scope_add_local(scope, l->node->as.string.data, false);
+        param_idx++;
+    }
+    fn_proto->num_params = (uint8_t)param_idx;
+
+    compile_block(C, node->as.lambda.body);
+    if (C->failed) return;
+
+    luna_proto_emit_op_AB(fn_proto, OP_RETURN, 0, 0);
+
+    LunaProto* completed_fn = compiler_pop_proto(C);
+    uint16_t proto_idx = luna_proto_add_proto(parent_proto, completed_fn);
+
+    luna_proto_set_current_line(parent_proto, node->line);
+    luna_proto_emit_op_ABx(parent_proto, OP_CLOSURE, (uint8_t)reg, proto_idx);
 }
 
 static void compile_block(LunaCompiler* C, LunaNode* node) {
@@ -864,6 +928,8 @@ static void compile_block(LunaCompiler* C, LunaNode* node) {
 
 void compile_stmt(LunaCompiler* C, LunaNode* node) {
     if (C->failed || !node) return;
+
+    luna_proto_set_current_line(compiler_current_proto(C), node->line);
 
     switch (node->type) {
         case NODE_LET:        compile_let(C, node); break;

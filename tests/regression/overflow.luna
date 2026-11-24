@@ -1,0 +1,11 @@
+let big = 9223372036854775807
+
+try:
+    print(big + 1)
+catch e:
+    print("overflow")
+
+try:
+    print(-(-9223372036854775807 - 1))
+catch e:
+    print("overflow")

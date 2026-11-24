@@ -1,0 +1,7 @@
+fn side(x):
+    print("side")
+    return x
+
+print(false and side(true))
+print(true or side(false))
+print(nil or "por defecto")

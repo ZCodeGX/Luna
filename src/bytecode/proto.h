@@ -73,15 +73,22 @@ struct LunaProto {
 
     /* Contador de instrucciones (para el array de líneas) */
     size_t          num_instructions;
+
+    size_t          refcount;
+    int             current_line;
 };
 
 /* Crear y destruir */
 LunaProto* luna_proto_new(const char* name);
+void       luna_proto_retain(LunaProto* p);
+void       luna_proto_release(LunaProto* p);
 void       luna_proto_free(LunaProto* p);
 
 /* Emisión de bytecode (helpers) */
+void luna_proto_set_current_line(LunaProto* p, int line);
 void luna_proto_emit_byte(LunaProto* p, uint8_t b);
 void luna_proto_emit_word(LunaProto* p, uint16_t w);    /* little-endian */
+void luna_proto_emit_op_NONE(LunaProto* p, LunaOpcode op);
 void luna_proto_emit_op_A(LunaProto* p, LunaOpcode op, uint8_t a);
 void luna_proto_emit_op_AB(LunaProto* p, LunaOpcode op, uint8_t a, uint8_t b);
 void luna_proto_emit_op_ABC(LunaProto* p, LunaOpcode op, uint8_t a, uint8_t b, uint8_t c);
@@ -104,5 +111,8 @@ uint8_t luna_proto_add_upvalue(LunaProto* p, int in_stack, uint8_t index);
 
 /* Añadir un proto hijo; devuelve su índice */
 uint16_t luna_proto_add_proto(LunaProto* p, LunaProto* child);
+
+/* Validación de bytecode cargado desde disco */
+int luna_proto_validate(const LunaProto* root, char* error_out, size_t error_size);
 
 #endif /* LUNA_PROTO_H */

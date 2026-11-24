@@ -22,7 +22,7 @@ CASES = {
         "kind": "int",
         "luna": Template("""let i = 0
 let total = 0
-while i < $N
+while i < $N:
     total = total + ((i * 3 + 7) % 1009)
     i = i + 1
 print(total)
@@ -46,8 +46,8 @@ int main(void) {
     "fib": {
         "iterations": 28,
         "kind": "int",
-        "luna": Template("""fn fib(n)
-    if n < 2
+        "luna": Template("""fn fib(n):
+    if n < 2:
         return n
     return fib(n - 1) + fib(n - 2)
 print(fib($N))
@@ -74,7 +74,7 @@ int main(void) {
         "kind": "float",
         "luna": Template("""let x = 1.0
 let i = 0
-while i < $N
+while i < $N:
     x = x + 0.000001
     x = x * 1.0000001
     x = x - 0.000001

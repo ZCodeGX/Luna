@@ -1,0 +1,9 @@
+fn counter():
+    let n = 0
+    return fn():
+        n = n + 1
+        return n
+
+let c = counter()
+print(c())
+print(c())

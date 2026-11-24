@@ -255,6 +255,15 @@ LunaProto* luna_proto_load(const char* path, char* error_out, size_t error_size)
         return NULL;
     }
 
+    char validation_error[256];
+    if (luna_proto_validate(root, validation_error, sizeof(validation_error)) != 0) {
+        if (error_out) {
+            snprintf(error_out, error_size, "invalid bytecode: %s", validation_error);
+        }
+        luna_proto_release(root);
+        return NULL;
+    }
+
     return root;
 
 fail:

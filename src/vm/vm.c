@@ -34,7 +34,7 @@ void luna_vm_shutdown(LunaState* L) {
  * Bucle principal de ejecución
  * ============================================================ */
 
-static int vm_run(LunaState* L) {
+int vm_run(LunaState* L) {
     return vm_execute_loop(L);
 }
 

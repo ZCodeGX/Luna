@@ -1,475 +1,264 @@
-# Gramática EBNF del lenguaje objetivo de Luna (0.7.5)
-
-Esta gramática es la **fuente de verdad** del lenguaje. Refleja exactamente lo que implementan el lexer y parser actuales.
-
----
-
-## 1. Programa
-
-```ebnf
-program         = { NEWLINE } { statement { NEWLINE } } EOF ;
-```
-
----
-
-## 2. Sentencias
-
-```ebnf
-statement       = pub_decl
-                | fn_decl
-                | mod_decl
-                | if_stmt
-                | for_stmt
-                | while_stmt
-                | try_stmt
-                | simple_stmt ;
-
-(* ---------- Declaraciones con visibilidad ---------- *)
-pub_decl        = "pub" ( fn_decl | mod_decl | let_stmt | const_stmt ) ;
-
-fn_decl         = "fn" IDENT "(" [ param_list ] ")" NEWLINE block ;
-mod_decl        = "mod" IDENT ;
-
-let_stmt        = "let"   IDENT "=" expr ;
-const_stmt      = "const" IDENT "=" expr ;
-
-param_list      = IDENT { "," IDENT } ;
-
-(* ---------- Control de flujo ---------- *)
-if_stmt         = "if" expr NEWLINE block
-                  { "else" "if" expr NEWLINE block }
-                  [ "else" NEWLINE block ] ;
-
-for_stmt        = "for" IDENT { "," IDENT } "in" expr NEWLINE block ;
-
-while_stmt      = "while" expr NEWLINE block ;
-
-try_stmt        = "try" NEWLINE block
-                  "catch" IDENT NEWLINE block ;
-
-(* ---------- Sentencias simples ---------- *)
-simple_stmt     = let_stmt
-                | const_stmt
-                | return_stmt
-                | import_stmt
-                | extern_stmt
-                | break_stmt
-                | continue_stmt
-                | throw_stmt
-                | expr_stmt ;
-
-return_stmt     = "return" [ expr ] ;
-import_stmt     = "import" IDENT { "." IDENT } ;
-extern_stmt     = "extern" IDENT "(" STRING "," STRING ")" ;
-break_stmt      = "break" ;
-continue_stmt   = "continue" ;
-throw_stmt      = "throw" expr ;
-
-expr_stmt       = expr [ assign_op expr ] ;
-
-assign_op       = "=" | "+=" | "-=" | "*=" | "/=" ;
-```
-
----
-
-## 3. Bloques
-
-```ebnf
-block           = INDENT { statement { NEWLINE } } DEDENT ;
-```
-
-**Reglas de indentación:**
-- Solo se permiten espacios (no tabs) para indentar.
-- Cada nivel de indentación debe ser consistente con un nivel previo.
-- Dentro de `(`, `[`, `{` se suprimen `NEWLINE`, `INDENT` y `DEDENT`.
-
----
-
-## 4. Expresiones (Pratt parsing)
-
-```ebnf
-expr            = prefix { infix_op prefix } ;
-
-prefix          = [ unary_op ] postfix ;
-
-unary_op        = "-" | "not" ;
-
-postfix         = primary { postfix_op } ;
-
-postfix_op      = call_suffix
-                | index_suffix
-                | field_suffix ;
-
-call_suffix     = "(" [ arg_list ] ")" ;
-index_suffix    = "[" expr "]" ;
-field_suffix    = "." IDENT ;
-
-arg_list        = expr { "," expr } ;
-```
-
-### 4.1 Operadores infijos (por precedencia)
-
-```ebnf
-(* Precedencia 1 (más baja) - asociatividad izquierda *)
-or_expr         = and_expr { "or"  and_expr } ;
-
-(* Precedencia 2 - asociatividad izquierda *)
-and_expr        = not_expr { "and" not_expr } ;
-
-(* Precedencia 3 - prefijo (no es infijo) *)
-(* "not" se maneja en prefix *)
-
-(* Precedencia 4 - asociatividad izquierda *)
-compare_expr    = add_expr { compare_op add_expr } ;
-compare_op      = "==" | "!=" | "<" | ">" | "<=" | ">=" ;
-
-(* Precedencia 5 - asociatividad izquierda *)
-add_expr        = mul_expr { add_op mul_expr } ;
-add_op          = "+" | "-" ;
-
-(* Precedencia 6 - asociatividad izquierda *)
-mul_expr        = pow_expr { mul_op pow_expr } ;
-mul_op          = "*" | "/" | "%" ;
-
-(* Precedencia 7 (más alta) - asociatividad DERECHA *)
-pow_expr        = unary_expr [ "**" pow_expr ] ;
-```
-
-### 4.2 Resumen de precedencia
-
-| Nivel | Operadores | Asociatividad |
-|---|---|---|
-| 1 | `or` | izquierda |
-| 2 | `and` | izquierda |
-| 3 | `not` (prefijo) | — |
-| 4 | `==`, `!=`, `<`, `>`, `<=`, `>=` | izquierda |
-| 5 | `+`, `-` | izquierda |
-| 6 | `*`, `/`, `%` | izquierda |
-| 7 | `**` | **derecha** |
-| — | `-` unario | (prefijo, bp=7) |
-
----
-
-## 5. Primarios
-
-```ebnf
-primary         = nil_literal
-                | bool_literal
-                | integer_literal
-                | float_literal
-                | string_literal
-                | ident
-                | group_expr
-                | list_literal
-                | table_literal
-                | lambda_expr ;
-
-nil_literal     = "nil" ;
-bool_literal    = "true" | "false" ;
-ident           = IDENT ;
-
-group_expr      = "(" expr ")" ;
-
-list_literal    = "[" [ expr { "," expr } [ "," ] ] "]" ;
-
-table_literal   = "{" [ table_entry { "," table_entry } [ "," ] ] "}" ;
-table_entry     = IDENT "=" expr ;
-
-lambda_expr     = "fn" "(" [ param_list ] ")" NEWLINE block ;
-```
-
----
-
-## 6. Tokens léxicos
-
-### 6.1 Identificadores
-
-```ebnf
-IDENT           = ( letter | "_" ) { letter | digit | "_" } ;
-letter          = "a" … "z" | "A" … "Z" ;
-digit           = "0" … "9" ;
-```
-
-### 6.2 Literales numéricos
-
-```ebnf
-integer_literal = decimal | hexadecimal | binary ;
-
-decimal         = digit { digit } ;
-hexadecimal     = "0" ( "x" | "X" ) hex_digit { hex_digit } ;
-binary          = "0" ( "b" | "B" ) ( "0" | "1" ) { "0" | "1" } ;
-hex_digit       = digit | "a" … "f" | "A" … "F" ;
-
-float_literal   = digit { digit } "." digit { digit } [ exponent ]
-                | digit { digit } exponent ;
-exponent        = ( "e" | "E" ) [ "+" | "-" ] digit { digit } ;
-```
-
-### 6.3 Cadenas
-
-```ebnf
-string_literal  = '"' { string_char | escape_seq } '"' ;
-
-string_char     = cualquier carácter excepto '"', '\', '\n', '\r' ;
-
-escape_seq      = "\n"    (* salto de línea  *)
-                | "\t"    (* tabulación      *)
-                | "\r"    (* retorno de carro*)
-                | "\0"    (* null            *)
-                | "\\"    (* backslash       *)
-                | "\""    (* comilla doble   *) ;
-```
-
-### 6.4 Comentarios
-
-```ebnf
-comment         = "#" { cualquier carácter excepto '\n', '\r' } ;
-```
-
-### 6.5 Separadores
-
-```ebnf
-NEWLINE         = "\n" | "\r\n" ;
-INDENT          = aumento de espacios al inicio de línea lógica ;
-DEDENT          = disminución de espacios al inicio de línea lógica ;
-```
-
----
-
-## 7. Palabras reservadas
-
-```
-and       break     catch     const     continue
-else      false     extern    fn        for
-if        import    in        let       mod
-nil
-not       or        pub       return    throw
-true      try       while
-```
-
-**Nota:** ninguna palabra reservada puede usarse como identificador.
-
----
-
-## 8. Operadores y puntuación
-
-```
-+       -       *       /       %       **
-==      !=      <       >       <=      >=
-=       +=      -=      *=      /=
-(       )       [       ]       {       }
-,       .       :
-```
-
----
-
-## 9. Reglas semánticas (no expresables en EBNF)
-
-Estas reglas se aplican **después** del parseo, en el compilador:
-
-### 9.1 Asignación
-- El lado izquierdo de `=`, `+=`, `-=`, `*=`, `/=` debe ser:
-  - `IDENT`
-  - `expr "[" expr "]"` (indexación)
-  - `expr "." IDENT` (acceso a campo)
-- Cualquier otro target es error: *"invalid assignment target"*.
-
-### 9.2 Visibilidad
-- `pub` solo puede preceder a: `fn`, `let`, `const`, `mod`.
-- Cualquier otro uso es error: *"'pub' must precede fn, let, const or mod"*.
-- Los símbolos no marcados `pub` son privados al módulo.
-
-### 9.3 Funciones vs lambdas
-- `fn` a nivel de sentencia **siempre** requiere un `IDENT` (declaración).
-- Para lambdas anónimas se usa `fn` dentro de una expresión.
-- Las lambdas **siempre** requieren `NEWLINE` antes del cuerpo (no hay lambdas de una sola línea).
-
-### 9.4 `else if`
-- Se acumula como lista plana en `if_stmt.elifs`, no como nodos anidados.
-- Es azúcar sintáctico sobre `else { if ... }`.
-
-### 9.5 Continuación de línea
-- Dentro de `(`, `[`, `{` se suprimen `NEWLINE`, `INDENT` y `DEDENT`.
-- Esto permite escribir listas/tablas/llamadas en varias líneas.
-
-### 9.6 Indentación
-- Solo espacios, no tabs.
-- Un tab en posición de indentación es error: *"tabs are not allowed for indentation"*.
-- Un `DEDENT` debe coincidir con un nivel previo; si no, es error: *"inconsistent dedent"*.
-- Profundidad máxima: 256 niveles.
-
-### 9.7 Cadenas
-- No pueden contener saltos de línea literales.
-- El lexer devuelve el contenido **sin desescapar**; el parser desescapa en sitio.
-
-### 9.8 Números
-- Longitud máxima de literales hex/binario: 62 dígitos.
-- Longitud máxima de literales decimales/float: 127 caracteres.
-- Superar estos límites es error: *"number too long"*.
-
-### 9.9 Tablas
-- Las claves deben ser `IDENT` (no expresiones arbitrarias).
-- Formato: `{ key1 = value1, key2 = value2 }`.
-
-### 9.10 Imports
-- Formato: `import a.b.c` (ruta con puntos).
-- Se resuelve a `a/b/c/mod.luna` o `a/b/c.luna`.
-
-### 9.11 Ciclos de import
-- El sistema de módulos los detecta en tiempo de carga.
-- Error: *"circular import detected: '<name>'"*.
-
----
-
-## 10. Ejemplos canónicos
-
-### 10.1 Programa mínimo
-```luna
-let name = "Luna"
-print(name)
-```
-
-### 10.2 Función con control de flujo
-```luna
-fn factorial(n)
-    if n <= 1
-        return 1
-    return n * factorial(n - 1)
-```
-
-### 10.3 Closures
-```luna
-fn make_counter()
-    let count = 0
-    return fn()
-        count += 1
-        return count
-
-let c = make_counter()
-print(c())
-print(c())
-```
-
-### 10.4 Listas y tablas
-```luna
-let numbers = [1, 2, 3, 4, 5]
-let config = {
-    host = "localhost",
-    port = 8080,
-    debug = true
-}
-
-let first = numbers[0]
-let host_name = config.host
-```
-
-### 10.5 Módulos
-```luna
-pub mod math_utils
-
-pub fn add(a, b)
-    return a + b
-
-fn internal_helper()
-    return 42
-```
-
-### 10.6 Manejo de errores
-```luna
-fn safe_divide(a, b)
-    if b == 0
-        throw "division by zero"
-    return a / b
-
-try
-    let x = safe_divide(10, 0)
-catch err
-    print(err)
-```
-
-### 10.7 Precedencia y asociatividad
-```luna
-let a = 2 ** 3 ** 2          # = 2 ** (3 ** 2) = 512 (right-assoc)
-let b = 1 + 2 * 3            # = 1 + (2 * 3) = 7
-let c = not x == y and z     # = (not x) == y and z  →  not (x == y) and z
-let d = -a ** 2              # = -(a ** 2)
-```
-
-### 10.8 Continuación de línea
-```luna
-let result = some_function(
-    arg1,
-    arg2,
-    arg3
-)
-
-let data = [
-    1,
-    2,
-    3,
-]
-```
-
----
-
-## 11. Diagrama de dependencias sintácticas
-
-```
-program
-  └─ statement*
-       ├─ simple_stmt ──→ expr ──→ prefix ──→ primary
-       │                               │         ├─ literal (nil/bool/int/float/string)
-       │                               │         ├─ IDENT
-       │                               │         ├─ ( expr )
-       │                               │         ├─ [ expr* ]
-       │                               │         ├─ { entry* }
-       │                               │         └─ fn ( ) \n block
-       │                               └─ postfix*
-       │                                    ├─ ( args )
-       │                                    ├─ [ expr ]
-       │                                    └─ . IDENT
-       ├─ fn_decl ──→ block
-       ├─ if_stmt ──→ expr + block + [elif*] + [else]
-       ├─ for_stmt ──→ IDENT* + expr + block
-       ├─ while_stmt ──→ expr + block
-       └─ try_stmt ──→ block + IDENT + block
-```
-
----
-
-## 12. Equivalencia con los tipos de nodo del AST
-
-| Producción | Nodo AST |
-|---|---|
-| `nil_literal` | `NODE_NIL` |
-| `bool_literal` | `NODE_BOOL` |
-| `integer_literal` | `NODE_INT` |
-| `float_literal` | `NODE_FLOAT` |
-| `string_literal` | `NODE_STRING` |
-| `ident` | `NODE_IDENT` |
-| `infix_op` | `NODE_BINARY` |
-| `unary_op` | `NODE_UNARY` |
-| `call_suffix` | `NODE_CALL` |
-| `index_suffix` | `NODE_INDEX` |
-| `field_suffix` | `NODE_FIELD` |
-| `list_literal` | `NODE_LIST` |
-| `table_literal` | `NODE_TABLE` |
-| `lambda_expr` | `NODE_LAMBDA` |
-| `let_stmt` | `NODE_LET` |
-| `const_stmt` | `NODE_CONST` |
-| `fn_decl` | `NODE_FN` |
-| `return_stmt` | `NODE_RETURN` |
-| `if_stmt` | `NODE_IF` |
-| `for_stmt` | `NODE_FOR` |
-| `while_stmt` | `NODE_WHILE` |
-| `break_stmt` | `NODE_BREAK` |
-| `continue_stmt` | `NODE_CONTINUE` |
-| `import_stmt` | `NODE_IMPORT` |
-| `extern_stmt` | `NODE_LET` (azúcar sintáctico con `__ffi_declare`) |
-| `mod_decl` | `NODE_MOD` |
-| `throw_stmt` | `NODE_THROW` |
-| `try_stmt` | `NODE_TRY` |
-| `expr_stmt` (con asignación) | `NODE_ASSIGN` |
-| `expr_stmt` (sin asignación) | `NODE_EXPR_STMT` |
-| `block` | `NODE_BLOCK` |
-| `program` | `NODE_PROGRAM` |
+(* =============================================================================
+   Luna: gramática formal
+   Especificación 1.0 - lenguaje objetivo de la versión 0.7.6
+
+   Describe la sintaxis que aceptan el lexer y el parser. Las restricciones
+   que no caben en EBNF y el estado de compilación se recogen al final.
+   ============================================================================= *)
+
+(* -----------------------------------------------------------------------------
+   Notación
+
+   EBNF según ISO/IEC 14977: '=' define, ';' cierra una producción, '|' alterna,
+   ( ) agrupa, [ ] es opcional, { } se repite cero o más veces, "..." delimita
+   un terminal y ? ... ? sustituye una descripción en lenguaje natural.
+   Los comentarios de la gramática usan paréntesis con asterisco.
+
+   Los terminales entre comillas adoptan los escapes de C: "\n" es LF, "\r" es
+   CR, "\\" una barra invertida y "\"" una comilla doble.
+   ----------------------------------------------------------------------------- *)
+
+(* -----------------------------------------------------------------------------
+   1. Programa, sentencias y bloques
+   ----------------------------------------------------------------------------- *)
+
+program        = { NEWLINE } [ statements ] EOF ;
+
+statements     = statement { statement_sep statement } [ statement_sep ] ;
+statement_sep  = NEWLINE { NEWLINE } ;
+
+statement      = pub_decl
+               | fn_decl
+               | mod_decl
+               | if_stmt
+               | for_stmt
+               | while_stmt
+               | try_stmt
+               | simple_stmt ;
+
+block_header   = ":" NEWLINE ;
+block          = INDENT statements [ DEDENT ] ;
+
+pub_decl       = "pub" ( fn_decl | mod_decl | let_stmt | const_stmt ) ;
+
+fn_decl        = "fn" IDENT "(" [ param_list ] ")" block_header block ;
+mod_decl       = "mod" IDENT ;
+let_stmt       = "let" IDENT "=" expr ;
+const_stmt     = "const" IDENT "=" expr ;
+param_list     = IDENT { "," IDENT } ;
+
+if_stmt        = "if" expr block_header block
+                 { "else" "if" expr block_header block }
+                 [ "else" block_header block ] ;
+for_stmt       = "for" IDENT { "," IDENT } "in" expr block_header block ;
+while_stmt     = "while" expr block_header block ;
+try_stmt       = "try" block_header block "catch" IDENT block_header block ;
+
+simple_stmt    = let_stmt
+               | const_stmt
+               | return_stmt
+               | import_stmt
+               | extern_stmt
+               | break_stmt
+               | continue_stmt
+               | throw_stmt
+               | expr_stmt ;
+
+return_stmt    = "return" [ expr ] ;
+import_stmt    = "import" IDENT { "." IDENT } ;
+extern_stmt    = "extern" IDENT "(" string_literal "," string_literal ")" ;
+break_stmt     = "break" ;
+continue_stmt  = "continue" ;
+throw_stmt     = "throw" expr ;
+
+expr_stmt      = expr [ assign_op expr ] ;
+assign_op      = "=" | "+=" | "-=" | "*=" | "/=" ;
+
+(* -----------------------------------------------------------------------------
+   2. Expresiones
+
+   Niveles de enlace del parser (de menor a mayor): or 1, and 2, comparación 4,
+   suma 5, producto 6, ** 7 (asociativo a la derecha). El '-' unario usa 7 y
+   'not' usa 3, por lo que 'not x == y' es 'not (x == y)' y '-a ** b' es
+   '-(a ** b)'. Los sufijos se aplican antes que los prefijos.
+   ----------------------------------------------------------------------------- *)
+
+expr           = or_expr ;
+or_expr        = and_expr { "or" and_expr } ;
+and_expr       = not_expr { "and" not_expr } ;
+not_expr       = "not" not_expr | compare_expr ;
+compare_expr   = add_expr { compare_op add_expr } ;
+compare_op     = "==" | "!=" | "<" | ">" | "<=" | ">=" ;
+add_expr       = mul_expr { add_op mul_expr } ;
+add_op         = "+" | "-" ;
+mul_expr       = unary_expr { mul_op unary_expr } ;
+mul_op         = "*" | "/" | "%" ;
+unary_expr     = "-" unary_expr | "not" not_expr | pow_expr ;
+pow_expr       = postfix [ "**" unary_expr ] ;
+
+postfix        = primary { postfix_op } ;
+postfix_op     = call_suffix | index_suffix | field_suffix ;
+call_suffix    = "(" [ arg_list ] ")" ;
+arg_list       = expr { "," expr } ;
+index_suffix   = "[" expr "]" ;
+field_suffix   = "." IDENT ;
+
+primary        = nil_literal
+               | bool_literal
+               | integer_literal
+               | float_literal
+               | string_literal
+               | IDENT
+               | group_expr
+               | list_literal
+               | table_literal
+               | lambda_expr ;
+
+nil_literal    = "nil" ;
+bool_literal   = "true" | "false" ;
+group_expr     = "(" expr ")" ;
+list_literal   = "[" [ expr { "," expr } [ "," ] ] "]" ;
+table_literal  = "{" [ table_entry { "," table_entry } [ "," ] ] "}" ;
+table_entry    = IDENT "=" expr ;
+lambda_expr    = "fn" "(" [ param_list ] ")" block_header block ;
+
+(* -----------------------------------------------------------------------------
+   3. Vocabulario léxico
+   ----------------------------------------------------------------------------- *)
+
+IDENT          = ( letter | "_" ) { letter | digit | "_" } ;
+letter         = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+               | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r"
+               | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+               | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I"
+               | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R"
+               | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ;
+digit          = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+hex_digit      = digit | "a" | "b" | "c" | "d" | "e" | "f"
+                       | "A" | "B" | "C" | "D" | "E" | "F" ;
+binary_digit   = "0" | "1" ;
+
+integer_literal  = decimal_integer | hex_integer | binary_integer ;
+decimal_integer  = digit { digit } ;
+hex_integer      = ( "0x" | "0X" ) hex_digit { hex_digit } ;
+binary_integer   = ( "0b" | "0B" ) binary_digit { binary_digit } ;
+float_literal    = digit { digit } "." digit { digit } [ exponent ]
+                 | digit { digit } exponent ;
+exponent         = ( "e" | "E" ) [ "+" | "-" ] { digit } ;
+
+string_literal   = "\"" { string_char | escape_seq } "\"" ;
+string_char      = ? carácter excepto comilla doble, barra invertida, LF o CR ? ;
+escape_seq       = "\\" ? carácter ? ;
+
+comment          = "#" { ? carácter excepto LF o CR ? } ;
+
+NEWLINE          = LF | CRLF | CR | ";" ;
+LF               = "\n" ;
+CR               = "\r" ;
+CRLF             = "\r\n" ;
+INDENT           = ? aumento del nivel de indentación ? ;
+DEDENT           = ? disminución del nivel de indentación ? ;
+EOF              = ? fin de la entrada ? ;
+
+keyword          = "and"       | "break"   | "catch"  | "const"  | "continue"
+                 | "else"      | "extern"  | "false"  | "fn"     | "for"
+                 | "if"        | "import"  | "in"     | "let"    | "mod"
+                 | "nil"       | "not"     | "or"     | "pub"    | "return"
+                 | "throw"     | "true"    | "try"    | "while" ;
+
+operator         = "+"   | "-"   | "*"   | "/"  | "%"  | "**"
+                 | "=="  | "!="  | "<"   | ">"  | "<=" | ">="
+                 | "="   | "+="  | "-="  | "*=" | "/=" ;
+punctuator       = "(" | ")" | "[" | "]" | "{" | "}" | "," | "." | ":" | ";" ;
+
+(* -----------------------------------------------------------------------------
+   4. Restricciones que no expresa la gramática
+
+   - Las 24 palabras de 'keyword' son tokens propios: no pueden usarse como
+     identificadores, ni como clave de tabla, ni como componente de import.
+   - 'pub' solo precede a 'fn', 'mod', 'let' o 'const'. El resto de símbolos
+     son privados al módulo.
+   - Toda cabecera de bloque exige ':' seguido de NEWLINE. 'else' y 'catch'
+     siguen al bloque cerrado, en la misma línea lógica. No existe 'elif':
+     las ramas 'else if' se guardan como una lista plana.
+   - 'fn' al nivel de sentencia siempre lleva nombre. Las lambdas anónimas
+     solo aparecen como expresión primaria y también exigen ':' y un bloque
+     indentado; no hay forma de una sola línea.
+   - En '=' y en las asignaciones compuestas el destino se comprueba en el
+     parser: solo IDENT, indexación o acceso a campo. Los paréntesis no
+     cambian el destino porque agrupan sin crear nodo.
+   - Los parámetros y los argumentos de llamada no admiten coma final; las
+     listas y las tablas sí. Un índice acepta una sola expresión: no hay
+     rebanadas ni índices múltiples. Las claves de tabla son solo IDENT.
+   - 'break' y 'continue' solo se aceptan dentro de 'while' o 'for'. Los
+     imports son rutas con puntos ('import a.b.c'), sin alias.
+   - Solo espacios al inicio de línea: un tab ahí es error; entre tokens se
+     ignora. Cualquier ancho positivo de indentación es válido y cada DEDENT
+     debe coincidir con un nivel abierto. Máximo 255 niveles anidados.
+   - Las líneas vacías y las formadas solo por comentarios no generan tokens.
+     Dentro de ( ), [ ] y { } los saltos de línea no generan NEWLINE, INDENT
+     ni DEDENT; ';' siempre genera NEWLINE, incluso dentro de esos pares.
+   - Los literales hex y binarios admiten de 1 a 63 dígitos (64 caracteres
+     contando el prefijo); decimales y floats hasta 127 caracteres. El lexer
+     tolera un exponente sin dígitos después de 'e', aunque no es forma canónica.
+   - Los strings usan solo comillas dobles. El parser interpreta "\n", "\t",
+     "\r", "\0", "\\" y "\""; cualquier otra secuencia de escape se conserva
+     tal cual. Un salto de línea literal dentro del string es error.
+   - 'for', 'break' y 'continue' pasan el parser, pero el compilador no
+     genera código para ellos.
+   ----------------------------------------------------------------------------- *)
+
+(* -----------------------------------------------------------------------------
+   5. Ejemplos
+   ----------------------------------------------------------------------------- *)
+
+(* let name = "Luna"
+   print(name)
+
+   fn factorial(n):
+       if n <= 1:
+           return 1
+       return n * factorial(n - 1)
+
+   fn make_counter():
+       let count = 0
+       return fn():
+           count += 1
+           return count
+
+   let numbers = [1, 2, 3, 4, 5]
+   let config = {
+       host = "localhost",
+       port = 8080,
+       debug = true,
+   }
+   print(numbers[0])
+   print(config.host)
+
+   pub mod math_utils
+
+   pub fn add(a, b):
+       return a + b
+
+   fn safe_divide(a, b):
+       if b == 0:
+           throw "division by zero"
+       return a / b
+
+   try:
+       print(safe_divide(10, 2))
+   catch err:
+       print(err)
+
+   let a = 2 ** 3 ** 2    # 512
+   let b = 1 + 2 * 3      # 7
+   let c = not x == y     # not (x == y)
+   let d = -a ** 2        # -(a ** 2)
+
+   let result = some_function(
+       arg1,
+       arg2,
+       arg3
+   ) *)
+
+(* Fin de la gramática *)

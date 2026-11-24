@@ -51,7 +51,6 @@ La condición se evalúa antes de cada iteración. No hay un `break` compilado: 
 | --- | --- | --- |
 | `for ... in` | Sí | Emite `for loops not yet implemented` |
 | `break`, `continue` | Sí | No genera código |
-| Lambdas anónimas `fn(...)` | Sí | Nodo `NODE_LAMBDA` sin compilar |
 | `+` entre strings | Sí | Error de tipo en runtime |
 
 Un `for` o un `break` en código aparentemente válido produce un error en tiempo de compilación o ejecución. La alternativa es `while`, como en el ejemplo anterior. Consulta el [estado de implementación](11-estado-de-implementacion.md) y las [recetas](17-recetas.md).

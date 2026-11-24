@@ -28,6 +28,7 @@ VERSION = read_version()
 BUILD_DIR = Path("build")
 SRC_DIR = Path("src")
 INCLUDE_BASE = SRC_DIR
+PUBLIC_INCLUDE_DIR = Path("include")
 
 def enable_windows_ansi() -> bool:
     if os.name != "nt":
@@ -261,9 +262,24 @@ def get_all_includes(modules: Dict[str, Module], module: Module) -> List[str]:
     
     return sorted(includes)
 
+def newest_header_mtime() -> float:
+    """Mtime más reciente de todos los headers del proyecto."""
+    newest = 0.0
+    for root in (SRC_DIR, PUBLIC_INCLUDE_DIR):
+        if not root.exists():
+            continue
+        for path in root.rglob("*.h"):
+            try:
+                newest = max(newest, path.stat().st_mtime)
+            except OSError:
+                continue
+    return newest
+
+
 def compile_module(module: Module, modules: Dict[str, Module], verbose: bool = False) -> bool:
     """Compila un módulo. Retorna True si éxito."""
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    header_mtime = newest_header_mtime()
     
     # Crear directorio de build para este módulo
     module_build_dir = BUILD_DIR / module.path
@@ -298,12 +314,10 @@ def compile_module(module: Module, modules: Dict[str, Module], verbose: bool = F
             # También verificar headers
             needs_rebuild = source_mtime > object_mtime
             
-            for header in module.headers:
-                header_path = module.path / header
-                if header_path.exists() and header_path.stat().st_mtime > object_mtime:
-                    needs_rebuild = True
-                    break
+            if header_mtime > object_mtime:
+                needs_rebuild = True
             
+
             if not needs_rebuild:
                 if verbose:
                     muted(f"  ⚬ {source} (sin cambios)")

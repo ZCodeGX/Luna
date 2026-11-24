@@ -25,6 +25,7 @@ void* luna_alloc_default(void* ud, void* ptr, size_t old_size, size_t new_size);
  * Llama a este helper desde luna_alloc del runtime.
  */
 void luna_gc_adjust_bytes(struct LunaState* L, ptrdiff_t delta);
+int luna_check_memory_limit(struct LunaState* L, size_t requested);
 
 /* ---------- GC interno ---------- */
 

@@ -121,6 +121,9 @@ int vm_handle_error(LunaState* L);
 int vm_throw(LunaState* L, LunaValue value);
 int vm_error_type(LunaState* L, const char* op, LunaValue a, LunaValue b);
 
+/* Bucle de ejecución */
+int vm_run(LunaState* L);
+
 /* Acceso a la VM desde el estado */
 static inline LunaVM* state_vm(LunaState* L) {
     return (LunaVM*)L->vm_data;

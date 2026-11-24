@@ -240,6 +240,11 @@ bool expect_block_end(LunaParser* P, const char* context) {
 void require_statement_end(LunaParser* P) {
     if (P->failed || P->panic_mode) return;
 
+    if (P->after_block_expr) {
+        P->after_block_expr = false;
+        return;
+    }
+
     LunaTokenType t = P->current.type;
     if (t == LUNA_TOK_NEWLINE || t == LUNA_TOK_DEDENT || t == LUNA_TOK_EOF) return;
 

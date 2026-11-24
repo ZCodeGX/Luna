@@ -102,6 +102,10 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name) {
     
     /* 3. ¿Es un módulo nativo registrado? */
     if (cached && cached->register_fn) {
+        if (cached->loaded && cached->exports) {
+            return cached->exports;
+        }
+
         /* Crear tabla de exports */
         struct LunaTable* exports = luna_table_new(L);
         if (!exports) return NULL;
@@ -159,7 +163,8 @@ struct LunaTable* luna_import_module(struct LunaState* L, const char* name) {
     modules_loading_pop(M);
     
     if (exec_ok != 0) {
-        /* El error ya está en L->error_message */
+        /* No dejamos una entrada fallida en el cache: un reintento debe volver a cargar */
+        modules_cache_remove(L, name);
         return NULL;
     }
 

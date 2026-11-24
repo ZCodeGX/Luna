@@ -50,17 +50,17 @@ static uint64_t hash_bytes(const void* data, size_t len) {
     return h;
 }
 
+static uint64_t hash_number(double d) {
+    if (d == 0.0) d = 0.0;
+    return hash_bytes(&d, sizeof(d));
+}
+
 uint64_t luna_value_hash(LunaValue v) {
     switch (v.type) {
         case LUNA_TNIL:     return 0;
         case LUNA_TBOOLEAN: return v.as.boolean ? 1 : 0;
-        case LUNA_TINTEGER: return hash_bytes(&v.as.integer, sizeof(v.as.integer));
-        case LUNA_TFLOAT: {
-            /* normalizar -0.0 a 0.0 */
-            double d = v.as.floating;
-            if (d == 0.0) d = 0.0;
-            return hash_bytes(&d, sizeof(d));
-        }
+        case LUNA_TINTEGER: return hash_number((double)v.as.integer);
+        case LUNA_TFLOAT:   return hash_number(v.as.floating);
         case LUNA_TSTRING:  return luna_string_hash(luna_val_string(v));
         default:            return hash_bytes(&v.as.gcobj, sizeof(v.as.gcobj));
     }

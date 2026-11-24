@@ -161,6 +161,7 @@ static LunaNode* parse_lambda(LunaParser* P) {
                          "insert ')' after parameter list")) return NULL;
     if (!expect_block_end(P, "'fn' parameter list")) return NULL;
     LunaNode* body = parse_block_after(P, "fn expression");
+    P->after_block_expr = true;
     return luna_node_lambda(params, body, line, col);
 }
 

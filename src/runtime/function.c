@@ -1,4 +1,5 @@
 #include "function.h"
+#include "../bytecode/proto.h"
 #include "runtime_internal.h"
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +34,7 @@ LunaFunction* luna_function_new(LunaState* L, LunaProto* proto) {
     f->header.gc_next = L->all_objects;
     L->all_objects = &f->header;
     
+    luna_proto_retain(proto);
     f->proto = proto;
     f->c_function = NULL;
     f->num_upvalues = proto ? proto->num_upvalues : 0;
@@ -40,6 +42,7 @@ LunaFunction* luna_function_new(LunaState* L, LunaProto* proto) {
     if (f->num_upvalues > 0) {
         f->upvalues = (LunaUpvalue**)luna_alloc(L, NULL, 0, f->num_upvalues * sizeof(LunaUpvalue*));
         if (!f->upvalues) {
+            luna_proto_release(proto);
             luna_alloc(L, f, sizeof(LunaFunction), 0);
             return NULL;
         }

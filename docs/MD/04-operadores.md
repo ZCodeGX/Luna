@@ -34,6 +34,7 @@ Salida:
 - `int op int`: `+`, `-`, `*` y `%` devuelven `integer`; `/` y `**` devuelven `float`.
 - Si alguno de los operandos es `float`, el resultado es `float`.
 - Dividir o tomar módulo entre cero produce un error capturable.
+- El desbordamiento de enteros produce un error capturable (no hay wraparound).
 - `+` **no** concatena cadenas; usar dos strings con `+` da error de tipo. Para unir strings, usa `string.concat` o `string.join`.
 
 ```luna

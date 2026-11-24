@@ -1,5 +1,6 @@
 #include "vm_internal.h"
 #include <math.h>
+#include <limits.h>
 
 /* ============================================================
  * Coerción numérica
@@ -39,9 +40,32 @@ int vm_arith(LunaState* L, LunaValue a, LunaValue b, LunaValue* out, LunaOpcode 
         int64_t ai = a.as.integer, bi = b.as.integer;
         int64_t r;
         switch (op) {
-            case OP_ADD: r = ai + bi; break;
-            case OP_SUB: r = ai - bi; break;
-            case OP_MUL: r = ai * bi; break;
+            case OP_ADD:
+                if ((bi > 0 && ai > INT64_MAX - bi) ||
+                    (bi < 0 && ai < INT64_MIN - bi)) {
+                    luna_error_set_simple(L, LUNA_ERR_RUNTIME, "integer overflow");
+                    return -1;
+                }
+                r = ai + bi;
+                break;
+            case OP_SUB:
+                if ((bi < 0 && ai > INT64_MAX + bi) ||
+                    (bi > 0 && ai < INT64_MIN + bi)) {
+                    luna_error_set_simple(L, LUNA_ERR_RUNTIME, "integer overflow");
+                    return -1;
+                }
+                r = ai - bi;
+                break;
+            case OP_MUL:
+                if ((ai > 0 && bi > 0 && ai > INT64_MAX / bi) ||
+                    (ai > 0 && bi < 0 && bi < INT64_MIN / ai) ||
+                    (ai < 0 && bi > 0 && ai < INT64_MIN / bi) ||
+                    (ai < 0 && bi < 0 && ai < INT64_MAX / bi)) {
+                    luna_error_set_simple(L, LUNA_ERR_RUNTIME, "integer overflow");
+                    return -1;
+                }
+                r = ai * bi;
+                break;
             case OP_DIV:
                 /* División entera → float (como Python 3) */
                 if (bi == 0) {
@@ -53,6 +77,10 @@ int vm_arith(LunaState* L, LunaValue a, LunaValue b, LunaValue* out, LunaOpcode 
             case OP_MOD:
                 if (bi == 0) {
                     luna_error_set_simple(L, LUNA_ERR_DIVZERO, "modulo by zero");
+                    return -1;
+                }
+                if (ai == INT64_MIN && bi == -1) {
+                    luna_error_set_simple(L, LUNA_ERR_RUNTIME, "integer overflow");
                     return -1;
                 }
                 r = ai % bi;
@@ -114,7 +142,13 @@ int vm_arith(LunaState* L, LunaValue a, LunaValue b, LunaValue* out, LunaOpcode 
  */
 int vm_neg(LunaState* L, LunaValue a, LunaValue* out) {
     switch (a.type) {
-        case LUNA_TINTEGER: *out = luna_int(-a.as.integer); return 0;
+        case LUNA_TINTEGER:
+            if (a.as.integer == INT64_MIN) {
+                luna_error_set_simple(L, LUNA_ERR_RUNTIME, "integer overflow");
+                return -1;
+            }
+            *out = luna_int(-a.as.integer);
+            return 0;
         case LUNA_TFLOAT:   *out = luna_float(-a.as.floating); return 0;
         default:
             luna_error_set(L, LUNA_ERR_TYPE, NULL, 0, 0,

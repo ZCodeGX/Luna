@@ -36,11 +36,11 @@ const char* luna_get_error_file(const struct LunaState* L) {
 }
 
 int luna_get_error_line(const struct LunaState* L) {
-    return L->error.line;
+    return L->error.has_error ? L->error.line : 0;
 }
 
 int luna_get_error_column(const struct LunaState* L) {
-    return L->error.column;
+    return L->error.has_error ? L->error.column : 0;
 }
 
 const LunaTraceback* luna_get_traceback(const struct LunaState* L) {
@@ -111,71 +111,62 @@ void luna_error_clear(struct LunaState* L) {
  * Formateo de errores
  * ============================================================ */
 
+static size_t error_append(char* out, size_t out_size, size_t used,
+                           const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    int need = vsnprintf(NULL, 0, fmt, ap);
+    va_end(ap);
+    if (need <= 0) return used;
+
+    size_t total = (size_t)need;
+    if (out && out_size > 0 && used + 1 < out_size) {
+        size_t room = out_size - used - 1;
+        va_start(ap, fmt);
+        int wrote = vsnprintf(out + used, room + 1, fmt, ap);
+        va_end(ap);
+        total = (wrote > 0 && (size_t)wrote < room) ? (size_t)wrote : room;
+    }
+    return used + total;
+}
+
 size_t luna_format_error(const struct LunaState* L, char* out, size_t out_size) {
     const LunaError* err = &L->error;
+    size_t used = 0;
 
-    if (!err->has_error) {
-        if (out && out_size > 0) out[0] = '\0';
-        return 0;
-    }
+    if (out && out_size > 0) out[0] = '\0';
+    if (!err->has_error) return 0;
 
-    /* Si out es NULL, solo calcular tamaño */
-    if (!out) {
-        /* Estimación conservadora */
-        return 1024;
-    }
+    used = error_append(out, out_size, used, "error: %s: %s\n",
+                        luna_status_name(err->status), err->message);
 
-    char buf[2048];
-    int n = 0;
-
-    /* Cabecera: error: <tipo>: <mensaje> */
-    n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                  "error: %s: %s\n",
-                  luna_status_name(err->status),
-                  err->message);
-
-    /* Ubicación */
     if (err->file[0] != '\0') {
         if (err->line > 0) {
             if (err->column > 0) {
-                n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                              "  --> %s:%d:%d\n",
-                              err->file, err->line, err->column);
+                used = error_append(out, out_size, used, "  --> %s:%d:%d\n",
+                                    err->file, err->line, err->column);
             } else {
-                n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                              "  --> %s:%d\n",
-                              err->file, err->line);
+                used = error_append(out, out_size, used, "  --> %s:%d\n",
+                                    err->file, err->line);
             }
         } else {
-            n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                          "  --> %s\n", err->file);
+            used = error_append(out, out_size, used, "  --> %s\n", err->file);
         }
     }
 
-    /* Traceback */
     if (err->traceback.count > 0) {
-        n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                      "\nstack traceback:\n");
+        used = error_append(out, out_size, used, "\nstack traceback:\n");
         for (int i = 0; i < err->traceback.count; i++) {
             const LunaTracebackFrame* f = &err->traceback.frames[i];
+            const char* fn = f->function_name ? f->function_name : "<anonymous>";
             if (f->source_file && f->source_file[0]) {
-                n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                              "    at %s (%s:%d)\n",
-                              f->function_name ? f->function_name : "<anonymous>",
-                              f->source_file, f->line);
+                used = error_append(out, out_size, used, "    at %s (%s:%d)\n",
+                                    fn, f->source_file, f->line);
             } else {
-                n += snprintf(buf + n, sizeof(buf) - (size_t)n,
-                              "    at %s\n",
-                              f->function_name ? f->function_name : "<anonymous>");
+                used = error_append(out, out_size, used, "    at %s\n", fn);
             }
         }
     }
 
-    /* Copiar al buffer de salida */
-    size_t total = (size_t)n;
-    if (total >= out_size) total = out_size - 1;
-    memcpy(out, buf, total);
-    out[total] = '\0';
-
-    return total;
+    return used;
 }

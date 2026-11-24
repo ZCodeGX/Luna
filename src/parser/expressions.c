@@ -160,7 +160,10 @@ static LunaNode* parse_lambda(LunaParser* P) {
     if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close parameter list",
                          "insert ')' after parameter list")) return NULL;
     if (!expect_block_end(P, "'fn' parameter list")) return NULL;
+    int outer_loop_depth = P->loop_depth;
+    P->loop_depth = 0;
     LunaNode* body = parse_block_after(P, "fn expression");
+    P->loop_depth = outer_loop_depth;
     P->after_block_expr = true;
     return luna_node_lambda(params, body, line, col);
 }

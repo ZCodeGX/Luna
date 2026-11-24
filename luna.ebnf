@@ -50,7 +50,7 @@ param_list     = IDENT { "," IDENT } ;
 if_stmt        = "if" expr block_header block
                  { "else" "if" expr block_header block }
                  [ "else" block_header block ] ;
-for_stmt       = "for" IDENT { "," IDENT } "in" expr block_header block ;
+for_stmt       = "for" IDENT [ "," IDENT ] "in" expr block_header block ;
 while_stmt     = "while" expr block_header block ;
 try_stmt       = "try" block_header block "catch" IDENT block_header block ;
 

@@ -1,4 +1,5 @@
 #include "table.h"
+#include "list.h"
 #include "runtime_internal.h"
 #include <stdlib.h>
 #include <string.h>
@@ -179,4 +180,17 @@ void luna_table_remove(LunaTable* t, LunaValue key) {
         prev = idx;
         idx = n->next;
     }
+}
+
+LunaList* luna_table_keys(LunaState* L, LunaTable* t) {
+    LunaList* keys = luna_list_new(L);
+    if (!keys) return NULL;
+
+    for (uint32_t i = 0; i < t->size; i++) {
+        LunaTableNode* n = &t->nodes[i];
+        if (n->key.type != LUNA_TNIL) {
+            luna_list_push_value(L, keys, n->key);
+        }
+    }
+    return keys;
 }

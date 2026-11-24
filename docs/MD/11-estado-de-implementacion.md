@@ -10,9 +10,9 @@ Luna se encuentra en versión `0.7.6` (ABI 1, GPL-3.0). La gramática `luna.ebnf
 | Números hexadecimales y binarios | Disponible |
 | `let` y `const` | Disponible |
 | Chequeo de reasignación de `const` | Disponible |
-| Funciones `fn`, parámetros, `return` y closures | Disponible |
+| Funciones `fn`, parámetros, `return`, closures y lambdas `fn(...)` | Disponible |
 | `if` / `else if` / `else` | Disponible |
-| `while` | Disponible |
+| `while`, `for ... in`, `break` y `continue` | Disponible |
 | Operadores aritméticos, de comparación y lógicos | Disponible |
 | Asignación a identificadores, índices y campos | Disponible |
 | Asignaciones compuestas `+=`, `-=`, `*=`, `/=` | Disponible |
@@ -33,11 +33,9 @@ Luna se encuentra en versión `0.7.6` (ABI 1, GPL-3.0). La gramática `luna.ebnf
 
 | Característica | Parser | Compilador / VM |
 | --- | --- | --- |
-| `for` ... `in` | Sí | Emite `for loops not yet implemented` |
-| `break`, `continue` | Sí | Sin generación de código |
 | Concatenación de strings con `+` | Sí | Error de tipo en runtime |
 
-Usa `while`, funciones con nombre y `string.concat` en su lugar. La sintaxis de bloque válida se resume en [sintaxis básica](02-sintaxis-basica.md).
+Usa `string.concat` o `string.join` en su lugar. La sintaxis de bloque válida se resume en [sintaxis básica](02-sintaxis-basica.md).
 
 ## FFI (0.7.6)
 

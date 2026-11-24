@@ -43,17 +43,27 @@ Salida:
 1
 ```
 
-La condición se evalúa antes de cada iteración. No hay un `break` compilado: si necesitas salir, controla la condición del `while`.
+La condición se evalúa antes de cada iteración. Usa `break` para salir y `continue` para saltar a la siguiente iteración.
+
+## for ... in
+
+```luna
+for x in [10, 20, 30]:
+    print(x)
+
+for clave, valor in {uno = 1}:
+    print(clave, valor)
+```
+
+Una sola variable recibe el elemento de una lista o la clave de una tabla; dos variables reciben clave y valor. En tablas, el orden de iteración sigue el almacenamiento interno y no está garantizado.
 
 ## Construcciones no compiladas
 
 | Construcción | Parser | Compilador |
 | --- | --- | --- |
-| `for ... in` | Sí | Emite `for loops not yet implemented` |
-| `break`, `continue` | Sí | No genera código |
 | `+` entre strings | Sí | Error de tipo en runtime |
 
-Un `for` o un `break` en código aparentemente válido produce un error en tiempo de compilación o ejecución. La alternativa es `while`, como en el ejemplo anterior. Consulta el [estado de implementación](11-estado-de-implementacion.md) y las [recetas](17-recetas.md).
+Usa `string.concat` o `string.join` para unir cadenas. Consulta el [estado de implementación](11-estado-de-implementacion.md) y las [recetas](17-recetas.md).
 
 ## try / catch
 

@@ -1,5 +1,0 @@
-# @expect-error: for loops not yet implemented
-# 'for ... in' aún no está compilado; usa while para iterar.
-let xs = [1, 2]
-for x in xs:
-    print(x)

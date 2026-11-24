@@ -30,7 +30,7 @@ La sintaxis y la API C pueden cambiar entre versiones. El runtime y la bibliotec
 
 Además de los operadores y las estructuras básicas, Luna registra la biblioteca estándar completa: globales `len`, `type`, `str`, `int`, `float` e `input`, módulos `math`, `string`, `list`, `table`, `io`, `os`, `time`, `path` y `ffi`, y la función `print`. La CLI expone `argv` como global.
 
-`import`, `mod`, `pub`, listas, tablas, indexación, asignaciones compuestas y `try`/`catch` funcionan de extremo a extremo. `for`, `break`, `continue`, las lambdas anónimas y `+` para strings están en la gramática pero no son usables. FFI con `extern` está disponible desde 0.7.6. Consulta la [tabla de estado](../../MD/11-estado-de-implementacion.md).
+`import`, `mod`, `pub`, listas, tablas, indexación, asignaciones compuestas, `try`/`catch`, `for`, `break`, `continue` y las lambdas anónimas funcionan de extremo a extremo. `+` para strings sigue sin estar disponible. FFI con `extern` está disponible desde 0.7.6. Consulta la [tabla de estado](../../MD/11-estado-de-implementacion.md).
 
 ## Enlaces útiles
 

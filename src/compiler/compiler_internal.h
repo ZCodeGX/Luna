@@ -5,11 +5,21 @@
 #include "scope.h"
 #include "../ast/ast.h"
 #include "../bytecode/proto.h"
+#include <stddef.h>
 #include <stdint.h>
 
 #define LUNA_MAX_PROTO_DEPTH 64
 #define LUNA_MAX_LOCALS 255
 #define LUNA_MAX_UPVALUES 255
+#define LUNA_MAX_LOOPS 64
+#define LUNA_MAX_LOOP_JUMPS 128
+
+typedef struct {
+    size_t breaks[LUNA_MAX_LOOP_JUMPS];
+    int break_count;
+    size_t continues[LUNA_MAX_LOOP_JUMPS];
+    int continue_count;
+} LunaLoopContext;
 
 struct LunaCompiler {
     /* Stack de protos (para funciones anidadas) */
@@ -22,6 +32,11 @@ struct LunaCompiler {
 
     /* Símbolos exportados por el módulo */
     bool has_exports;
+
+    /* Bucles activos del proto actual */
+    LunaLoopContext loops[LUNA_MAX_LOOPS];
+    int loop_depth;
+    int loop_depth_stack[LUNA_MAX_PROTO_DEPTH];
 
     /* Estado de error */
     bool failed;

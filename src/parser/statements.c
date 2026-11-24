@@ -98,6 +98,7 @@ static LunaNode* parse_for(LunaParser* P) {
     LunaNode* n = luna_node_new(NODE_FOR, line, col);
     LunaNodeList* vars = NULL;
     LunaNodeList* tail = NULL;
+    int count = 0;
     for (;;) {
         if (!check(P, LUNA_TOK_IDENT)) {
             syntax_error(P, token_span(P, &P->current),
@@ -112,7 +113,13 @@ static LunaNode* parse_for(LunaParser* P) {
         item->node = id;
         if (!vars) vars = item; else tail->next = item;
         tail = item;
+        count++;
         if (!match(P, LUNA_TOK_COMMA)) break;
+    }
+    if (count > 2) {
+        syntax_error(P, token_span(P, &P->previous),
+                     "use one variable for elements or two for key and value",
+                     "too many loop variables");
     }
     if (n) n->as.for_stmt.vars = vars;
     if (!expect(P, LUNA_TOK_IN, "'in' after loop variable")) return n;
@@ -289,7 +296,10 @@ static LunaNode* parse_fn_decl(LunaParser* P, int is_pub) {
     if (!expect_help(P, LUNA_TOK_RPAREN, "')' to close parameter list",
                          "insert ')' after parameter list")) { free(name); return n; }
     if (!expect_block_end(P, "function signature")) { free(name); return n; }
+    int outer_loop_depth = P->loop_depth;
+    P->loop_depth = 0;
     LunaNode* body = parse_block_after(P, "fn declaration");
+    P->loop_depth = outer_loop_depth;
     if (n) {
         n->as.fn.name = name;
         n->as.fn.body = body;

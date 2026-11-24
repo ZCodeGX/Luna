@@ -24,9 +24,9 @@ Necesitas Python 3 y un compilador C11. El binario queda en `build/luna`. Para e
 cat programa.luna | ./build/luna -
 ```
 
-## ¿Por qué mi función con `for` no funciona?
+## ¿Cómo itero sobre una lista o una tabla?
 
-Porque `for` está en la gramática y el parser lo acepta, pero el compilador emite `for loops not yet implemented`. Lo mismo ocurre con `break` y `continue`. Usa `while`. Consulta la [tabla de estado](../../MD/11-estado-de-implementacion.md).
+Usa `for x in lista:` o `for clave, valor in tabla:`. `break` y `continue` funcionan en `for` y en `while`. Consulta [control de flujo](../../MD/05-control-de-flujo.md).
 
 ## ¿Por qué `+` no concatena cadenas?
 

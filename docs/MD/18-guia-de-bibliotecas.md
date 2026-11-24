@@ -7,7 +7,7 @@ Esta guía muestra cómo usar las bibliotecas disponibles en Luna `0.7.6`. La re
 - Las listas se indexan desde `0`: `xs[0]` es el primer elemento.
 - Las tablas literales usan `clave = valor`: `{nombre = "Luna", activo = true}`.
 - Para concatenar strings usa `string.concat(a, b)` o `string.join(sep, xs)`; `+` no está disponible.
-- No hay `for`, `break`, `continue` ni lambdas anónimas. Usa `while` y funciones con nombre.
+- `for`, `break`, `continue` y las lambdas anónimas están disponibles; usa `string.concat` para unir cadenas.
 - Los módulos nativos `*_native` están debajo de las fachadas. Importa la fachada salvo que necesites la primitiva directa.
 
 ## Globales y entrada de terminal

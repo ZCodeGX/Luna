@@ -671,11 +671,78 @@ VM_SWITCH_BEGIN
         }
 
         /* ---------- Iteración (for) ---------- */
-        VM_CASE(OP_FOR_INIT)
-        VM_CASE(OP_FOR_STEP)
-            /* TODO: implementar for loops */
-            luna_error_set_simple(L, LUNA_ERR_RUNTIME, "for loops not yet implemented");
-            VM_ERROR();
+        VM_CASE(OP_FOR_INIT) {
+            int nvars = (int)luna_val_int(base[A + 3]);
+            if (nvars < 1 || nvars > 2) {
+                luna_error_set_simple(L, LUNA_ERR_RUNTIME,
+                                      "for expects one or two loop variables");
+                VM_ERROR();
+            }
+
+            LunaValue iterable = base[A + 1];
+            LunaList* keys = NULL;
+            size_t len = 0;
+
+            if (iterable.type == LUNA_TLIST) {
+                keys = luna_val_list(iterable);
+            } else if (iterable.type == LUNA_TTABLE) {
+                keys = luna_table_keys(L, luna_val_table(iterable));
+                if (!keys) VM_ERROR();
+                base[A + 5] = iterable;
+            } else {
+                luna_error_set_simple(L, LUNA_ERR_TYPE,
+                                      "cannot iterate over a %s value",
+                                      luna_type_name(iterable.type));
+                VM_ERROR();
+            }
+
+            base[A + 1] = luna_list_val(keys);
+            base[A + 2] = luna_int(-1);
+            len = luna_list_len(keys);
+
+            if (len == 0) {
+                int16_t sbx = decode_sBx(code, pc);
+                size_t next = advance_pc(code, pc);
+                VM_SET_PC((size_t)((int64_t)next + sbx));
+                VM_END_INSTR();
+            }
+            VM_ADVANCE();
+            VM_END_INSTR();
+        }
+
+        VM_CASE(OP_FOR_STEP) {
+            int nvars = (int)luna_val_int(base[A + 3]);
+            int var_base = (int)luna_val_int(base[A + 4]);
+            LunaList* keys = luna_val_list(base[A + 1]);
+            size_t len = luna_list_len(keys);
+            size_t idx = (size_t)luna_val_int(base[A + 2]) + 1;
+
+            if (idx >= len) {
+                int16_t sbx = decode_sBx(code, pc);
+                size_t next = advance_pc(code, pc);
+                VM_SET_PC((size_t)((int64_t)next + sbx));
+                VM_END_INSTR();
+            }
+
+            base[A + 2] = luna_int((int64_t)idx);
+
+            LunaValue key = luna_nil();
+            luna_list_get(keys, idx, &key);
+            base[var_base + 1] = key;
+
+            if (nvars == 2) {
+                LunaValue value = luna_nil();
+                LunaValue table = base[A + 5];
+                if (table.type == LUNA_TTABLE) {
+                    luna_table_get(luna_val_table(table), key, &value);
+                } else {
+                    luna_list_get(keys, idx, &value);
+                }
+                base[var_base + 2] = value;
+            }
+            VM_ADVANCE();
+            VM_END_INSTR();
+        }
 
         /* ---------- Excepciones ---------- */
         VM_CASE(OP_THROW) {

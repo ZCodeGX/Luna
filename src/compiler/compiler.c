@@ -56,8 +56,10 @@ void compiler_push_proto(LunaCompiler* C, const char* name) {
     
     LunaProto* proto = luna_proto_new(name);
     C->proto_stack[C->proto_depth] = proto;
+    C->loop_depth_stack[C->proto_depth] = C->loop_depth;
     C->proto_depth++;
-    
+    C->loop_depth = 0;
+
     /* Inicializar scope */
     scope_init(&C->scope_stack[C->scope_depth], C->scope_depth);
     C->scope_depth++;
@@ -82,6 +84,7 @@ LunaProto* compiler_pop_proto(LunaCompiler* C) {
     }
 
     C->proto_depth--;
+    C->loop_depth = C->loop_depth_stack[C->proto_depth];
     C->scope_depth--;
     scope_free(&C->scope_stack[C->scope_depth]);
 
@@ -519,18 +522,26 @@ void compile_expr(LunaCompiler* C, LunaNode* node, int reg) {
 }
 
 /* ---------- Compilación de sentencias ---------- */
-static void patch_jump_AsBx(LunaProto* proto, size_t pos) {
-    int16_t off = (int16_t)(proto->code_len - (pos + 4));
+static void patch_jump_AsBx_to(LunaProto* proto, size_t pos, size_t target) {
+    int16_t off = (int16_t)(target - (pos + 4));
     uint16_t bx = (uint16_t)(off + 32767);
     proto->code[pos + 2] = (uint8_t)(bx & 0xFF);
     proto->code[pos + 3] = (uint8_t)((bx >> 8) & 0xFF);
 }
 
-static void patch_jump_sBx(LunaProto* proto, size_t pos) {
-    int16_t off = (int16_t)(proto->code_len - (pos + 3));
+static void patch_jump_AsBx(LunaProto* proto, size_t pos) {
+    patch_jump_AsBx_to(proto, pos, proto->code_len);
+}
+
+static void patch_jump_sBx_to(LunaProto* proto, size_t pos, size_t target) {
+    int16_t off = (int16_t)(target - (pos + 3));
     uint16_t bx = (uint16_t)(off + 32767);
     proto->code[pos + 1] = (uint8_t)(bx & 0xFF);
     proto->code[pos + 2] = (uint8_t)((bx >> 8) & 0xFF);
+}
+
+static void patch_jump_sBx(LunaProto* proto, size_t pos) {
+    patch_jump_sBx_to(proto, pos, proto->code_len);
 }
 
 static void compile_let(LunaCompiler* C, LunaNode* node) {
@@ -839,6 +850,15 @@ static void compile_if(LunaCompiler* C, LunaNode* node) {
 static void compile_while(LunaCompiler* C, LunaNode* node) {
     LunaProto* proto = compiler_current_proto(C);
 
+    if (C->loop_depth >= LUNA_MAX_LOOPS) {
+        compiler_error_at(C, node, "loops nested too deeply");
+        return;
+    }
+    int depth = C->loop_depth++;
+    LunaLoopContext* ctx = &C->loops[depth];
+    ctx->break_count = 0;
+    ctx->continue_count = 0;
+
     size_t loop_start = proto->code_len;
 
     compile_expr(C, node->as.while_stmt.cond, expr_base(C));
@@ -852,11 +872,115 @@ static void compile_while(LunaCompiler* C, LunaNode* node) {
     luna_proto_emit_op_sBx(proto, OP_JUMP, back);
 
     patch_jump_AsBx(proto, exit_jump_pos);
+
+    size_t exit = proto->code_len;
+    for (int i = 0; i < ctx->break_count; i++) {
+        patch_jump_sBx_to(proto, ctx->breaks[i], exit);
+    }
+    for (int i = 0; i < ctx->continue_count; i++) {
+        patch_jump_sBx_to(proto, ctx->continues[i], loop_start);
+    }
+
+    C->loop_depth--;
+}
+
+static void add_loop_jump(LunaCompiler* C, LunaNode* node, bool is_break) {
+    if (C->loop_depth <= 0) {
+        compiler_error_at(C, node, is_break
+            ? "'break' outside loop"
+            : "'continue' outside loop");
+        return;
+    }
+
+    LunaLoopContext* ctx = &C->loops[C->loop_depth - 1];
+    size_t* jumps = is_break ? ctx->breaks : ctx->continues;
+    int* count = is_break ? &ctx->break_count : &ctx->continue_count;
+    if (*count >= LUNA_MAX_LOOP_JUMPS) {
+        compiler_error_at(C, node, "too many break/continue statements");
+        return;
+    }
+
+    LunaProto* proto = compiler_current_proto(C);
+    luna_proto_set_current_line(proto, node->line);
+    jumps[(*count)++] = proto->code_len;
+    luna_proto_emit_op_sBx(proto, OP_JUMP, 0);
 }
 
 static void compile_for(LunaCompiler* C, LunaNode* node) {
-    (void)C;
-    compiler_error_at(C, node, "for loops not yet implemented");
+    LunaProto* proto = compiler_current_proto(C);
+    LunaScope* scope = &C->scope_stack[C->scope_depth - 1];
+
+    if (C->loop_depth >= LUNA_MAX_LOOPS) {
+        compiler_error_at(C, node, "loops nested too deeply");
+        return;
+    }
+
+    int nvars = 0;
+    for (LunaNodeList* l = node->as.for_stmt.vars; l; l = l->next) nvars++;
+    if (nvars < 1 || nvars > 2) {
+        compiler_error_at(C, node, "for expects one or two loop variables");
+        return;
+    }
+
+    int base = expr_base(C);
+    compile_expr(C, node->as.for_stmt.iter, base);
+    if (C->failed) return;
+
+    int vars[2] = {-1, -1};
+    int state[5] = {-1, -1, -1, -1, -1};
+    int i = 0;
+    for (LunaNodeList* l = node->as.for_stmt.vars; l; l = l->next, i++) {
+        vars[i] = scope_add_local(scope, l->node->as.string.data, false);
+        if (vars[i] < 0) {
+            compiler_error_at(C, node, "too many local variables");
+            return;
+        }
+    }
+    for (int j = 0; j < 5; j++) {
+        char name[32];
+        snprintf(name, sizeof(name), "__luna_for_%d_%d", C->loop_depth, j);
+        state[j] = scope_add_local(scope, name, false);
+        if (state[j] < 0) {
+            compiler_error_at(C, node, "too many local variables");
+            return;
+        }
+    }
+
+    luna_proto_emit_op_AB(proto, OP_MOVE, (uint8_t)state[0], (uint8_t)base);
+    luna_proto_emit_op_AsBx(proto, OP_LOAD_INT, (uint8_t)state[2], nvars);
+    luna_proto_emit_op_AsBx(proto, OP_LOAD_INT, (uint8_t)state[3], base);
+    luna_proto_emit_op_A(proto, OP_LOAD_NIL, (uint8_t)state[4]);
+
+    size_t init_pos = proto->code_len;
+    luna_proto_emit_op_AsBx(proto, OP_FOR_INIT, (uint8_t)state[0], nvars);
+
+    int depth = C->loop_depth++;
+    LunaLoopContext* ctx = &C->loops[depth];
+    ctx->break_count = 0;
+    ctx->continue_count = 0;
+
+    size_t step_pos = proto->code_len;
+    luna_proto_emit_op_AsBx(proto, OP_FOR_STEP, (uint8_t)state[0], 0);
+
+    compile_block(C, node->as.for_stmt.body);
+    if (C->failed) return;
+
+    int16_t back = (int16_t)(step_pos - (int16_t)(proto->code_len + 3));
+    luna_proto_emit_op_sBx(proto, OP_JUMP, back);
+
+    size_t exit = proto->code_len;
+    patch_jump_AsBx(proto, init_pos);
+    patch_jump_AsBx_to(proto, step_pos, exit);
+    for (int j = 0; j < ctx->break_count; j++) {
+        patch_jump_sBx_to(proto, ctx->breaks[j], exit);
+    }
+    for (int j = 0; j < ctx->continue_count; j++) {
+        patch_jump_sBx_to(proto, ctx->continues[j], step_pos);
+    }
+
+    C->loop_depth--;
+    for (int j = 4; j >= 0; j--) scope_hide_local(scope, state[j]);
+    for (int j = nvars - 1; j >= 0; j--) scope_hide_local(scope, vars[j]);
 }
 
 static void compile_fn_decl(LunaCompiler* C, LunaNode* node) {
@@ -939,6 +1063,8 @@ void compile_stmt(LunaCompiler* C, LunaNode* node) {
         case NODE_IF:         compile_if(C, node); break;
         case NODE_WHILE:      compile_while(C, node); break;
         case NODE_FOR:        compile_for(C, node); break;
+        case NODE_BREAK:      add_loop_jump(C, node, true); break;
+        case NODE_CONTINUE:   add_loop_jump(C, node, false); break;
         case NODE_ASSIGN:     compile_assign(C, node); break;
         case NODE_IMPORT:     compile_import(C, node); break;
         case NODE_MOD:        break;

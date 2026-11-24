@@ -16,6 +16,8 @@ FIXTURES = [
     "overflow",
     "string_concat",
     "lambda_closure",
+    "for_loops",
+    "break_continue",
 ]
 
 

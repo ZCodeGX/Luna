@@ -37,4 +37,4 @@ Aprende Luna en 20 minutos y escribe tu primer programa. Esta guía Markdown es 
 La gramática está en [`luna.ebnf`](../../luna.ebnf); los ejemplos ejecutables están en [`tests/`](../../tests/). Para ayuda, consulta el [índice de Ayuda](../Ayuda/README.md).
 
 > [!IMPORTANT]
-> Luna es `0.7.6` (ABI 1, GPL-3.0). `for`, `break`, `continue`, las lambdas anónimas y `+` para strings están en la gramática pero **no** son usables: consulta el [estado de implementación](11-estado-de-implementacion.md).
+> Luna es `0.7.6` (ABI 1, GPL-3.0). `for`, `break`, `continue` y las lambdas anónimas ya son usables; `+` para strings sigue sin estar disponible: consulta el [estado de implementación](11-estado-de-implementacion.md).

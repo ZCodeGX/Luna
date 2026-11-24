@@ -36,13 +36,13 @@ Normalmente significa que una función se llamó con menos argumentos de los nec
 
 Ya no debería aparecer para casos normales: las asignaciones a `lista[i]`, `tabla[clave]` y `objeto.campo` están implementadas. Si ves este mensaje, comprueba que el objetivo sea una de esas formas y no una expresión arbitraria.
 
-## Error: `for loops not yet implemented`
+## Error: `for expects one or two loop variables`
 
-`for`, `break` y `continue` no están disponibles. Sustituye el bucle por `while` con una condición y una variable de control. Consulta el [estado de implementación](../../MD/11-estado-de-implementacion.md).
+`for` admite una variable para elementos/claves o dos para clave y valor. Revisa la lista de variables antes de `in`. Consulta [control de flujo](../../MD/05-control-de-flujo.md).
 
 ## Error: `unsupported expression node`
 
-La expresión utiliza una construcción que el compilador no emite, como una lambda anónima `fn(...)`. Las listas y tablas literales sí funcionan. Consulta las [recetas](../../MD/17-recetas.md).
+La expresión utiliza una construcción que el compilador no emite. Las listas, tablas y lambdas anónimas `fn(...)` sí funcionan. Consulta las [recetas](../../MD/17-recetas.md).
 
 ## Error de tipo al concatenar strings
 

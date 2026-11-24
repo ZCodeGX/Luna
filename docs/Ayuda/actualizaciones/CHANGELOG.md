@@ -19,6 +19,8 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - Módulo gráfico `gml` sobre un backend Tkinter: ventanas, etiquetas, botones, entradas de texto, áreas de texto, casillas y eventos.
 - Fixture de tests para la global `input` con y sin mensaje leyendo desde stdin.
 - Guía práctica `18-guia-de-bibliotecas.md` con ejemplos de uso para todas las bibliotecas disponibles.
+- `for ... in` sobre listas y tablas con una o dos variables, además de `break` y `continue`.
+- Lambdas anónimas `fn(...)` con captura de upvalues.
 
 ### Corregido
 
@@ -27,6 +29,12 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - `throw` recarga el frame que maneja la excepción, permitiendo capturar errores lanzados dentro de funciones.
 - El cliente HTTP conserva el puerto tras liberar la copia de la autoridad de la URL.
 - El servidor HTTP no espera EOF en peticiones GET sin `Content-Length`, evitando bloqueos antes de responder.
+- Operaciones aritméticas con overflow detectado en compilación y VM, sin wraparound silencioso.
+- `and`/`or` con short-circuit real y hashing coherente entre enteros y floats.
+- `string.concat` calcula longitudes correctas para nil, booleanos y números.
+- Ciclo de vida de `LunaProto`, raíces de GC, caché de módulos y validación de bytecode.
+- `luna_pcall` y captura de traceback para errores no manejados.
+- El build incremental recompila objetos cuando cambia cualquier cabecera pública.
 
 ## 0.7.6
 

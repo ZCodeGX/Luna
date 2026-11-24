@@ -1,0 +1,10 @@
+for x in [10, 20, 30]:
+    print(x)
+
+for k, v in {uno = 1}:
+    print(k, v)
+
+for x in []:
+    print("no deberia verse")
+
+print("done")

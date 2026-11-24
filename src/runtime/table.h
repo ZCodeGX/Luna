@@ -33,4 +33,7 @@ void luna_table_remove(LunaTable* t, LunaValue key);
 /* Número de entradas. */
 static inline uint32_t luna_table_count(LunaTable* t) { return t->count; }
 
+/* Claves de la tabla en orden de almacenamiento interno. */
+LunaList* luna_table_keys(LunaState* L, LunaTable* t);
+
 #endif /* LUNA_TABLE_H */

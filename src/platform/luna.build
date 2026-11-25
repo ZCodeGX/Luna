@@ -10,9 +10,9 @@ SOURCES = [
 
 # Selección de implementación según la plataforma
 if os.name == 'nt':
-    SOURCES += ['fs_win32.c', 'dl_win32.c']
+    SOURCES += ['fs_win32.c', 'dl_win32.c', 'process_win32.c']
 else:
-    SOURCES += ['fs_posix.c', 'dl_posix.c']
+    SOURCES += ['fs_posix.c', 'dl_posix.c', 'process_posix.c']
 
 HEADERS = [
     'platform.h',

@@ -1,0 +1,4 @@
+# @expect-error: contains a NUL byte
+import os
+
+os.run("abc\0def")

@@ -60,7 +60,7 @@ integer
 | `list` | `first`, `last`, `is_empty`, `extend`, `slice`, `map`, `filter`, `reduce`, `index_of`, `count`, `unique`. |
 | `table` | `get_or`, `set_default`, `update`, `values`, `merge`, `has_all`, `clear`. |
 | `io` | `ensure_dir`, `read_bytes`, `read_lines`, `write_lines`, `append`. |
-| `os` | `getenv_or`, `is_windows`, `is_linux`, `is_macos`, `separator_char`. |
+| `os` | `getenv_or`, `run`, `system`, `is_windows`, `is_linux`, `is_macos`, `separator_char`. |
 | `time` | `elapsed(start)`, `format_duration(seconds)`, `millis(nanoseconds)`. |
 | `path` | `build`, `stem`, `has_ext`, `is_absolute`. |
 | `http` | `encode`, `decode`, `build_url`, `request`, `get`, `post`, `put`, `delete`, `is_ok`, `listen`, `serve`, `serve_once`, `close`, `reply`, `text`, `html`. |
@@ -117,6 +117,32 @@ x
 ```
 
 En macOS o Windows la primera línea cambia. `time.millis` convierte nanosegundos a milisegundos; `time.elapsed(start)` usa el valor devuelto por `time.nanos()`.
+
+## Ejecutar comandos
+
+`os.run(command, cwd?)` ejecuta `command` con el intérprete de comandos del sistema y captura la salida: no imprime nada por la consola. Devuelve una tabla con `ok` (`code == 0`), `code` (código de salida), `stdout` y `stderr` (strings). `os.system(command, cwd?)` es la variante sin captura: hereda la consola y devuelve solo el código de salida. El segundo argumento, si se da, es el directorio de trabajo del proceso hijo.
+
+```luna
+import os
+import string
+
+let r = os.run("echo hola; exit 2")
+print(r.ok)
+print(r.code)
+print(string.trim(r.stdout))
+print(os.system("exit 0"))
+```
+
+Salida:
+
+```text
+false
+2
+hola
+0
+```
+
+Los comandos se ejecutan con los permisos del proceso Luna y se interpretan con `/bin/sh` en POSIX o `cmd.exe` en Windows: no concatenes texto no confiable sin validarlo. Cada flujo capturado se limita a 8 MiB. En Windows `stderr` se integra en `stdout` porque `_popen` no permite capturarlos por separado. No hay soporte de `timeout` ni de entrada estándar por tubería.
 
 ## Módulo `http`
 

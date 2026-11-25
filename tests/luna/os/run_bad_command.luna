@@ -1,0 +1,4 @@
+# @expect-error: expected string command
+import os
+
+os.run(123)

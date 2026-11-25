@@ -23,6 +23,9 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - Guía práctica `18-guia-de-bibliotecas.md` con ejemplos de uso para todas las bibliotecas disponibles.
 - `for ... in` sobre listas y tablas con una o dos variables, además de `break` y `continue`.
 - Lambdas anónimas `fn(...)` con captura de upvalues.
+- Ejecución de comandos del sistema con `os.run(command, cwd?)` y `os.system(command, cwd?)`, con captura de `stdout`/`stderr` y código de salida.
+- Capa de plataforma `luna_platform_run_process` con implementaciones POSIX y Windows.
+- Pruebas de ejecución de comandos en `tests/luna/os/`.
 
 ### Corregido
 

@@ -59,6 +59,14 @@ La referencia completa está en [FFI](15-ffi.md).
 - Cuerpo: máximo 64 MiB. URL: máximo 8192 bytes y host: máximo 512 bytes.
 - El método, el host y el destino de la petición se validan antes de conectar.
 
+## Procesos (No publicada)
+
+- `os.run(command, cwd?)` captura hasta 8 MiB por flujo (`stdout`, `stderr`) y devuelve `ok`, `code`, `stdout` y `stderr`.
+- `os.system(command, cwd?)` hereda la consola y devuelve el código de salida.
+- El comando se interpreta con `/bin/sh -c` en POSIX y con `cmd.exe` en Windows; se ejecuta con los permisos del proceso Luna.
+- En Windows `stderr` se fusiona con `stdout` (`_popen`), porque no hay captura separada de flujos.
+- No hay `timeout`, ni paso de entrada estándar por tubería, ni ejecución directa por argv: usá comandos de shell.
+
 ## Otros límites
 
 - Solo se permiten espacios para indentar; los tabs son error. Profundidad máxima: 256.

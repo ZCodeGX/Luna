@@ -150,6 +150,20 @@ print(os.getenv_or("LUNA_STDLIB_MISSING_VAR_XYZ", "fallback"))
 print(os.separator_char())
 ```
 
+También permite ejecutar procesos. `os.run(command, cwd?)` captura `stdout` y `stderr` en una tabla con `ok`, `code`, `stdout` y `stderr`; `os.system(command, cwd?)` deja que el comando escriba en la consola y devuelve el código de salida.
+
+```luna
+import os
+import string
+
+let resultado = os.run("echo hola; echo aviso 1>&2; exit 3")
+print(resultado.ok, resultado.code)
+print(string.trim(resultado.stdout), string.trim(resultado.stderr))
+print(os.system("exit 0"))
+```
+
+Salida: `false 3`, luego `hola aviso` y finalmente `0`. Los comandos usan el shell del sistema y los permisos del proceso Luna: validá cualquier dato que inserts en la cadena. Cada salida capturada se corta en 8 MiB y en Windows `stderr` se mezcla con `stdout`.
+
 ## `time`
 
 Relojes, temporizadores y formato de duraciones.

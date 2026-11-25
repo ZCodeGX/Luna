@@ -1,0 +1,26 @@
+import assert
+import os
+
+let ok = os.run("printf '%s\\n' uno dos")
+assert.eq(ok.ok, true, "ok")
+assert.eq(ok.code, 0, "code")
+assert.eq(ok.stdout, "uno\ndos\n", "stdout")
+assert.eq(ok.stderr, "", "stderr")
+
+let fallo = os.run("printf '%s' aviso 1>&2; exit 4")
+assert.eq(fallo.ok, false, "fallo.ok")
+assert.eq(fallo.code, 4, "fallo.code")
+assert.eq(fallo.stdout, "", "fallo.stdout")
+assert.eq(fallo.stderr, "aviso", "fallo.stderr")
+
+let dentro = os.run("printf '%s' aqui", os.cwd())
+assert.eq(dentro.code, 0, "cwd.code")
+assert.eq(dentro.stdout, "aqui", "cwd.stdout")
+
+let vacio = os.run("")
+assert.eq(vacio.code, 0, "vacio.code")
+assert.eq(vacio.stdout, "", "vacio.stdout")
+
+assert.eq(os.system("exit 0"), 0, "system")
+
+assert.report()

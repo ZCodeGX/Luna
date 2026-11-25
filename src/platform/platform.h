@@ -180,4 +180,24 @@ void luna_platform_sleep_ns(uint64_t ns);
  */
 const char* luna_platform_getenv(const char* name);
 
+/* ============================================================
+ * Procesos
+ * ============================================================ */
+
+/*
+ * Ejecuta `command` con el intérprete de comandos del sistema.
+ * `cwd` puede ser NULL para usar el directorio actual.
+ *
+ * Si `capture` es distinto de 0, stdout y stderr se devuelven en
+ * buffers malloc'd que el llamante debe liberar con free(); en caso
+ * contrario se heredan y los buffers se dejan en NULL.
+ *
+ * `out_code` recibe el código de salida (128 + señal en POSIX).
+ * Devuelve LUNA_PLATFORM_OK si el proceso pudo iniciarse y esperarse.
+ */
+int luna_platform_run_process(const char* command, const char* cwd, int capture,
+                              char** out_stdout, size_t* out_stdout_len,
+                              char** out_stderr, size_t* out_stderr_len,
+                              int* out_code, char* error_out, size_t error_size);
+
 #endif /* LUNA_PLATFORM_H */

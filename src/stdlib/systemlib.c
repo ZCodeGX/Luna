@@ -22,6 +22,26 @@ static int push_owned_string(LunaState* L, char* text) {
     return 1;
 }
 
+static char* dup_arg_string(LunaState* L, LunaValue value, const char* label) {
+    if (value.type != LUNA_TSTRING) {
+        lib_error(L, "expected string %s, got %s", label, luna_type_name(value.type));
+        return NULL;
+    }
+    LunaString* text = luna_val_string(value);
+    if (memchr(text->data, '\0', text->len)) {
+        lib_error(L, "%s contains a NUL byte", label);
+        return NULL;
+    }
+    char* copy = (char*)malloc(text->len + 1);
+    if (!copy) {
+        lib_error(L, "out of memory");
+        return NULL;
+    }
+    memcpy(copy, text->data, text->len);
+    copy[text->len] = '\0';
+    return copy;
+}
+
 static int io_read(LunaState* L) {
     const char* path = path_arg(L, 0);
     if (!path) return -1;
@@ -108,6 +128,77 @@ static int os_name(LunaState* L) {
     const char* name = "linux";
 #endif
     luna_pushstring(L, name);
+    return 1;
+}
+
+static int os_run(LunaState* L) {
+    char* command = dup_arg_string(L, lib_arg(L, 0), "command");
+    if (!command) return -1;
+    char* cwd = NULL;
+    if (lib_nargs(L) > 1 && lib_arg(L, 1).type != LUNA_TNIL) {
+        cwd = dup_arg_string(L, lib_arg(L, 1), "cwd");
+        if (!cwd) {
+            free(command);
+            return -1;
+        }
+    }
+
+    char* stdout_data = NULL;
+    char* stderr_data = NULL;
+    size_t stdout_len = 0;
+    size_t stderr_len = 0;
+    int code = -1;
+    char message[256] = {0};
+    int status = luna_platform_run_process(command, cwd, 1,
+                                           &stdout_data, &stdout_len,
+                                           &stderr_data, &stderr_len,
+                                           &code, message, sizeof(message));
+    free(command);
+    free(cwd);
+    if (status != LUNA_PLATFORM_OK) {
+        free(stdout_data);
+        free(stderr_data);
+        return lib_error(L, "%s", message[0] ? message : "cannot run command");
+    }
+
+    luna_newtable(L);
+    int result = luna_gettop(L);
+    luna_pushboolean(L, code == 0);
+    luna_setfield(L, result, "ok");
+    luna_pushinteger(L, code);
+    luna_setfield(L, result, "code");
+    luna_pushlstring(L, stdout_data ? stdout_data : "", stdout_len);
+    luna_setfield(L, result, "stdout");
+    luna_pushlstring(L, stderr_data ? stderr_data : "", stderr_len);
+    luna_setfield(L, result, "stderr");
+    free(stdout_data);
+    free(stderr_data);
+    return 1;
+}
+
+static int os_system(LunaState* L) {
+    char* command = dup_arg_string(L, lib_arg(L, 0), "command");
+    if (!command) return -1;
+    char* cwd = NULL;
+    if (lib_nargs(L) > 1 && lib_arg(L, 1).type != LUNA_TNIL) {
+        cwd = dup_arg_string(L, lib_arg(L, 1), "cwd");
+        if (!cwd) {
+            free(command);
+            return -1;
+        }
+    }
+
+    int code = -1;
+    char message[256] = {0};
+    int status = luna_platform_run_process(command, cwd, 0,
+                                           NULL, NULL, NULL, NULL,
+                                           &code, message, sizeof(message));
+    free(command);
+    free(cwd);
+    if (status != LUNA_PLATFORM_OK) {
+        return lib_error(L, "%s", message[0] ? message : "cannot run command");
+    }
+    luna_pushinteger(L, code);
     return 1;
 }
 
@@ -200,6 +291,8 @@ static void register_os(LunaState* L, LunaTable* exports) {
     lib_export_function(L, exports, "cwd", os_cwd);
     lib_export_function(L, exports, "separator", os_separator);
     lib_export_function(L, exports, "name", os_name);
+    lib_export_function(L, exports, "run", os_run);
+    lib_export_function(L, exports, "system", os_system);
 }
 
 static void register_time(LunaState* L, LunaTable* exports) {

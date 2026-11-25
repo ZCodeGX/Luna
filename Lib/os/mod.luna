@@ -5,6 +5,8 @@ pub let getenv = env.getenv
 pub let getenv_or = env.getenv_or
 pub let cwd = env.cwd
 pub let separator = env.separator
+pub let run = env.run
+pub let system = env.system
 
 pub let name = info.name
 pub let is_windows = info.is_windows

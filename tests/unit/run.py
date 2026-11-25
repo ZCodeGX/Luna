@@ -13,6 +13,7 @@ TOOLS = [
     ("compiler", "tests/unit/compiler/test.c", "Compilation successful!"),
     ("lexer", "tests/unit/lexer/dump.c", None),
     ("parser", "tests/unit/parser/dump.c", "Program"),
+    ("api", "tests/unit/api/test.c", "pcall errfunc OK"),
 ]
 
 

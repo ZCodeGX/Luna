@@ -100,14 +100,15 @@ static int setup_luna_call(LunaState* L, LunaFunction* func, int func_index,
     frame->num_ups = 0;
     frame->handler_top = 0;
 
-    /* La base del frame es el slot donde está la función.
-     * Los slots base[1..n] son los parámetros. */
-    frame->base = &L->stack[func_index];
-
-    /* Asegurar que el stack tenga espacio para locales */
+    /* Asegurar que el stack tenga espacio para locales antes de guardar
+     * el puntero base: vm_stack_ensure() puede reasignar L->stack. */
     size_t needed = (size_t)func_index + proto->stack_size + 2;
     vm_stack_ensure(L, needed > L->stack_top ? needed - L->stack_top : 0);
     if (L->status != LUNA_OK) return -1;
+
+    /* La base del frame es el slot donde está la función.
+     * Los slots base[1..n] son los parámetros. */
+    frame->base = &L->stack[func_index];
 
     /* Rellenar parámetros faltantes con nil */
     for (int i = nargs; i < proto->num_params; i++) {

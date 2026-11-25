@@ -205,6 +205,8 @@ http.close(server)
 
 `req` contiene `method`, `path`, `body` y `headers`. `serve_once` atiende una conexión y devuelve `false` si expira el timeout; `serve` repite hasta `max_requests`.
 
+Límites del módulo: URLs de hasta 8192 bytes, hosts de hasta 512 bytes, cabeceras de hasta 8192 bytes por línea y 1 MiB en total, y cuerpos de hasta 64 MiB. Los nombres y valores de cabecera no pueden contener CR/LF; el método y el destino de la petición se validan antes de abrir la conexión. Solo se admite `http://`: para `https://` se requiere un cliente con TLS.
+
 ## `json`
 
 Conversión entre valores Luna y texto JSON. Objetos son tablas y arrays son listas.

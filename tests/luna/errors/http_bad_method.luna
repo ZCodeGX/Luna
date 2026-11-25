@@ -1,0 +1,4 @@
+# @expect-error: método HTTP inválido
+import http
+
+http.request("GET\r\nX-Evil: 1", "http://127.0.0.1/")

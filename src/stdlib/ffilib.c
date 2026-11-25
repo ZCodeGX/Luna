@@ -8,7 +8,6 @@
 #include <string.h>
 
 #define FFI_MAX_ARGS 8
-#define FFI_MAX_LIBS 64
 
 typedef enum {
     FFI_TVOID = 0,
@@ -30,13 +29,9 @@ typedef struct {
 } FfiHandle;
 
 typedef struct {
-    LunaState* owner;
-    LunaDynLib handle;
+    LunaDynLib lib;
     char* path;
-} FfiLibEntry;
-
-static FfiLibEntry g_ffi_libs[FFI_MAX_LIBS];
-static int g_ffi_lib_count = 0;
+} FfiLibrary;
 
 static int ffi_call(LunaState* L);
 
@@ -51,10 +46,21 @@ static void ffi_handle_finalizer(LunaState* L, void* ptr) {
     (void)L;
     FfiHandle* h = (FfiHandle*)ptr;
     if (!h) return;
+    if (h->lib) luna_platform_dlclose(h->lib);
     free(h->binding);
     free(h->symbol);
     free(h->library);
     memset(h, 0, sizeof(*h));
+}
+
+static void ffi_library_finalizer(LunaState* L, void* ptr) {
+    (void)L;
+    FfiLibrary* lib = (FfiLibrary*)ptr;
+    if (!lib) return;
+    if (lib->lib) luna_platform_dlclose(lib->lib);
+    free(lib->path);
+    lib->lib = NULL;
+    lib->path = NULL;
 }
 
 static int ffi_parse_type(const char* s, size_t len, FfiType* out) {
@@ -104,16 +110,6 @@ static int ffi_is_self(const char* path) {
 }
 
 static LunaDynLib ffi_load_library(LunaState* L, const char* path) {
-    const char* key = ffi_is_self(path) ? "" : path;
-    for (int i = 0; i < g_ffi_lib_count; i++) {
-        if (g_ffi_libs[i].owner == L && strcmp(g_ffi_libs[i].path, key) == 0)
-            return g_ffi_libs[i].handle;
-    }
-    if (g_ffi_lib_count >= FFI_MAX_LIBS) {
-        lib_error(L, "ffi: too many loaded libraries");
-        return NULL;
-    }
-
     char error[256] = {0};
     LunaDynLib handle = NULL;
     const char* candidates[4] = {NULL, NULL, NULL, NULL};
@@ -135,27 +131,12 @@ static LunaDynLib ffi_load_library(LunaState* L, const char* path) {
     for (int i = 0; i < count; i++) {
         error[0] = '\0';
         handle = luna_platform_dlopen(candidates[i], error, sizeof(error));
-        if (handle) break;
+        if (handle) return handle;
     }
 
-    if (!handle) {
-        lib_error(L, "ffi: cannot load '%s': %s", path ? path : "current process",
-                  error[0] ? error : "unknown error");
-        return NULL;
-    }
-
-    char* stored = ffi_strdup(key);
-    if (!stored) {
-        luna_platform_dlclose(handle);
-        lib_error(L, "ffi: out of memory");
-        return NULL;
-    }
-
-    g_ffi_libs[g_ffi_lib_count].owner = L;
-    g_ffi_libs[g_ffi_lib_count].path = stored;
-    g_ffi_libs[g_ffi_lib_count].handle = handle;
-    g_ffi_lib_count++;
-    return handle;
+    lib_error(L, "ffi: cannot load '%s': %s", path ? path : "current process",
+              error[0] ? error : "unknown error");
+    return NULL;
 }
 
 static const char* ffi_arg_string(LunaState* L, int i, size_t* len) {
@@ -232,6 +213,7 @@ static int ffi_declare_impl(LunaState* L, int name_idx, int symbol_idx,
     char error[256] = {0};
     LunaDynSym sym = luna_platform_dlsym(lib, symbol_buf, error, sizeof(error));
     if (!sym) {
+        luna_platform_dlclose(lib);
         free(name_buf);
         free(symbol_buf);
         free(library_buf);
@@ -241,6 +223,7 @@ static int ffi_declare_impl(LunaState* L, int name_idx, int symbol_idx,
     FfiHandle* h = (FfiHandle*)luna_newuserdata_finalized(L, sizeof(FfiHandle),
                                                           ffi_handle_finalizer);
     if (!h) {
+        luna_platform_dlclose(lib);
         free(name_buf);
         free(symbol_buf);
         free(library_buf);
@@ -440,9 +423,20 @@ static int ffi_load(LunaState* L) {
     memcpy(buf, path, len);
     buf[len] = '\0';
     LunaDynLib lib = ffi_load_library(L, buf);
-    free(buf);
-    if (!lib) return -1;
-    luna_pushboolean(L, 1);
+    if (!lib) {
+        free(buf);
+        return -1;
+    }
+
+    FfiLibrary* handle = (FfiLibrary*)luna_newuserdata_finalized(L, sizeof(FfiLibrary),
+                                                                  ffi_library_finalizer);
+    if (!handle) {
+        luna_platform_dlclose(lib);
+        free(buf);
+        return -1;
+    }
+    handle->lib = lib;
+    handle->path = buf;
     return 1;
 }
 
@@ -459,20 +453,7 @@ static void ffi_register_functions(LunaState* L, LunaTable* exports) {
     lib_export_function(L, exports, "extension", ffi_extension);
 }
 
-static void ffi_shutdown(LunaState* L) {
-    int kept = 0;
-    for (int i = 0; i < g_ffi_lib_count; i++) {
-        if (g_ffi_libs[i].owner == L) {
-            if (g_ffi_libs[i].handle) luna_platform_dlclose(g_ffi_libs[i].handle);
-            free(g_ffi_libs[i].path);
-            continue;
-        }
-        g_ffi_libs[kept++] = g_ffi_libs[i];
-    }
-    g_ffi_lib_count = kept;
-}
-
-static const LunaModule g_ffi_module = { "ffi_native", ffi_register_functions, ffi_shutdown };
+static const LunaModule g_ffi_module = { "ffi_native", ffi_register_functions, NULL };
 
 void luna_open_ffi_lib(LunaState* L) {
     luna_register_function(L, "__ffi_declare", ffi_declare);

@@ -1,0 +1,4 @@
+# @expect-error: url http inválida
+import http
+
+http.request("GET", "http://127.0.0.1/ok\r\nX-Evil: 1")

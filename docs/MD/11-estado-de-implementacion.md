@@ -47,10 +47,17 @@ Usa `string.concat` o `string.join` en su lugar. La sintaxis de bloque válida s
 - Hasta 8 parámetros declarados y 4 parámetros en la llamada.
 - Argumentos homogéneos: todos enteros/punteros/strings o todos `float`; no se permite mezclarlos.
 - Solo ABI C. Para C++ exportar con `extern "C"` o usar `ffi.declare_symbol`.
-- Módulo `ffi`: `declare`, `declare_symbol`, `load`, `extension`.
-- Ejecutable de ejemplo: `tests/regression/ffi.luna`, con salida en `tests/regression/ffi.expected`.
+- Módulo `ffi`: `declare`, `declare_symbol`, `load`, `extension`. `ffi.load()` devuelve un `userdata` con finalizer; cada llamada abre su propio handle y no hay caché global.
+- Ejecutables de ejemplo: `tests/regression/ffi.luna` y `tests/regression/ffi_lifecycle.luna`, con sus archivos `.expected`.
 
 La referencia completa está en [FFI](15-ffi.md).
+
+## HTTP (0.7.6)
+
+- Solo `http://`; `https://` se rechaza con un mensaje explícito porque no hay TLS.
+- Cabeceras: máximo 1 MiB agregados, 8192 bytes por línea y sin CR/LF en nombres o valores.
+- Cuerpo: máximo 64 MiB. URL: máximo 8192 bytes y host: máximo 512 bytes.
+- El método, el host y el destino de la petición se validan antes de conectar.
 
 ## Otros límites
 

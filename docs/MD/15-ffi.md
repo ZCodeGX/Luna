@@ -74,7 +74,7 @@ La extensión se consulta con `ffi.extension()`.
 | --- | --- |
 | `ffi.declare(nombre, librería, firma)` | Declara un símbolo con el mismo nombre en Luna y en C |
 | `ffi.declare_symbol(nombre, símbolo, librería, firma)` | Permite que el nombre Luna y el símbolo C difieran |
-| `ffi.load(librería)` | Carga una biblioteca; devuelve `true` si lo consigue |
+| `ffi.load(librería)` | Carga una biblioteca; devuelve un `userdata` que mantiene el handle hasta que se recolecta |
 | `ffi.extension()` | Devuelve `.so`, `.dylib` o `.dll` según la plataforma |
 
 Ejemplo:
@@ -94,11 +94,13 @@ print(pow_local(2.0, 4.0))
 Salida en Linux:
 
 ```text
-true
+userdata
 .so
 9
 16
 ```
+
+Cada llamada a `ffi.load()` abre su propio handle; no hay caché global. El `userdata` devuelto cierra la biblioteca al ser recolectado. Guarda una referencia mientras uses los símbolos declarados desde esa biblioteca.
 
 En macOS la segunda línea es `.dylib` y en Windows `.dll`.
 

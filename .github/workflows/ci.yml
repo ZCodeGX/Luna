@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar Luna
+        run: ./luna.py build
+      - name: Tests unitarios C
+        run: python3 tests/unit/run.py
+      - name: Tests de lenguaje
+        run: python3 tests/luna/run.py
+      - name: Regresiones
+        run: python3 tests/regression/run.py
+      - name: Benchmark smoke
+        run: python3 benchmarks/run.py --runs 1 --warmup 0 --iterations 1000 --fib-n 10 --no-build --json /tmp/luna-bench.json

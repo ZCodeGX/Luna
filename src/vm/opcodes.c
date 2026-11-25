@@ -612,7 +612,7 @@ VM_SWITCH_BEGIN
 
             if (vm->frame_top <= vm->return_level) {
                 /* Retorno del chunk principal: terminar */
-                L->stack_top = ret_start;
+                L->stack_top = ret_start + (size_t)(nresults > 0 ? nresults : 0);
                 VM_FINISHED();
             }
 

@@ -1,0 +1,4 @@
+import ffi
+
+print(type(ffi.load("m")))
+print(type(ffi.load("m")))

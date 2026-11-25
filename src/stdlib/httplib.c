@@ -29,6 +29,9 @@
 #define HTTP_DEFAULT_TIMEOUT 5.0
 #define HTTP_MAX_HEADER_BYTES (1024 * 1024)
 #define HTTP_MAX_BODY_BYTES (64 * 1024 * 1024)
+#define HTTP_MAX_URL_BYTES 8192
+#define HTTP_MAX_HOST_BYTES 512
+#define HTTP_MAX_HEADER_LINE 8192
 
 typedef struct {
     char* key;
@@ -103,6 +106,14 @@ static char* str_dup_n(const char* s, size_t n) {
     memcpy(p, s, n);
     p[n] = '\0';
     return p;
+}
+
+static int has_control_chars(const char* s, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        unsigned char c = (unsigned char)s[i];
+        if (c < 0x20 || c == 0x7f) return 1;
+    }
+    return 0;
 }
 
 static void trim_spaces(char** s) {
@@ -395,12 +406,13 @@ static void url_free(HttpUrl* u) {
 
 static int parse_url(const char* url, HttpUrl* out) {
     const char* prefix = "http://";
+    if (!url || strlen(url) > HTTP_MAX_URL_BYTES) return -1;
     if (strncmp(url, "https://", 8) == 0) return -2;
     if (strncmp(url, prefix, strlen(prefix)) != 0) return -1;
     const char* rest = url + strlen(prefix);
     const char* slash = strchr(rest, '/');
     size_t auth_len = slash ? (size_t)(slash - rest) : strlen(rest);
-    if (auth_len == 0) return -1;
+    if (auth_len == 0 || auth_len > HTTP_MAX_HOST_BYTES) return -1;
     char* auth = str_dup_n(rest, auth_len);
     if (!auth) return -1;
 
@@ -421,7 +433,9 @@ static int parse_url(const char* url, HttpUrl* out) {
         host = str_dup_n(auth, strlen(auth));
     }
     free(auth);
-    if (!host || *host == '\0') { free(host); free(port_text); return -1; }
+    if (!host || *host == '\0' || has_control_chars(host, strlen(host))) {
+        free(host); free(port_text); return -1;
+    }
 
     int port = 80;
     if (port_text && *port_text) {
@@ -435,9 +449,14 @@ static int parse_url(const char* url, HttpUrl* out) {
     free(port_text);
 
     const char* path = slash ? slash : "/";
+    size_t path_len = strlen(path);
+    if (path_len > HTTP_MAX_URL_BYTES || has_control_chars(path, path_len)) {
+        free(host);
+        return -1;
+    }
     out->host = host;
     out->port = port;
-    out->path = str_dup_n(path, strlen(path));
+    out->path = str_dup_n(path, path_len);
     if (!out->path) { url_free(out); return -1; }
     return 0;
 }
@@ -543,6 +562,15 @@ static int append_luna_headers(HttpBuf* out, LunaTable* table) {
         LunaString* key = luna_val_string(node->key);
         char* value = value_text(node->value);
         if (!value) continue;
+        size_t value_len = strlen(value);
+        if (key->len == 0 || key->len > HTTP_MAX_HEADER_LINE ||
+            value_len > HTTP_MAX_HEADER_LINE ||
+            has_control_chars(key->data, key->len) ||
+            has_control_chars(value, value_len) ||
+            out->len + key->len + value_len + 4 > HTTP_MAX_HEADER_BYTES) {
+            free(value);
+            return -1;
+        }
         int bad = buf_append(out, key->data, key->len) != 0 ||
                   buf_append_str(out, ": ") != 0 ||
                   buf_append_str(out, value) != 0 ||
@@ -577,13 +605,19 @@ static int h_request(LunaState* L) {
     const char* body = arg_string(L, 3, &body_len, 0, &failed);
     LunaTable* extra = arg_table(L, 2, &failed);
     if (failed) return lib_error(L, "request: argumentos inválidos");
+    if (method_len == 0 || method_len > 32 || has_control_chars(method, method_len)) {
+        return lib_error(L, "request: método HTTP inválido");
+    }
+    if (body_len > HTTP_MAX_BODY_BYTES) {
+        return lib_error(L, "request: cuerpo demasiado grande");
+    }
     double timeout = arg_number(L, 4, HTTP_DEFAULT_TIMEOUT);
     if (timeout <= 0) timeout = HTTP_DEFAULT_TIMEOUT;
 
     char* url_copy = str_dup_n(url_text, url_len);
     HttpUrl url;
     memset(&url, 0, sizeof(url));
-    int parsed = url_copy ? parse_url(url_copy, &url) : -1;
+    int parsed = (url_copy && strlen(url_copy) == url_len) ? parse_url(url_copy, &url) : -1;
     if (parsed != 0) {
         if (parsed == -2) { free(url_copy); url_free(&url); return lib_error(L, "https requiere TLS: usa un cliente con TLS"); }
         int detail = lib_error(L, "url http inválida");
@@ -908,7 +942,8 @@ static int reply_from_table(LunaState* L, LunaValue value, HttpReply* reply) {
     reply->reason = str_dup_n(fallback, strlen(fallback));
     if (table_field(L, table, "reason", &field)) {
         char* custom = value_text(field);
-        if (custom && custom[0] != '\0') {
+        if (custom && custom[0] != '\0' &&
+            !has_control_chars(custom, strlen(custom))) {
             free(reply->reason);
             reply->reason = custom;
         } else {

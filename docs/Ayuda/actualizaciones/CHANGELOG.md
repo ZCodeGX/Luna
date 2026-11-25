@@ -6,7 +6,9 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 
 ### Añadido
 
-- Suite modular `tests/luna/` con 84 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI, HTTP y estrés de VM.
+- Suite modular `tests/luna/` con 86 casos de sintaxis, lenguaje, módulos, proyectos, errores, FFI, HTTP y estrés de VM.
+- Workflow de CI en `.github/workflows/ci.yml`: build, tests unitarios, tests de lenguaje, regresiones y benchmark smoke.
+- Regresiones para ciclo de vida de FFI y validación de URL/método HTTP.
 - Caso de estrés con 2000 aserciones ejecutadas desde Luna y cobertura explícita de comentarios `#`.
 - Regresiones para `else if`, upvalues de segundo nivel y `throw` desde funciones llamadas.
 - Interfaz animada de `install.sh` con banner, colores, progreso, resumen de versiones, rutas y modo `--info` para Linux/macOS.
@@ -34,6 +36,11 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - `string.concat` calcula longitudes correctas para nil, booleanos y números.
 - Ciclo de vida de `LunaProto`, raíces de GC, caché de módulos y validación de bytecode.
 - `luna_pcall` y captura de traceback para errores no manejados.
+- `luna_pcall` aplica el `errfunc` incluso cuando la función está en el slot 0 y devuelve el resultado del handler.
+- `OP_RETURN` conserva los resultados al terminar una llamada iniciada desde la API C.
+- `setup_luna_call()` asegura el stack antes de guardar `frame->base`, evitando punteros colgantes tras una reallocación.
+- `ffi.load()` devuelve un `userdata` con finalizer en lugar de `true`; las cargas repetidas ya no comparten una caché global.
+- El cliente y servidor HTTP rechazan CR/LF en cabeceras, validan método/host/destino y aplican límites documentados.
 - El build incremental recompila objetos cuando cambia cualquier cabecera pública.
 
 ## 0.7.6

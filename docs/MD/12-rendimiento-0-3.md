@@ -1,5 +1,7 @@
 # Luna 0.3 — Performance Revolution
 
+> Documento histórico de la iniciativa de rendimiento de 0.3. Las cifras y fases describen ese momento; el harness actual está en `benchmarks/run.py` y sus resultados locales se guardan en `benchmarks/results/latest.json` (ignorado por git).
+
 ## Decisión de arquitectura
 
 **C: intérprete optimizado con arquitectura preparada para JIT.**

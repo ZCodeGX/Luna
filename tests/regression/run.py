@@ -11,6 +11,7 @@ FIXTURES = [
     "exceptions",
     "upvalues",
     "ffi",
+    "ffi_lifecycle",
     "short_circuit",
     "numeric_hash",
     "overflow",

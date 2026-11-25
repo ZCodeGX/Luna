@@ -215,6 +215,38 @@ static int builtin_float(LunaState* L) {
     }
 }
 
+static int builtin_bool(LunaState* L) {
+    LunaValue v = lib_arg(L, 0);
+    int value = 1;
+    switch (v.type) {
+        case LUNA_TNIL:
+            value = 0;
+            break;
+        case LUNA_TBOOLEAN:
+            value = luna_val_bool(v) ? 1 : 0;
+            break;
+        case LUNA_TINTEGER:
+            value = luna_val_int(v) != 0;
+            break;
+        case LUNA_TFLOAT:
+            value = luna_val_float(v) != 0.0;
+            break;
+        case LUNA_TSTRING:
+            value = luna_string_len(luna_val_string(v)) > 0;
+            break;
+        case LUNA_TLIST:
+            value = luna_list_len(luna_val_list(v)) > 0;
+            break;
+        case LUNA_TTABLE:
+            value = luna_table_count(luna_val_table(v)) > 0;
+            break;
+        default:
+            break;
+    }
+    luna_pushboolean(L, value);
+    return 1;
+}
+
 static int builtin_input(LunaState* L) {
     if (lib_nargs(L) > 0) {
         LunaValue prompt = lib_arg(L, 0);
@@ -337,6 +369,7 @@ void luna_open_stdlib(LunaState* L) {
     luna_register_function(L, "str", builtin_str);
     luna_register_function(L, "int", builtin_int);
     luna_register_function(L, "float", builtin_float);
+    luna_register_function(L, "bool", builtin_bool);
     luna_register_function(L, "input", builtin_input);
 
     luna_open_math_lib(L);

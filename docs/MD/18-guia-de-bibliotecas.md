@@ -12,7 +12,7 @@ Esta guía muestra cómo usar las bibliotecas disponibles en Luna `0.7.6`. La re
 
 ## Globales y entrada de terminal
 
-`len`, `type`, `str`, `int`, `float` e `input` siempre están disponibles. `input(mensaje)` acepta un mensaje opcional y devuelve una línea de stdin sin el salto final.
+`print`, `len`, `type`, `str`, `int`, `float`, `bool` e `input` están integradas en el lenguaje y se usan sin `import`. `input(mensaje)` acepta un mensaje opcional y devuelve una línea de stdin sin el salto final; `bool(valor)` aplica el valor de verdad de Luna (`nil`, `false`, cero y contenedores vacíos son falsos).
 
 ```luna
 let nombre = input("Nombre: ")

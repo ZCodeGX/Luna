@@ -1,6 +1,6 @@
 # 14 — Biblioteca estándar
 
-Luna `0.7.6` incluye una biblioteca estándar disponible al crear el estado: `print` es solo una de las funciones nativas registradas. Cada carpeta de `Lib/` contiene varios archivos `.luna`: `mod.luna` actúa como fachada pública y el resto implementa la funcionalidad en el propio lenguaje.
+Luna `0.7.6` incluye funciones integradas disponibles al crear el estado: `print`, `len`, `type`, `str`, `int`, `float`, `bool` e `input` se usan directamente, sin `import`. Cada carpeta de `Lib/` contiene módulos `.luna` opcionales: `mod.luna` actúa como fachada pública y el resto implementa funcionalidad adicional en el propio lenguaje.
 
 La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisible para el código de usuario habitual: los módulos `.luna` las envuelven, las combinan y añaden lógica escrita en Luna. Para ejemplos de uso de cada módulo, consulta la [guía práctica de bibliotecas](18-guia-de-bibliotecas.md).
 
@@ -26,11 +26,13 @@ La capa nativa en C (`*_native`) aporta las operaciones primitivas y es invisibl
 
 | Función | Descripción |
 | --- | --- |
+| `print(...)` | Escribe cada argumento en `stdout`, separados por un espacio, y termina con salto de línea. |
 | `len(valor)` | Longitud de strings, listas y tablas. |
 | `type(valor)` | Nombre del tipo en minúsculas. |
 | `str(valor)` | Representación textual. |
 | `int(valor)` | Convierte números, booleanos o strings a entero. |
 | `float(valor)` | Convierte números, booleanos o strings a float. |
+| `bool(valor)` | Valor de verdad: `false` para `nil`, `false`, cero, string/lista/tabla vacíos; `true` para el resto. |
 | `input(mensaje)` | Escribe el mensaje opcional y lee una línea de entrada estándar; devuelve un string. |
 
 ```luna
@@ -39,6 +41,7 @@ print(type(42))
 print(str(3.5))
 print(int("10"))
 print(float("2.5"))
+print(bool([]), bool("luna"))
 ```
 
 Salida:
@@ -49,6 +52,7 @@ integer
 3.5
 10
 2.5
+false true
 ```
 
 ## Funciones añadidas en Luna

@@ -26,6 +26,8 @@ Todas las versiones de Luna siguen el formato `MAJOR.MINOR.PATCH`: `MAJOR` sube 
 - Ejecución de comandos del sistema con `os.run(command, cwd?)` y `os.system(command, cwd?)`, con captura de `stdout`/`stderr` y código de salida.
 - Capa de plataforma `luna_platform_run_process` con implementaciones POSIX y Windows.
 - Pruebas de ejecución de comandos en `tests/luna/os/`.
+- Global `bool(valor)` con conversión desde nil, booleanos, números, strings, listas y tablas, junto al resto de funciones integradas que se usan sin `import`.
+- Prueba de las funciones integradas en `tests/luna/language/builtin_functions.luna`.
 
 ### Corregido
 

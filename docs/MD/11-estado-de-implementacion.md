@@ -27,7 +27,7 @@ Luna se encuentra en versión `0.7.6` (ABI 1, GPL-3.0). La gramática `luna.ebnf
 | Errores de compilación con archivo/línea/columna | Disponible |
 | FFI con `extern` y módulo `ffi` | Disponible desde 0.7.6 |
 
-`print` no es la única función nativa: al crear un estado se registran las globales `len`, `type`, `str`, `int`, `float` e `input` y los módulos `math`, `string`, `list`, `table`, `io`, `os`, `time`, `path` y `ffi`. Consulta la [biblioteca estándar](14-biblioteca-estandar.md).
+`print` no es la única función nativa: al crear un estado se registran las globales `print`, `len`, `type`, `str`, `int`, `float`, `bool` e `input`, todas uso directo sin `import`. También están los módulos opcionales `math`, `string`, `list`, `table`, `io`, `os`, `time`, `path` y `ffi`. Consulta la [biblioteca estándar](14-biblioteca-estandar.md).
 
 ## Reconocido pero no compilado
 
